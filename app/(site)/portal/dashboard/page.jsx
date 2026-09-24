@@ -2,22 +2,13 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getPortalSession } from "@/lib/auth";
-import { zar, zarFull, dateFmt, dateTimeFmt } from "@/lib/format";
-import { portalDocumentUrl } from "@/lib/files";
+import { zarFull, dateFmt } from "@/lib/format";
 import { memberTotals } from "@/lib/member-totals";
 import { StatusPill } from "@/components/ui";
-import { LogoutButton, UploadDocument, EditContact, ChangePassword } from "@/components/site/PortalActions";
+import { LogoutButton, EditContact, ChangePassword } from "@/components/site/PortalActions";
 
 export const metadata = { title: "Member Dashboard" };
 export const dynamic = "force-dynamic";
-
-const DOC_CATEGORIES = [
-  ["ID_COPY", "Certified ID Copy"],
-  ["BENEFICIARY_FORM", "Beneficiary Nomination Form"],
-  ["BUILDING_PLAN", "Building Plan"],
-  ["CERTIFICATE", "Certificate"],
-  ["OTHER", "Other"],
-];
 
 export default async function PortalDashboard() {
   const session = await getPortalSession();
@@ -29,7 +20,6 @@ export default async function PortalDashboard() {
       include: {
         plots: { include: { project: true }, orderBy: { number: "asc" } },
         payments: { orderBy: { date: "desc" } },
-        documents: { orderBy: { createdAt: "desc" } },
       },
     }),
     prisma.project.findUnique({ where: { slug: "river-edge" } }),
@@ -135,32 +125,14 @@ export default async function PortalDashboard() {
             <div className="card p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-forest-900">My Documents</h2>
-                <UploadDocument categories={DOC_CATEGORIES} />
               </div>
-              {member.documents.length === 0 ? (
-                <p className="text-sm text-gray-500">
-                  No documents uploaded yet. Please upload your certified ID copy and beneficiary nomination form.
-                </p>
-              ) : (
-                <ul className="divide-y divide-gray-100">
-                  {member.documents.map((d) => {
-                    const cat = DOC_CATEGORIES.find(([v]) => v === d.category)?.[1] || d.category;
-                    return (
-                      <li key={d.id} className="py-3 flex items-center justify-between gap-3">
-                        <div>
-                          <p className="font-medium text-sm text-gray-900">{d.title}</p>
-                          <p className="text-xs text-gray-500">{cat} · uploaded {dateTimeFmt(d.createdAt)}</p>
-                        </div>
-                        {d.filePath && d.filePath !== "#" ? (
-                          <a href={portalDocumentUrl(d.filePath)} target="_blank" rel="noreferrer" className="btn-outline btn-sm">Download</a>
-                        ) : (
-                          <span className="text-xs text-gray-400">On file at office</span>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
+              <p className="text-sm text-gray-600">
+                Online document upload and download are temporarily disabled during our launch. To
+                submit your certified ID copy or beneficiary nomination form, please email it to{" "}
+                <a href="mailto:themhezatrust@gmail.com" className="text-forest-700 font-medium hover:underline">themhezatrust@gmail.com</a>{" "}
+                or hand it in at the Trust office. Your documents are kept safely on file and online
+                access will return shortly.
+              </p>
               <div className="mt-4 rounded-lg bg-blue-50 border border-blue-100 p-3 text-xs text-blue-800">
                 📜 Your <strong>Certificate of Land Use</strong> will become available for download here once issued by the municipality.
               </div>

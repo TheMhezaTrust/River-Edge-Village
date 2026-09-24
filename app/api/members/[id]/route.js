@@ -9,7 +9,7 @@ export async function GET(req, { params }) {
   const { id } = await params;
   const member = await prisma.member.findUnique({
     where: { id: Number(id) },
-    include: { plots: { include: { project: true } }, payments: { orderBy: { date: "desc" } }, documents: true },
+    include: { plots: { include: { project: true } }, payments: { orderBy: { date: "desc" } } },
   });
   if (!member) return bad("Member not found", 404);
   const { password, ...safe } = member;

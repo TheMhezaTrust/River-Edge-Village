@@ -7,8 +7,7 @@ import { api } from "@/lib/api-client";
 import { useFetch, PageHeader, LoadingBlock, ErrorBlock } from "@/components/ws/common";
 import { usePermissions, ReadOnlyNote } from "@/components/ws/permissions";
 import { Modal, Field, StatusPill, Alert } from "@/components/ui";
-import { zar, zarFull, dateFmt, dateTimeFmt } from "@/lib/format";
-import { staffMemberDocumentUrl } from "@/lib/files";
+import { zar, zarFull, dateFmt } from "@/lib/format";
 
 export default function MemberDetailPage() {
   const { id } = useParams();
@@ -189,25 +188,6 @@ export default function MemberDetailPage() {
                   ))}
                 </tbody>
               </table>
-            )}
-          </div>
-
-          <div className="card p-6">
-            <h2 className="font-bold text-gray-900 mb-4">Documents ({member.documents.length})</h2>
-            {member.documents.length === 0 ? (
-              <p className="text-sm text-gray-500">No documents uploaded by this member.</p>
-            ) : (
-              <ul className="divide-y divide-gray-100">
-                {member.documents.map((d) => (
-                  <li key={d.id} className="py-2.5 flex justify-between items-center text-sm">
-                    <div>
-                      <p className="font-medium">{d.title}</p>
-                      <p className="text-xs text-gray-500">{d.category.replaceAll("_", " ").toLowerCase()} · {dateTimeFmt(d.createdAt)}</p>
-                    </div>
-                    {d.filePath !== "#" ? <a href={staffMemberDocumentUrl(d.filePath)} target="_blank" rel="noreferrer" className="btn-outline btn-sm">Download</a> : <span className="text-xs text-gray-400">On file</span>}
-                  </li>
-                ))}
-              </ul>
             )}
           </div>
 

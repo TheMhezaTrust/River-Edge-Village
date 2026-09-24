@@ -11,7 +11,6 @@ const QUICK_ACTIONS = [
   ["/workstation/members?new=1", "➕", "Add Member", "members:manage"],
   ["/workstation/finance?tab=payments", "💵", "Record Payment", "finance:manage"],
   ["/workstation/inquiries?new=1", "📝", "Add Inquiry", "inquiries:manage"],
-  ["/workstation/documents?new=1", "📤", "Upload Document", "documents:manage"],
   ["/workstation/plots", "🗺️", "Update Plots", "plots:manage"],
   ["/workstation/communication", "✉️", "Send Message", null],
   ["/workstation/reports", "📈", "Generate Report", null],
