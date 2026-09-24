@@ -5,6 +5,13 @@ prisma/dev.db
 prisma/dev.db-journal
 # Real member PII dump used for the SQLite->Postgres migration. Never commit.
 prisma/data-export.json
+# Real roster source + one-off import tool (PII). Local audit only, never commit.
+roster_raw.txt
+import-roster.mjs
+# Local backup/log/scratch artifacts
+*-income-backup.json
+dev.log
+.plan-tiles/
 storage/uploads/*
 !storage/uploads/.gitkeep
 .env
