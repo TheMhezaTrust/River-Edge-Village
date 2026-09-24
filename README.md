@@ -17,7 +17,7 @@ Both share one database, one design language (earth-tone Tailwind theme), and on
 | Auth       | JWT (jose) in httpOnly cookies, bcrypt password hashing       |
 | Access     | Role-based permissions (`lib/roles.js`) enforced in every API route |
 | Charts     | recharts                                                      |
-| Uploads    | Local `storage/uploads`, served only via authenticated routes (swap for S3-compatible storage in production) |
+| Uploads    | Document upload/download **disabled for launch** (no object storage); all `/api/**/documents*` routes return 410. `lib/uploads.js` + `lib/files.js` retained for re-enable |
 | AI assistant | "Mheza" public chat bot — OpenAI-compatible LLM (DeepSeek by default) via `app/api/chat` |
 
 ## Mheza — public AI assistant
@@ -101,13 +101,108 @@ storage/uploads/     # uploaded files — never inside public/, so not staticall
 docs/                # user guide & training material
 ```
 
-## Production deployment notes
+## Production deployment (Vercel + Neon)
 
-1. **PostgreSQL**: in `prisma/schema.prisma` change `provider = "sqlite"` → `provider = "postgresql"` and set `DATABASE_URL` to your Postgres connection string. The schema is fully compatible (JSON-ish data stored as strings). Then `npx prisma db push` (or migrate) — do **not** run the seed in production.
-2. **Secrets**: set a strong `JWT_SECRET` environment variable.
-3. **Email/SMS**: inquiry submissions currently log to the server console and create workstation notifications. Wire `app/api/public/inquiries/route.js` to SendGrid/Mailgun (member emails) and Twilio (SMS) — the integration point is marked in the file.
-4. **File storage**: uploads live in `storage/uploads` (deliberately **outside** `public/`) and are served only through authenticated routes — `GET /api/documents/file/[name]` (staff `documents:view`, honouring per-document role restrictions), `GET /api/members/documents/file/[name]` (staff `members:view`) and `GET /api/portal/documents/file/[name]` (the owning member only). Replace the local disk writes in `lib/uploads.js` with S3-compatible storage for multi-instance deployments, keeping the same authorization checks.
-5. **Hardening checklist**: enable HTTPS/SSL at the proxy, optional 2FA on `/workstation/login`, session timeout tuning in `lib/auth.js` (currently 12h), scheduled database backups, and dependency updates.
+The app is a **Next.js SSR** application (server components + API route handlers), so it must run on a
+platform that executes Node at request time. The chosen target is **Vercel** (Next-native) with a
+**Neon** serverless Postgres database. Vercel's filesystem is ephemeral, which is why SQLite and
+local-disk uploads cannot be used in production — hence the Postgres migration and the launch-time
+disabling of document upload/download (no object storage is provisioned yet).
+
+Everything below after step 0 is done once. Steps marked **⚠ needs you** require an account/action only
+the Trust admin can perform (provisioning services, secrets, DNS).
+
+### 0. Prerequisites (local, already done)
+
+- Repo initialised with a clean baseline commit; all PII/secret files are git-ignored
+  (`roster_raw.txt`, `prisma/data-export.json`, `prisma/dev.db`, `.env`, `*-income-backup.json`,
+  `storage/uploads/*`, logs, `.plan-tiles/`). **Never** commit these.
+- `prisma/data-export.json` holds the current SQLite data (146 members, 224 plots, finances) and is the
+  migration source. `prisma/import-to-postgres.mjs` loads it into Postgres in FK-safe order.
+- `.env.example` documents every production environment variable.
+
+### 1. Create the Neon Postgres database — ⚠ needs you
+
+1. Create a Neon project (e.g. `mheza-prod`). Copy the **pooled** connection string
+   (`...pooler.neon.tech/...?sslmode=require`).
+2. This becomes `DATABASE_URL` in both Vercel and your local `.env` for the cutover.
+
+### 2. Switch Prisma to PostgreSQL — ⚠ needs you (cutover)
+
+Prisma's `provider` is a **static string** (it cannot be read from an env var), so switching affects
+development too. Do this as a deliberate cutover, not while iterating:
+
+```bash
+# 1. Stop the local dev server first (it holds the SQLite client).
+# 2. Edit prisma/schema.prisma:  provider = "sqlite"  ->  provider = "postgresql"
+# 3. Point .env DATABASE_URL at the Neon pooled string.
+npx prisma generate
+npx prisma db push                 # creates the schema on Neon (no seed in prod)
+node prisma/import-to-postgres.mjs # loads prisma/data-export.json into Neon
+```
+
+Verify counts on Neon (`member` 146, `plot` 224, etc.) before deploying. Keep `dev.db` and
+`data-export.json` as the rollback snapshot.
+
+### 3. Deploy to Vercel via Git — ⚠ needs you
+
+1. Push the repo to a **private** GitHub repository.
+2. In Vercel: **Add New → Project → Import** that repo (framework auto-detected as Next.js).
+3. Set environment variables in **Project → Settings → Environment Variables** (Production *and* Preview):
+
+   | Variable | Value | Notes |
+   |---|---|---|
+   | `DATABASE_URL` | Neon pooled string (`?sslmode=require`) | from step 1 |
+   | `JWT_SECRET` | strong random secret | generate: `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"` |
+   | `NEXT_PUBLIC_SITE_URL` | `https://themhezatrust.co.za` | SEO `metadataBase` / `og:url` |
+   | `DEEPSEEK_API_KEY` | your DeepSeek key | enables the "Mheza" assistant; leave empty to keep the friendly fallback |
+   | `LLM_BASE_URL` | `https://api.deepseek.com/v1` | optional (default) |
+   | `LLM_MODEL` | `deepseek-chat` | optional (default) |
+
+4. **Build command** `next build`, **Output** default. No `prisma generate` postinstall is needed if the
+   Prisma client is committed via the standard `prisma generate` in the build; if Vercel reports a missing
+   client, add `prisma generate` to the build step (`prisma generate && next build`).
+5. Deploy. Vercel gives you a `*.vercel.app` URL — smoke-test it before wiring the domain.
+
+> **Do not** run `npm run db:seed` against production — it wipes the real roster and restores demo data.
+
+### 4. Attach the custom domain `themhezatrust.co.za` — ⚠ needs you
+
+1. Vercel → **Project → Settings → Domains → Add** `themhezatrust.co.za` (and `www.themhezatrust.co.za`).
+   Vercel issues TLS automatically once DNS resolves.
+2. At your **domain registrar** (where `.co.za` is managed), create the DNS records Vercel shows. Typically:
+
+   | Type | Name | Value |
+   |---|---|---|
+   | `A` | `@` (apex) | Vercel's apex IP (shown in the Domains panel, e.g. `76.76.21.21`) |
+   | `CNAME` | `www` | `cname.vercel-dns.com` |
+
+3. Wait for propagation (minutes to a few hours). Vercel flips the domain to **Valid Configuration** and
+   serves HTTPS. Set `NEXT_PUBLIC_SITE_URL` to the live `https://themhezatrust.co.za` (already the default).
+
+### 5. Post-deploy checklist
+
+- Confirm all staff accounts and change the seeded `Mheza@2026` password on first login (**Settings → Profile**).
+- Verify member isolation: a portal session sees only its own payments/balance, never another member's.
+- Verify `/api/**/documents*` return **410** and no upload UI is reachable.
+- If `DEEPSEEK_API_KEY` is set, exercise the Mheza widget and confirm it never leaks member/staff data.
+- Wire `app/api/public/inquiries/route.js` to a real mail provider (SendGrid/Mailgun) — it currently logs
+  and creates a workstation notification only. The integration point is marked in the file.
+- Enable Neon **point-in-time / scheduled backups** and Vercel deployment protection for Preview URLs.
+
+### 6. Re-enabling documents later
+
+Documents are disabled only because no object storage exists yet. To restore: provision an S3-compatible
+bucket (or Vercel Blob), reimplement the read/write in `lib/uploads.js` against it, revert the five
+`/api/**/documents*` route handlers to their original guarded implementations, and re-add the nav item,
+quick action, member-detail card and portal "My Documents" upload widget. `lib/files.js` and the
+`UploadDocument` component were intentionally kept to make this straightforward.
+
+### Hardening (ongoing)
+
+Optional 2FA on `/workstation/login`, session-timeout tuning in `lib/auth.js` (currently 12h), dependency
+updates, and monitoring/alerting on Vercel + Neon.
+
 
 ## Key domain facts encoded in the app
 
