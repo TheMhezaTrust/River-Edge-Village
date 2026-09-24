@@ -1,0 +1,15 @@
+node_modules/
+.next/
+.next-prod/
+prisma/dev.db
+prisma/dev.db-journal
+# Real member PII dump used for the SQLite->Postgres migration. Never commit.
+prisma/data-export.json
+storage/uploads/*
+!storage/uploads/.gitkeep
+.env
+.env*.local
+vibe_images/
+*.tsbuildinfo
+next-env.d.ts
+prod-start.log

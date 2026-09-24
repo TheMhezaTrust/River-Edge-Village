@@ -1,0 +1,283 @@
+// Prisma schema for The Mheza Trust
+// Local dev uses SQLite; for production switch provider to "postgresql"
+// (schema is fully compatible - JSON-ish fields are stored as strings).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Identity & access ----------
+
+model User {
+  id           Int       @id @default(autoincrement())
+  name         String
+  email        String    @unique
+  password     String
+  role         String // ADMIN | FINANCE | PLOTS
+  phone        String?
+  title        String?
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  messagesSent Message[] @relation("messagesFrom")
+  messagesGot  Message[] @relation("messagesTo")
+  auditLogs    AuditLog[]
+  notifications Notification[]
+  inquiries    Inquiry[]
+  documents    Document[]
+  tasks        Task[]
+}
+
+model Member {
+  id             Int       @id @default(autoincrement())
+  fullName       String
+  idNumber       String?
+  dateOfBirth    String?
+  gender         String?
+  maritalStatus  String?
+  physicalAddress String?
+  postalAddress  String?
+  phone          String
+  email          String    @unique
+  password       String? // portal login (bcrypt hash); null = portal not yet activated
+  purchasePrice  Float?
+  paymentPlan    String? // FULL | PLAN_6 | PLAN_12 | PLAN_24
+  beneficiaries  String? // JSON string
+  notes          String?
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  plots          Plot[]
+  payments       Payment[]
+  documents      MemberDocument[]
+}
+
+// ---------- Projects & plots ----------
+
+model Project {
+  id            Int      @id @default(autoincrement())
+  name          String
+  slug          String   @unique
+  description   String
+  location      String
+  address       String?
+  status        String // ACTIVE | PLANNING | COMPLETED
+  farmSizeHa    Float?
+  plotCount     Int?
+  familyCount   Int?
+  promoPrice    Float?
+  standardPrice Float?
+  promoEndsAt   String?
+  thumbnail     String?
+  timeline      String? // JSON string [{label, status, description, date}]
+  plots         Plot[]
+}
+
+model Plot {
+  id          Int      @id @default(autoincrement())
+  number      String
+  sizeSqm     Int      @default(800)
+  price       Float
+  status      String   @default("AVAILABLE") // AVAILABLE | RESERVED | SOLD
+  description String?
+  x           Float // plan-pixel centre on the survey layout (see lib/plan-layout.js)
+  y           Float // plan-pixel centre on the survey layout
+  block       String? // block/zone label e.g. "A"
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id])
+  memberId    Int?
+  member      Member?  @relation(fields: [memberId], references: [id])
+  payments    Payment[]
+  inquiries   Inquiry[]
+
+  @@unique([projectId, number])
+}
+
+// ---------- Sales pipeline ----------
+
+model Inquiry {
+  id         Int      @id @default(autoincrement())
+  name       String
+  email      String
+  phone      String
+  idNumber   String?
+  plotId     Int?
+  plot       Plot?    @relation(fields: [plotId], references: [id])
+  message    String?
+  source     String   @default("WEBSITE") // WEBSITE | PHONE | EMAIL | WALK_IN
+  status     String   @default("NEW") // NEW | CONTACTED | CONVERTED | CLOSED
+  assignedTo Int?
+  assignee   User?    @relation(fields: [assignedTo], references: [id])
+  followUpDate String?
+  notes      String?
+  createdAt  DateTime @default(now())
+}
+
+model Payment {
+  id        Int      @id @default(autoincrement())
+  amount    Float
+  date      DateTime @default(now())
+  method    String // EFT | CASH | CARD | DEBIT_ORDER
+  reference String?
+  note      String?
+  memberId  Int
+  member    Member   @relation(fields: [memberId], references: [id])
+  plotId    Int?
+  plot      Plot?    @relation(fields: [plotId], references: [id])
+}
+
+// ---------- Finance ----------
+
+model Income {
+  id          Int      @id @default(autoincrement())
+  date        DateTime
+  description String
+  project     String?
+  amount      Float
+  category    String // PLOT_SALE | FEE | DONATION | OTHER
+  method      String?
+  reference   String?
+}
+
+model Expense {
+  id          Int      @id @default(autoincrement())
+  date        DateTime
+  description String
+  category    String // SALARY | CONTRACTOR | SUPPLIES | FEES | LEGAL | MARKETING | OTHER
+  amount      Float
+  vendor      String?
+  project     String?
+}
+
+model Employee {
+  id         Int     @id @default(autoincrement())
+  name       String
+  jobTitle   String
+  salary     Float // monthly gross
+  paye       Float   @default(0)
+  uif        Float   @default(0)
+  sdl        Float   @default(0)
+  startDate  String?
+  isActive   Boolean @default(true)
+}
+
+// ---------- Documents ----------
+
+model Document {
+  id          Int      @id @default(autoincrement())
+  title       String
+  folder      String // TRUST | PROJECT | LEGAL | FINANCIAL | MEMBER | DEPARTMENT | MINUTES
+  tags        String?
+  description String?
+  filePath    String
+  fileName    String
+  mimeType    String?
+  sizeKb      Int?
+  permissions String? // comma-separated roles; null = all internal roles
+  uploadedById Int?
+  uploadedBy  User?    @relation(fields: [uploadedById], references: [id])
+  version     Int      @default(1)
+  createdAt   DateTime @default(now())
+}
+
+model MemberDocument {
+  id        Int      @id @default(autoincrement())
+  title     String
+  category  String // ID_COPY | BENEFICIARY_FORM | BUILDING_PLAN | CERTIFICATE | OTHER
+  filePath  String
+  fileName  String
+  memberId  Int
+  member    Member   @relation(fields: [memberId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+// ---------- Department engagement ----------
+
+model Department {
+  id               Int      @id @default(autoincrement())
+  name             String
+  contactPerson    String?
+  phone            String?
+  email            String?
+  status           String   @default("PENDING") // PENDING | IN_PROGRESS | APPROVED | NO_OBJECTION | REJECTED
+  notes            String?
+  followUpDate     String?
+  documentsSubmitted String? // JSON string list
+  responsesReceived  String? // JSON string list
+  logs             DepartmentLog[]
+}
+
+model DepartmentLog {
+  id           Int      @id @default(autoincrement())
+  date         DateTime @default(now())
+  method       String // EMAIL | PHONE | MEETING | LETTER
+  summary      String
+  nextSteps    String?
+  departmentId Int
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+}
+
+// ---------- Tasks ----------
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  status      String   @default("TODO") // TODO | IN_PROGRESS | COMPLETED
+  priority    String   @default("MEDIUM") // LOW | MEDIUM | HIGH | URGENT
+  dueDate     String?
+  assignedTo  Int?
+  assignee    User?    @relation(fields: [assignedTo], references: [id])
+  createdBy   Int?
+  createdAt   DateTime @default(now())
+}
+
+// ---------- Communication ----------
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  subject   String
+  body      String
+  fromId    Int
+  from      User     @relation("messagesFrom", fields: [fromId], references: [id])
+  toId      Int
+  to        User     @relation("messagesTo", fields: [toId], references: [id])
+  isRead    Boolean  @default(false)
+  isDraft   Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Announcement {
+  id        Int      @id @default(autoincrement())
+  title     String
+  body      String
+  audience  String   @default("INTERNAL") // INTERNAL | PUBLIC
+  category  String?
+  authorId  Int?
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+  text      String
+  type      String   @default("INFO")
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String
+  entity    String?
+  entityId  String?
+  details   String?
+  createdAt DateTime @default(now())
+}
