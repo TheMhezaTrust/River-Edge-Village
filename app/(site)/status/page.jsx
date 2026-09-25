@@ -2,7 +2,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { SectionHeading, StatusPill } from "@/components/ui";
 import AnnouncementsFeed from "@/components/site/AnnouncementsFeed";
-import { TRUST } from "@/lib/contact";
+import { TRUST, sellerName } from "@/lib/contact";
+import { getPortalSession } from "@/lib/auth";
 
 export const metadata = {
   title: "Project Status",
@@ -13,6 +14,7 @@ export const dynamic = "force-dynamic";
 const TIMELINE_ICONS = { COMPLETED: "✅", IN_PROGRESS: "🔄", PENDING: "⏳", ONGOING: "🔵" };
 
 export default async function StatusPage() {
+  const isMember = !!(await getPortalSession());
   const [announcements, project] = await Promise.all([
     prisma.announcement.findMany({ where: { audience: "PUBLIC" }, orderBy: { createdAt: "desc" } }),
     prisma.project.findUnique({ where: { slug: "river-edge" } }),
@@ -119,7 +121,7 @@ export default async function StatusPage() {
             <h2 className="mt-8 text-xl font-bold text-forest-900">Our Progress to Date</h2>
             <p className="mt-2 text-sm text-gray-700">The Mheza Trust and the River Edge Village Community have already:</p>
             <ul className="mt-3 space-y-2 text-sm text-gray-700 list-disc pl-5">
-              <li>Purchased the land legally from Mr Albert Shaw.</li>
+              <li>Purchased the land legally from {sellerName(isMember, "the original owner")}.</li>
               <li>Registered The Mheza Trust (Registration Number: IT000099/2024(E)).</li>
               <li>Drafted a Constitution for the River Edge Rural Village CPA.</li>
               <li>Elected a temporary committee.</li>

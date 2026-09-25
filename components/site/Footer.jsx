@@ -29,7 +29,7 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Quick Links</h3>
             <ul className="space-y-2 text-sm">
-              {[["/about", "About Us"], ["/projects", "Projects"], ["/projects/river-edge", "River Edge Rural Village"], ["/plots", "Available Plots"], ["/status", "Project Status"], ["/trust-info", "Trust Information"], ["/terms", "Terms & Conditions of Sale"], ["/contact", "Contact Us"], ["/login", "Login (Staff or Member)"], ["/portal/register", "Member Sign Up"]].map(([href, label]) => (
+              {[["/about", "About Us"], ["/projects", "Projects"], ["/projects/river-edge", "River Edge Rural Village"], ["/plots", "Available Plots"], ["/status", "Project Status"], ["/trust-info", "Trust Information"], ["/terms", "Terms & Conditions of Sale"], ["/contact", "Contact Us"], ["/login", "Login (Staff or Member)"]].map(([href, label]) => (
                 <li key={href}>
                   <Link href={href} className="text-forest-200 hover:text-white transition-colors">{label}</Link>
                 </li>

@@ -48,7 +48,6 @@ export default function Navbar() {
           </nav>
 
           <div className="hidden lg:flex items-center gap-2">
-            <Link href="/portal/register" className="btn-ghost btn-sm">Sign Up</Link>
             <Link href="/login" className="btn-outline btn-sm">Login</Link>
             <Link href="/plots" className="btn-accent btn-sm">View Available Plots</Link>
           </div>
@@ -80,7 +79,6 @@ export default function Navbar() {
           ))}
           <div className="pt-2 flex flex-col gap-2 border-t border-gray-100 mt-2">
             <Link href="/login" onClick={() => setOpen(false)} className="btn-primary btn-sm">Login</Link>
-            <Link href="/portal/register" onClick={() => setOpen(false)} className="btn-outline btn-sm">Create Member Account</Link>
             <Link href="/plots" onClick={() => setOpen(false)} className="btn-accent btn-sm">View Available Plots</Link>
           </div>
         </nav>

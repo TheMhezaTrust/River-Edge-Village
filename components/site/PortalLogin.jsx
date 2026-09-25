@@ -65,8 +65,8 @@ export default function PortalLogin() {
       </form>
 
       <p className="mt-6 text-center text-sm text-gray-600">
-        Not registered yet?{" "}
-        <Link href="/portal/register" className="text-forest-700 font-semibold hover:underline">Create your member account</Link>
+        Member accounts are created by the Trust office. Call {TRUST.primaryPhone} or email{" "}
+        <a href={`mailto:${TRUST.email}`} className="text-forest-700 font-semibold hover:underline">{TRUST.email}</a> to be set up.
       </p>
 
       <div className="mt-4 rounded-lg bg-earth-50 border border-earth-200 p-3 text-xs text-gray-600">

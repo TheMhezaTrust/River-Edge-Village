@@ -2,7 +2,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { SectionHeading } from "@/components/ui";
 import { zar } from "@/lib/format";
-import { TRUST } from "@/lib/contact";
+import { TRUST, sellerName, attorneyName } from "@/lib/contact";
+import { getPortalSession } from "@/lib/auth";
 
 export const metadata = {
   title: "Trust Information",
@@ -18,6 +19,7 @@ const TRUSTEES = [
 ];
 
 export default async function TrustInfoPage() {
+  const isMember = !!(await getPortalSession());
   const project = await prisma.project.findUnique({ where: { slug: "river-edge" } });
 
   return (
@@ -44,8 +46,8 @@ export default async function TrustInfoPage() {
                       ["Trust registration number", `${TRUST.registrationNumber} (Master of the High Court)`],
                       ["Registered as legal owner", "Portion 2 of Farm 970, Cove Ridge East, Buffalo City Metropolitan Municipality"],
                       ["Extent of land held", `31.9 hectares (${project?.plotCount} residential plots of 800m²)`],
-                      ["Original seller", TRUST.seller],
-                      ["Trust attorney", TRUST.attorney],
+                      ["Original seller", sellerName(isMember, "Available to registered members")],
+                      ["Trust attorney", attorneyName(isMember, "Available to registered members")],
                       ["Project administration", `All ${TRUST.legalName} projects are administered by ${TRUST.administrator}`],
                       ["Title deed", "Held by The Mheza Trust (copy available at the Trust office)"],
                       ["What a buyer acquires", "A heritable Right of Use — not a title deed. See the Terms and Conditions of Sale."],

@@ -16,10 +16,10 @@
 ### Checking project status
 The public **Status** page shows the project timeline and public announcements filterable by category. Detailed government department engagement records (contact officials, direct numbers, internal notes and follow-up dates) are confidential and only visible to staff inside the Workstation.
 
-### Member portal (sign up first, then log in)
-1. **Create your account**: go to **Sign Up** (top right) or `/portal/register`. Enter your full name as per ID, email, cellphone, your ID number, the erf you are interested in and a password of at least 8 characters. You must tick the box accepting the **Terms and Conditions of Sale** — registering confirms you understand you acquire a Right of Use, not a title deed.
-2. Signing up signs you in immediately. A consultant then confirms your plot allocation and records your payments; your balance and documents appear once that is done. Your erf preference is sent to the Finance team as an inquiry.
-3. If the Trust already holds a record for your email address, sign in with it at **Login → Member** (`/login`). If your record was created by staff but never activated, the sign-up form activates it once your ID number or phone number matches what the Trust holds.
+### Member portal (your account is created for you, then you log in)
+1. **Your account is created by the Trust office.** There is no public sign-up form. To get portal access, contact the Trust by phone (**081 391 7967**) or email (**themhezatrust@gmail.com**); staff verify your identity, set up your member record and issue your portal login credentials.
+2. **Log in** at **Login → Member** (`/login`) or `/portal` using the email and password the Trust office gave you. Change your password after your first sign-in.
+3. A consultant confirms your plot allocation and records your payments; your balance and documents appear once that is done.
 4. **You must be logged in to see any of your financial or personal information.** Nothing about your payments, balance or documents is visible to the public or to other members. In the portal you can:
    - See your plot details and a **payment progress bar** (paid vs outstanding balance)
    - Review your full **payment history**

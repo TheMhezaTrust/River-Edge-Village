@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api-client";
 import { Alert, Field } from "@/components/ui";
@@ -109,8 +108,8 @@ export default function LoginChooser({ initialTab = "member" }) {
       ) : (
         <div className="mt-6 space-y-3">
           <p className="text-center text-sm text-gray-600">
-            Not registered yet?{" "}
-            <Link href="/portal/register" className="text-forest-700 font-semibold hover:underline">Create your member account</Link>
+            Member accounts are created by the Trust office. Call {TRUST.primaryPhone} or email{" "}
+            <a href={`mailto:${TRUST.email}`} className="text-forest-700 font-semibold hover:underline">{TRUST.email}</a> to be set up.
           </p>
           <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-xs text-blue-800">
             Your payment details, balance and documents are only visible after you sign in — never to the public and never to another member.

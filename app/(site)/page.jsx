@@ -6,7 +6,8 @@ import InterestForm from "@/components/InterestForm";
 import PlotMapSection from "@/components/site/PlotMapSection";
 import { SectionHeading } from "@/components/ui";
 import { sortPlotsByNumber } from "@/lib/plan-layout";
-import { TRUST } from "@/lib/contact";
+import { TRUST, sellerName, attorneyName } from "@/lib/contact";
+import { getPortalSession } from "@/lib/auth";
 
 export const metadata = {
   title: "The Mheza Trust | River Edge Rural Village – Your Land. Your Home. Your Future.",
@@ -24,6 +25,7 @@ const STATUS_STYLE = {
 };
 
 export default async function HomePage() {
+  const isMember = !!(await getPortalSession());
   const project = await prisma.project.findUnique({ where: { slug: "river-edge" } });
   const [plots, announcements] = await Promise.all([
     prisma.plot.findMany({ where: { projectId: project?.id } }),
@@ -59,7 +61,6 @@ export default async function HomePage() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/login" className="btn-accent px-7 py-3.5 text-base">Login</Link>
-              <Link href="/portal/register" className="btn-white px-7 py-3.5 text-base">Register as a Member</Link>
               <a href="#interest" className="btn-outline px-7 py-3.5 text-base border-white/40 text-white hover:bg-white/10">I'm Interested</a>
             </div>
             <p className="mt-4 text-xs text-forest-300">
@@ -88,8 +89,8 @@ export default async function HomePage() {
                       ["Flagship project", "River Edge Rural Village"],
                       ["Property", "Portion 2 of Farm 970, Cove Ridge East, Buffalo City Metropolitan Municipality"],
                       ["Extent", `31.9 hectares · ${plotCount} residential plots of 800m² · 165 families`],
-                      ["Original seller", TRUST.seller],
-                      ["Trust attorney", TRUST.attorney],
+                      ["Original seller", sellerName(isMember, "Available to registered members")],
+                      ["Trust attorney", attorneyName(isMember, "Available to registered members")],
                       ["Project administration", `All ${TRUST.legalName} projects are administered by ${TRUST.administrator}`],
                       ["Title deed", "Held by The Mheza Trust"],
                       ["What a buyer acquires", "A heritable Right of Use — not a title deed or land ownership"],
@@ -222,7 +223,6 @@ export default async function HomePage() {
             </ul>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/terms" className="btn-accent">Read All 21 Clauses</Link>
-              <Link href="/portal/register" className="btn-white">Accept & Create Account</Link>
             </div>
           </div>
           <div className="rounded-2xl bg-white/95 p-6 shadow-xl">
@@ -300,7 +300,6 @@ export default async function HomePage() {
               <p>Sign in to see your own payment history, outstanding balance and documents — that information is never public and never shown to another member.</p>
               <div className="flex flex-wrap gap-3 pt-2">
                 <Link href="/login" className="btn-primary btn-sm">Login</Link>
-                <Link href="/portal/register" className="btn-outline btn-sm">Create Member Account</Link>
               </div>
             </div>
             <div className="mt-6 relative rounded-2xl overflow-hidden">

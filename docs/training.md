@@ -61,9 +61,9 @@ Only the Administrator can change department records and follow-up dates; Financ
 ## Session 5: Members & Communication (30 min — all roles)
 
 1. Member records are legal records: capture ID numbers, beneficiaries and addresses exactly as on documents.
-2. Member portal support: members **sign themselves up** at `/portal/register` and must be logged in to see anything — payments, balances and documents never appear publicly or to another member. When someone calls about a balance, read it from their member page — never quote from memory.
-3. A self sign-up creates the member record **and** files the erf preference as a new inquiry, and notifies the Finance & Member Records team. Someone must contact the member, confirm the allocation, and record payments; until then their portal shows no plot and no balance.
-4. If a member cannot sign up because "we could not verify your details", the Trust already holds their email but the ID number or phone on file does not match — correct the record, then have them try again.
+2. Member portal support: public self-registration has been removed — **staff create every member account** from the Workstation (`Members → + Add Member`). Members must be logged in to see anything; payments, balances and documents never appear publicly or to another member. When someone calls about a balance, read it from their member page — never quote from memory.
+3. When you create a member, verify their identity against their documents first and capture the erf allocation. Until Finance records payments, the member's portal shows the full erf price as outstanding.
+4. Issuing a member's portal login (setting their password) is a separate step handled by the administrator. Never share a password by email or SMS as the only step; verify who you are speaking to first.
 5. Uploaded files are stored outside the web root and are only served through authenticated download routes; a member can fetch their own files, staff with member/document view rights can fetch any. Never email a document link as a way of sharing it.
 6. Internal messages for one-to-one; announcements for team-wide news.
 7. Templates (Communication tab) standardize payment reminders and follow-ups.

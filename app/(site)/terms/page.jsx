@@ -1,13 +1,16 @@
 import Link from "next/link";
-import { TRUST } from "@/lib/contact";
+import { TRUST, sellerName, attorneyName } from "@/lib/contact";
+import { getPortalSession } from "@/lib/auth";
 
 export const metadata = {
   title: "Terms and Conditions of Sale",
   description:
     "Terms and Conditions of Sale for River Edge Rural Village, Portion 2 of Farm 970 — The Mheza Trust, Registration Number IT000099/2024(E).",
 };
+export const dynamic = "force-dynamic";
 
-const CLAUSES = [
+function buildClauses(seller, attorney, sellerDefinition) {
+  return [
   {
     id: "1-introduction",
     n: "1",
@@ -30,7 +33,7 @@ const CLAUSES = [
       ["\u201CRight of Use\u201D", "The heritable right to occupy and use a plot, subject to these Terms and Conditions and the Community Constitution."],
       ["\u201CCPA\u201D", "Communal Property Association."],
       ["\u201CCommunity Constitution\u201D", "The constitution governing the conduct of plot holders within the Project."],
-      ["\u201CSeller\u201D", "Mr Albert Shaw, the original owner of the Property."],
+      ["\u201CSeller\u201D", sellerDefinition],
     ],
   },
   {
@@ -71,9 +74,9 @@ const CLAUSES = [
     n: "5",
     title: "RING-FENCED PROJECT",
     body: [
-      `River Edge Rural Village is a distinct venture between the Trust and ${TRUST.seller}.`,
+      `River Edge Rural Village is a distinct venture between the Trust and ${seller}.`,
       "The Property is Portion 2 of Farm 970, Cove Ridge East, Buffalo City Metropolitan Municipality, measuring approximately 31.9 hectares.",
-      `The sale is facilitated by ${TRUST.attorney}. The title deed is held by the Trust.`,
+      `The sale is facilitated by ${attorney}. The title deed is held by the Trust.`,
       "No claims arising from other Trust projects may be brought against this Project, and no claims arising from this Project may be brought against other Trust projects.",
     ],
   },
@@ -262,6 +265,7 @@ const CLAUSES = [
     ],
   },
 ];
+}
 
 function Clause({ c }) {
   return (
@@ -331,7 +335,15 @@ function Clause({ c }) {
   );
 }
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const isMember = !!(await getPortalSession());
+  const CLAUSES = buildClauses(
+    sellerName(isMember),
+    attorneyName(isMember),
+    isMember
+      ? `${TRUST.seller}, the original owner of the Property.`
+      : "The original owner of the Property (name available to registered members).",
+  );
   return (
     <>
       <section className="bg-forest-800 py-14">
@@ -363,7 +375,7 @@ export default function TermsPage() {
               </ol>
               <div className="mt-6 space-y-2">
                 <Link href="/trust-info" className="btn-outline btn-sm w-full">Trust Information & Banking</Link>
-                <Link href="/portal/register" className="btn-primary btn-sm w-full">Create a Member Account</Link>
+                <Link href="/login" className="btn-primary btn-sm w-full">Member Login</Link>
               </div>
             </div>
           </aside>
