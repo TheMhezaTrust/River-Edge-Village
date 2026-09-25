@@ -7,7 +7,7 @@ import PlotMapSection from "@/components/site/PlotMapSection";
 import { SectionHeading } from "@/components/ui";
 import { sortPlotsByNumber } from "@/lib/plan-layout";
 import { TRUST, sellerName, attorneyName } from "@/lib/contact";
-import { getPortalSession } from "@/lib/auth";
+import { getAnySession } from "@/lib/auth";
 
 export const metadata = {
   title: "The Mheza Trust | River Edge Rural Village – Your Land. Your Home. Your Future.",
@@ -25,7 +25,9 @@ const STATUS_STYLE = {
 };
 
 export default async function HomePage() {
-  const isMember = !!(await getPortalSession());
+  const session = await getAnySession();
+  const isMember = session?.scope === "portal";
+  const isAuthenticated = !!session;
   const project = await prisma.project.findUnique({ where: { slug: "river-edge" } });
   const [plots, announcements] = await Promise.all([
     prisma.plot.findMany({ where: { projectId: project?.id } }),
@@ -137,7 +139,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ============ PLOTS LAYOUT AND PICTURE ============ */}
+      {/* ============ PLOTS LAYOUT AND PICTURE (authenticated only) ============ */}
+      {isAuthenticated && (
       <section className="py-16 bg-earth-50" aria-label="Plot layout">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <SectionHeading
@@ -152,6 +155,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ============ PROJECT PROGRESS ============ */}
       <section className="py-16 bg-white" aria-label="Project progress">

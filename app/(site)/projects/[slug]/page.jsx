@@ -6,6 +6,7 @@ import { SectionHeading, StatusPill } from "@/components/ui";
 import PlotMapSection from "@/components/site/PlotMapSection";
 import InterestForm from "@/components/InterestForm";
 import { sortPlotsByNumber } from "@/lib/plan-layout";
+import { getAnySession } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,7 @@ const TIMELINE_ICONS = { COMPLETED: "✅", IN_PROGRESS: "🔄", PENDING: "⏳", 
 
 export default async function ProjectPage({ params }) {
   const { slug } = await params;
+  const isAuthenticated = !!(await getAnySession());
   const project = await prisma.project.findUnique({ where: { slug } });
   if (!project) notFound();
 
@@ -80,7 +82,7 @@ export default async function ProjectPage({ params }) {
           </dl>
           <p className="mt-4 text-sm text-sunset-400 font-semibold">Promotional pricing valid until {dateFmt(project.promoEndsAt)} · full payment required to qualify.</p>
           <div className="mt-8 flex flex-wrap gap-4">
-            <a href="#map" className="btn-accent px-6 py-3">Explore the Farm Map</a>
+            {isAuthenticated && <a href="#map" className="btn-accent px-6 py-3">Explore the Farm Map</a>}
             <a href="#express-interest" className="btn-white px-6 py-3">Express Interest</a>
           </div>
         </div>
@@ -116,7 +118,8 @@ export default async function ProjectPage({ params }) {
         </div>
       </section>
 
-      {/* Interactive map */}
+      {/* Interactive map (authenticated only) */}
+      {isAuthenticated && (
       <section id="map" className="py-16 bg-earth-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <SectionHeading
@@ -127,6 +130,7 @@ export default async function ProjectPage({ params }) {
           <PlotMapSection plots={plots} standardPrice={project.standardPrice} />
         </div>
       </section>
+      )}
 
       {/* Development plan */}
       <section className="py-16 bg-white">
