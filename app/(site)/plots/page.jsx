@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { dateFmt } from "@/lib/format";
 import PlotsBrowser from "@/components/site/PlotsBrowser";
 import { sortPlotsByNumber } from "@/lib/plan-layout";
+import { redirect } from "next/navigation";
+import { getAnySession } from "@/lib/auth";
 import Link from "next/link";
 
 export const metadata = {
@@ -11,6 +13,7 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function PlotsPage() {
+  if (!(await getAnySession())) redirect("/login");
   const project = await prisma.project.findUnique({ where: { slug: "river-edge" } });
   const plots = sortPlotsByNumber(await prisma.plot.findMany({
     where: { projectId: project.id },

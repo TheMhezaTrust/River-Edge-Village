@@ -1,7 +1,23 @@
 import Link from "next/link";
 import { TRUST } from "@/lib/contact";
 
-export default function Footer() {
+const QUICK_LINKS = [
+  ["/about", "About Us"],
+  ["/projects", "Projects"],
+  ["/projects/river-edge", "River Edge Rural Village"],
+  ["/plots", "Available Plots"],
+  ["/status", "Project Status"],
+  ["/trust-info", "Trust Information"],
+  ["/terms", "Terms & Conditions of Sale"],
+  ["/contact", "Contact Us"],
+  ["/login", "Login (Staff or Member)"],
+];
+
+// Links only shown to authenticated visitors (members or staff).
+const AUTH_ONLY = new Set(["/plots"]);
+
+export default function Footer({ isAuthenticated = false }) {
+  const quickLinks = QUICK_LINKS.filter(([href]) => isAuthenticated || !AUTH_ONLY.has(href));
   return (
     <footer className="bg-forest-900 text-forest-100">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14">
@@ -29,7 +45,7 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Quick Links</h3>
             <ul className="space-y-2 text-sm">
-              {[["/about", "About Us"], ["/projects", "Projects"], ["/projects/river-edge", "River Edge Rural Village"], ["/plots", "Available Plots"], ["/status", "Project Status"], ["/trust-info", "Trust Information"], ["/terms", "Terms & Conditions of Sale"], ["/contact", "Contact Us"], ["/login", "Login (Staff or Member)"]].map(([href, label]) => (
+              {quickLinks.map(([href, label]) => (
                 <li key={href}>
                   <Link href={href} className="text-forest-200 hover:text-white transition-colors">{label}</Link>
                 </li>

@@ -15,9 +15,14 @@ const LINKS = [
   ["/contact", "Contact"],
 ];
 
-export default function Navbar() {
+// Links that are only shown to authenticated visitors (members or staff).
+const AUTH_ONLY = new Set(["/plots"]);
+
+export default function Navbar({ isAuthenticated = false }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+
+  const links = LINKS.filter(([href]) => isAuthenticated || !AUTH_ONLY.has(href));
 
   const isActive = (href) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
@@ -34,7 +39,7 @@ export default function Navbar() {
           </Link>
 
           <nav className="hidden lg:flex items-center gap-1" aria-label="Main navigation">
-            {LINKS.map(([href, label]) => (
+            {links.map(([href, label]) => (
               <Link
                 key={href}
                 href={href}
@@ -49,7 +54,7 @@ export default function Navbar() {
 
           <div className="hidden lg:flex items-center gap-2">
             <Link href="/login" className="btn-outline btn-sm">Login</Link>
-            <Link href="/plots" className="btn-accent btn-sm">View Available Plots</Link>
+            {isAuthenticated && <Link href="/plots" className="btn-accent btn-sm">View Available Plots</Link>}
           </div>
 
           <button
@@ -67,7 +72,7 @@ export default function Navbar() {
 
       {open && (
         <nav className="lg:hidden border-t border-gray-200 bg-white px-4 py-3 space-y-1" aria-label="Mobile navigation">
-          {LINKS.map(([href, label]) => (
+          {links.map(([href, label]) => (
             <Link
               key={href}
               href={href}
@@ -79,7 +84,7 @@ export default function Navbar() {
           ))}
           <div className="pt-2 flex flex-col gap-2 border-t border-gray-100 mt-2">
             <Link href="/login" onClick={() => setOpen(false)} className="btn-primary btn-sm">Login</Link>
-            <Link href="/plots" onClick={() => setOpen(false)} className="btn-accent btn-sm">View Available Plots</Link>
+            {isAuthenticated && <Link href="/plots" onClick={() => setOpen(false)} className="btn-accent btn-sm">View Available Plots</Link>}
           </div>
         </nav>
       )}
