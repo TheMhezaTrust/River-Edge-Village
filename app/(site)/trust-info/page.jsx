@@ -12,10 +12,11 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 const TRUSTEES = [
-  ["Thembinkosi Mheza", "Chairperson of Trustees"],
-  ["Nomsa Khumalo", "Trustee — Finance"],
-  ["Siyabonga Motaung", "Trustee — Projects"],
-  ["Bulelwa Ntuli", "Trustee — Community"],
+  ["Bongani Sifiniza", "Trustee"],
+  ["Lihle Jacob", "Trustee"],
+  ["Sydney Velapi", "Trustee"],
+  ["Sisanda Toni", "Trustee"],
+  ["Sipho Jauka", "Trustee"],
 ];
 
 export default async function TrustInfoPage() {

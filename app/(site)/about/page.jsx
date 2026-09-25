@@ -18,11 +18,11 @@ const VALUES = [
 ];
 
 const TRUSTEES = [
-  ["Thembinkosi Mheza", "Chairperson of Trustees", "Founder of the Trust. Led the acquisition of Portion 2 of Farm 970 and drives the rezoning and CPA processes with BCMM and DALRRD."],
-  ["Nomsa Khumalo", "Trustee — Finance", "Oversees Trust finances, member payment plans, and ensures every rand is accounted for and reported to the board."],
-  ["Siyabonga Motaung", "Trustee — Projects", "Coordinates land surveyors, town planners, and departmental engagements across the development process."],
-  ["Bulelwa Ntuli", "Trustee — Community", "Community liaison responsible for member communication, feedback meetings, and beneficiary affairs."],
-  ["Sandile Gumede", "Committee Member", "Represents plot holders on the committee, ensuring member voices shape Trust decisions."],
+  ["Bongani Sifiniza", "Trustee"],
+  ["Lihle Jacob", "Trustee"],
+  ["Sydney Velapi", "Trustee"],
+  ["Sisanda Toni", "Trustee"],
+  ["Sipho Jauka", "Trustee"],
 ];
 
 export default async function AboutPage() {
@@ -140,9 +140,9 @@ export default async function AboutPage() {
       {/* Trustees */}
       <section className="py-16 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionHeading eyebrow="Governance" title="Trustees and Committee" subtitle="The people accountable for the Trust — and to the community." />
+          <SectionHeading eyebrow="Governance" title="Trustees" subtitle="The people accountable for the Trust — and to the community." />
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {TRUSTEES.map(([name, role, bio]) => (
+            {TRUSTEES.map(([name, role]) => (
               <div key={name} className="card p-6">
                 <div className="flex items-center gap-4">
                   <span className="flex h-14 w-14 items-center justify-center rounded-full bg-forest-100 text-forest-800 font-bold text-lg" aria-hidden>
@@ -153,7 +153,6 @@ export default async function AboutPage() {
                     <p className="text-sm text-forest-700 font-medium">{role}</p>
                   </div>
                 </div>
-                <p className="mt-4 text-sm text-gray-600 leading-relaxed">{bio}</p>
               </div>
             ))}
           </div>
