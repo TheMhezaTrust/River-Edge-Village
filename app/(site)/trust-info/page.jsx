@@ -93,7 +93,6 @@ export default async function TrustInfoPage() {
                 <ul className="list-disc pl-5 space-y-1.5">
                   <li>Trustees are appointed and removed in terms of the deed and the Trust Property Control Act.</li>
                   <li>The Trust may not sell the farm as a whole; land is released only to qualifying beneficiaries and plot holders.</li>
-                  <li>All income from plot sales is applied to compliance, infrastructure, and community benefit — with annual financial reporting to members.</li>
                   <li>Upon CPA registration with DALRRD, governance transitions to the democratically elected Communal Property Association structures.</li>
                   <li>The Master of the High Court oversees trustee accountability; members may request trust documents at the office.</li>
                 </ul>

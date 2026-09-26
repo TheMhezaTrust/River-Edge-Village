@@ -15,7 +15,7 @@ export async function generateMetadata({ params }) {
 }
 
 const INFRASTRUCTURE = [
-  ["💧", "Rainwater Harvesting System", "Every plot is designed for rainwater harvesting: roof catchment from your home feeds a JoJo-style storage tank, providing household and garden water. This reduces dependence on municipal supply, lowers your running costs, and is endorsed in the development's water strategy. The farm's existing dam provides supplementary water for construction and communal use."],
+  ["💧", "Rainwater Harvesting System", "Every plot is designed for rainwater harvesting: roof catchment from your home feeds a JoJo-style storage tank, providing household and garden water. This is endorsed in the development's water strategy. The farm's existing dam provides supplementary water for construction and communal use."],
   ["🚽", "Septic Tank System", "Each plot uses an individual septic tank system — a sanitation approach for which the BCMM Sanitation Division has issued a formal no-objection. Soil percolation testing has been completed to confirm suitability. The system is inspected at building-plan stage and requires no municipal sewerage reticulation, keeping plot costs affordable."],
   ["⚡", "Eskom Electricity", "An existing Eskom connection serves the farm. As rezoning is finalised, electrical reticulation will be extended to each block, with individual connections available to homeowners through standard Eskom application processes."],
   ["🛣️", "Road Network", "Primary roads carry a 9–11m reserve and secondary roads a 6m minimum — wider than most urban subdivisions. Gravel-surfaced initially and designed for future upgrading, the network ensures emergency vehicle access, school transport, and all-weather usability."],
