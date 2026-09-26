@@ -291,6 +291,18 @@ model TermsAcceptance {
   ipAddress  String?
 }
 
+// Public photo gallery. Image files live in Vercel Blob; this row stores only
+// the metadata (the public Blob URL plus optional caption). The table is
+// auto-provisioned at runtime (CREATE TABLE IF NOT EXISTS in the API route) so
+// no manual migration is needed.
+model GalleryImage {
+  id          String   @id @default(cuid())
+  url         String
+  title       String?
+  description String?
+  createdAt   DateTime @default(now())
+}
+
 model AuditLog {
   id        Int      @id @default(autoincrement())
   userId    Int?

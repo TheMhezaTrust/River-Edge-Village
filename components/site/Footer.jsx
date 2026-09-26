@@ -5,6 +5,7 @@ const QUICK_LINKS = [
   ["/about", "About Us"],
   ["/projects", "Projects"],
   ["/projects/river-edge", "River Edge Rural Village"],
+  ["/gallery", "Gallery"],
   ["/status", "Project Status"],
   ["/trust-info", "Trust Information"],
   ["/terms", "Terms & Conditions of Sale"],

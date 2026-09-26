@@ -8,6 +8,7 @@ const LINKS = [
   ["/", "Home"],
   ["/about", "About Us"],
   ["/projects", "Projects"],
+  ["/gallery", "Gallery"],
   ["/status", "Status"],
   ["/trust-info", "Trust Info"],
   ["/terms", "Terms"],
