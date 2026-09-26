@@ -1,13 +1,21 @@
 import InterestForm from "@/components/InterestForm";
 import { SectionHeading } from "@/components/ui";
 import { TRUST } from "@/lib/contact";
+import { getSiteContent } from "@/lib/site-content";
+import { googleMapEmbedSrc } from "@/lib/map-embed";
 
 export const metadata = {
   title: "Contact Us",
   description: "Contact The Mheza Trust — phone, email, office details, contact form, interest registration and site viewing bookings.",
 };
 
-export default function ContactPage() {
+export const dynamic = "force-dynamic";
+
+export default async function ContactPage() {
+  const C = await getSiteContent();
+  const mapSrc = googleMapEmbedSrc(C["contact.mapEmbed"]);
+  const mapCaption = C["contact.mapCaption"];
+
   return (
     <>
       <section className="bg-forest-800 py-14">
@@ -43,17 +51,22 @@ export default function ContactPage() {
               ))}
             </div>
 
-            <div className="card overflow-hidden">
-              <iframe
-                title="Map showing Cove Ridge East, Buffalo City, Eastern Cape"
-                src="https://www.openstreetmap.org/export/embed.html?bbox=27.7%2C-32.9%2C28.1%2C-32.7&layer=mapnik&marker=-32.8%2C27.9"
-                className="h-72 w-full border-0"
-                loading="lazy"
-              />
-              <div className="p-3 text-xs text-gray-500 text-center">
-                Approximate location: Cove Ridge East, Buffalo City. Exact farm entrance coordinates shared when booking a viewing.
+            {mapSrc && (
+              <div className="card overflow-hidden">
+                <h3 className="px-5 pt-4 pb-3 font-bold text-forest-900">Farm Location</h3>
+                <iframe
+                  title="Map showing the farm location"
+                  src={mapSrc}
+                  className="h-72 w-full border-0"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  allowFullScreen
+                />
+                {mapCaption && (
+                  <div className="p-3 text-xs text-gray-500 text-center">{mapCaption}</div>
+                )}
               </div>
-            </div>
+            )}
           </div>
         </div>
       </section>

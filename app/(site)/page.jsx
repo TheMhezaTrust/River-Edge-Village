@@ -141,7 +141,7 @@ export default async function HomePage() {
           <SectionHeading
             eyebrow="Where We Stand"
             title="Project Progress"
-            subtitle="Milestones and public announcements. Members see the same progress inside the portal alongside their own payments."
+            subtitle={C["home.progressSubtitle"]}
           />
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {timeline.map((item) => {

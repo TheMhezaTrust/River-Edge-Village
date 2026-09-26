@@ -111,9 +111,9 @@ export default async function ProjectPage({ params }) {
           <SectionHeading eyebrow="Development Plan" title="How the Land Is Subdivided" />
           <div className="grid gap-6 md:grid-cols-3">
             {[
-              ["📐", "Subdivision", `A land surveyor registered with SAGC has laid out the 31.9 hectares into erven of 800m² each, in five blocks (A–E). Erf numbers in this system match the official survey layout plan, including subdivided erven such as 1A, 145A/145B, 165A, 186A and 203A. An application for Rezoning to Residential Zoning 4 (Townhouse) is being prepared for submission to BCMM.`],
-              ["🛣️", "Road network", "Blocks are separated by 9–11m primary road reserves with internal 6m secondary roads between plot rows — every plot has direct road frontage and emergency access."],
-              ["🌳", "Green spaces", "Green belts are set aside within the village, and both dam areas are protected with compliant setbacks and wetland buffers, giving the village communal open space."],
+              ["📐", "Subdivision", C["project.subdivisionText"]],
+              ["🛣️", "Road network", C["project.roadsText"]],
+              ["🌳", "Green spaces", C["project.greenSpacesText"]],
             ].map(([icon, title, desc]) => (
               <div key={title} className="card p-6">
                 <span className="text-3xl" aria-hidden>{icon}</span>
