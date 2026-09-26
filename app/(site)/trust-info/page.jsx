@@ -152,7 +152,7 @@ export default async function TrustInfoPage() {
             <div className="card p-6 bg-earth-50 border-earth-200">
               <h3 className="font-bold text-forest-900 mb-2">Pricing reminder</h3>
               <p className="text-sm text-gray-600">
-                Plots are {zar(project?.promoPrice)} (promotional, full payment) until {project?.promoEndsAt}, then {zar(project?.standardPrice)} with payment plans available.
+                Plots are {zar(project?.promoPrice)} (promotional, full payment) until {project?.promoEndsAt}, then {zar(project?.standardPrice)}.
               </p>
               <Link href="/plots" className="btn-outline btn-sm mt-4">Browse Plots</Link>
             </div>

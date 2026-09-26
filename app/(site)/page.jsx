@@ -8,6 +8,7 @@ import { SectionHeading } from "@/components/ui";
 import { sortPlotsByNumber } from "@/lib/plan-layout";
 import { TRUST, sellerName, attorneyName } from "@/lib/contact";
 import { getAnySession } from "@/lib/auth";
+import { getSiteContent } from "@/lib/site-content";
 
 export const metadata = {
   title: "The Mheza Trust | River Edge Rural Village – Your Land. Your Home. Your Future.",
@@ -28,6 +29,7 @@ export default async function HomePage() {
   const session = await getAnySession();
   const isMember = session?.scope === "portal";
   const isAuthenticated = !!session;
+  const C = await getSiteContent();
   const project = await prisma.project.findUnique({ where: { slug: "river-edge" } });
   const [plots, announcements] = await Promise.all([
     prisma.plot.findMany({ where: { projectId: project?.id } }),
@@ -52,10 +54,10 @@ export default async function HomePage() {
               {TRUST.legalName} · Registration Number {TRUST.registrationNumber}
             </p>
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white leading-tight">
-              River Edge Rural Village
+              {C["home.heroTitle"]}
             </h1>
             <p className="mt-5 text-xl md:text-2xl text-forest-100 font-medium">
-              Your Piece of Land. Your Home. Your Future.
+              {C["home.heroTagline"]}
             </p>
             <p className="mt-4 text-forest-200 max-w-xl">
               {plotCount} residential 800m² plots on 31.9 hectares in Cove Ridge East, Buffalo City. From{" "}
@@ -78,7 +80,7 @@ export default async function HomePage() {
           <SectionHeading
             eyebrow="Who We Are"
             title="Trust Information"
-            subtitle="The basics, verifiable and on the record."
+            subtitle={C["home.trustSubtitle"]}
           />
           <div className="grid gap-8 lg:grid-cols-3 items-start">
             <div className="lg:col-span-2">
@@ -119,7 +121,7 @@ export default async function HomePage() {
                 <p className="mt-1 text-4xl font-extrabold">{zar(project?.promoPrice)}</p>
                 <p className="mt-1 text-sm text-orange-100">per 800m² plot · full payment</p>
                 <p className="mt-4 pt-4 border-t border-white/25 text-sm">
-                  Ends <strong>{dateFmt(project?.promoEndsAt)}</strong>. Thereafter {zar(project?.standardPrice)} with 6, 12 and 24-month payment plans available.
+                  Ends <strong>{dateFmt(project?.promoEndsAt)}</strong>. Thereafter {zar(project?.standardPrice)}.
                 </p>
               </div>
               <div className="card p-5">
@@ -128,11 +130,10 @@ export default async function HomePage() {
                   <li className="flex justify-between gap-3"><span>Promotional (until {dateFmt(project?.promoEndsAt)})</span><strong className="text-forest-700 whitespace-nowrap">{zar(project?.promoPrice)}</strong></li>
                   <li className="flex justify-between gap-3"><span>Standard thereafter</span><strong className="whitespace-nowrap">{zar(project?.standardPrice)}</strong></li>
                   <li className="flex justify-between gap-3"><span>Plot size</span><strong>800m²</strong></li>
-                  <li className="flex justify-between gap-3"><span>Payment plans</span><strong>6 / 12 / 24 months</strong></li>
                   <li className="flex justify-between gap-3"><span>Late payment interest</span><strong>2% per month</strong></li>
                   <li className="flex justify-between gap-3"><span>Transfer fee</span><strong>5% or R5,000</strong></li>
                 </ul>
-                <p className="mt-3 text-xs text-gray-500">Prices are subject to change without notice — see clause 6 of the Terms and Conditions.</p>
+                <p className="mt-3 text-xs text-gray-500">{C["home.pricingNote"]}</p>
               </div>
             </div>
           </div>
@@ -209,7 +210,7 @@ export default async function HomePage() {
               center={false}
               eyebrow="Read Before You Buy"
               title="Terms and Conditions of Sale"
-              subtitle={`Published in full — 21 clauses covering everything from pricing and the non-payment ladder to building setbacks and dispute resolution.`}
+              subtitle={C["home.tncSubtitle"]}
             />
             <ul className="mt-6 space-y-2.5 text-sm text-forest-100">
               {[

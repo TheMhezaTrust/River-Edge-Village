@@ -43,8 +43,8 @@ export default async function StatusPage() {
 
             <h2 className="mt-8 text-xl font-bold text-forest-900">Summary of Our Engagement with BCMM</h2>
             <p className="mt-3 text-gray-700 leading-relaxed">
-              On 18 August 2026, The Mheza Trust and the River Edge Village Community Committee held a meeting with Mr Kershan Naidoo
-              (City Planner: Land Use Management) and his team at the BCMM Offices in East London.
+              On 18 August 2026, The Mheza Trust and the River Edge Village Community Committee held a meeting with BCMM officials
+              (City Planning: Land Use Management) at the BCMM Offices in East London.
             </p>
             <p className="mt-3 text-gray-700 leading-relaxed">
               The purpose of the meeting was to present the River Edge Rural Village project, clarify the nature of the development, and
@@ -56,14 +56,14 @@ export default async function StatusPage() {
               <li>
                 <h3 className="font-semibold text-gray-900">1. Rezoning to Residential Zoning 4</h3>
                 <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                  Mr Naidoo confirmed that an application can be submitted and considered for the rezoning of Portion 2 of Farm 970 to
+                  BCMM officials confirmed that an application can be submitted and considered for the rezoning of Portion 2 of Farm 970 to
                   Residential Zoning 4 (Townhouse) for the River Edge Rural Village development.
                 </p>
               </li>
               <li>
                 <h3 className="font-semibold text-gray-900">2. Rural Classification</h3>
                 <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                  Mr Naidoo acknowledged the community&apos;s clarification regarding their use of the term &quot;rural.&quot; He confirmed that as
+                  BCMM officials acknowledged the community&apos;s clarification regarding their use of the term &quot;rural.&quot; They confirmed that as
                   long as the community is referring specifically to the use of rainwater harvesting and septic tanks, and not to animal
                   farming or slaughtering, an application can be submitted and considered for rezoning.
                 </p>
@@ -71,13 +71,13 @@ export default async function StatusPage() {
               <li>
                 <h3 className="font-semibold text-gray-900">3. Location Within the Urban Edge</h3>
                 <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                  Mr Naidoo noted that the farm does fall within the BCMM urban edge as identified in the Spatial Development Framework.
+                  BCMM officials noted that the farm does fall within the BCMM urban edge as identified in the Spatial Development Framework.
                 </p>
               </li>
               <li>
                 <h3 className="font-semibold text-gray-900">4. Procedural Rejection, Not Substantive</h3>
                 <p className="mt-1 text-sm text-gray-700 leading-relaxed">
-                  Mr Naidoo explained that the previous application was rejected for procedural reasons in terms of Section 74(c) of the
+                  BCMM officials explained that the previous application was rejected for procedural reasons in terms of Section 74(c) of the
                   BCMM SPLUM By-Law. The application was not submitted in the format required for the application type identified in the
                   by-law. This was not a rejection of the project itself.
                 </p>
@@ -85,7 +85,7 @@ export default async function StatusPage() {
             </ol>
 
             <h2 className="mt-8 text-xl font-bold text-forest-900">Steps Required by BCMM</h2>
-            <p className="mt-2 text-sm text-gray-700">Mr Naidoo outlined the following steps required before the rezoning can be finalised:</p>
+            <p className="mt-2 text-sm text-gray-700">BCMM officials outlined the following steps required before the rezoning can be finalised:</p>
             <ul className="mt-3 space-y-2 text-sm text-gray-700 list-disc pl-5">
               <li>Engage a town planner to formally submit the rezoning application.</li>
               <li>Pay the application fee and all other fees required in the process.</li>
@@ -95,7 +95,7 @@ export default async function StatusPage() {
             </ul>
 
             <h2 className="mt-8 text-xl font-bold text-forest-900">Fast-Tracking Advice from BCMM</h2>
-            <p className="mt-2 text-sm text-gray-700">Mr Naidoo advised the community to:</p>
+            <p className="mt-2 text-sm text-gray-700">BCMM officials advised the community to:</p>
             <ul className="mt-3 space-y-2 text-sm text-gray-700 list-disc pl-5">
               <li>Contact the BCMM Water and Sanitation Departments regarding the development and their requirements.</li>
               <li>Sit down with them and explain the proposal face-to-face.</li>
@@ -142,8 +142,8 @@ export default async function StatusPage() {
 
             <h2 className="mt-8 text-xl font-bold text-forest-900">Important Note</h2>
             <p className="mt-3 text-sm text-gray-700 leading-relaxed">
-              This status is based on the meeting held with BCMM on 18 August 2026 and the guidance provided by Mr Kershan Naidoo
-              (City Planner: Land Use Management). The community remains committed to following the correct legal process and complying
+              This status is based on the meeting held with BCMM on 18 August 2026 and the guidance provided by BCMM officials
+              (City Planning: Land Use Management). The community remains committed to following the correct legal process and complying
               with all requirements set by BCMM and other relevant departments.
             </p>
             <p className="mt-3 text-sm text-gray-700 leading-relaxed">

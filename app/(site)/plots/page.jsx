@@ -37,7 +37,7 @@ export default async function PlotsPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-xl bg-sunset-500/10 border border-sunset-500/30 p-4 mb-8 text-sm text-gray-800 flex flex-wrap gap-x-6 gap-y-1">
             <span>🔥 <strong>Promotional price R75,000</strong> until {dateFmt(project.promoEndsAt)} (full payment required)</span>
-            <span>📈 Standard price R90,000 thereafter — payment plans available</span>
+            <span>📈 Standard price R90,000 thereafter</span>
           </div>
           <PlotsBrowser plots={plots} standardPrice={project.standardPrice} promoEnds={dateFmt(project.promoEndsAt)} />
         </div>

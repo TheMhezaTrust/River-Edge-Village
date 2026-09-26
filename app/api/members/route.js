@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { guard, audit } from "@/lib/auth";
+import { guard, audit, verifyConfirmToken } from "@/lib/auth";
 import { ok, bad, created } from "@/lib/api";
 import { memberPrice } from "@/lib/member-totals";
 
@@ -47,6 +47,9 @@ export async function POST(req) {
   if (error) return error;
   try {
     const b = await req.json();
+    if (!(await verifyConfirmToken(b.confirmToken))) {
+      return bad("Password confirmation required or expired. Please try again.", 401);
+    }
     if (!b.fullName || !b.email || !b.phone) return bad("Full name, email and phone are required");
     const member = await prisma.member.create({
       data: {

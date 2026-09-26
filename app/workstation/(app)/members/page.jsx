@@ -7,6 +7,7 @@ import { api } from "@/lib/api-client";
 import { useFetch, PageHeader, LoadingBlock, ErrorBlock, ConfirmButton } from "@/components/ws/common";
 import { usePermissions, ReadOnlyNote } from "@/components/ws/permissions";
 import { Modal, Field, StatusPill, Alert } from "@/components/ui";
+import PasswordConfirmModal from "@/components/ws/PasswordConfirmModal";
 import { zar, dateFmt } from "@/lib/format";
 
 const EMPTY = { fullName: "", idNumber: "", dateOfBirth: "", gender: "", maritalStatus: "", physicalAddress: "", postalAddress: "", phone: "", email: "", plotNumber: "", purchasePrice: "", paymentPlan: "", beneficiaries: "" };
@@ -31,6 +32,7 @@ function MembersInner() {
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
@@ -45,13 +47,18 @@ function MembersInner() {
     return list;
   }, [members, q, statusFilter]);
 
-  async function submit(e) {
+  function submit(e) {
     e.preventDefault();
+    setFormError(null);
+    setConfirmOpen(true);
+  }
+
+  async function doCreate(confirmToken) {
     setSaving(true);
     setFormError(null);
     try {
       const plot = form.plotNumber && plots ? plots.find((p) => p.number === form.plotNumber) : null;
-      await api.post("/api/members", { ...form, plotId: plot?.id ?? null });
+      await api.post("/api/members", { ...form, plotId: plot?.id ?? null, confirmToken });
       setAddOpen(false);
       setForm(EMPTY);
       reload();
@@ -59,6 +66,7 @@ function MembersInner() {
       setFormError(err.message);
     } finally {
       setSaving(false);
+      setConfirmOpen(false);
     }
   }
 
@@ -181,6 +189,14 @@ function MembersInner() {
           </div>
         </form>
       </Modal>
+
+      <PasswordConfirmModal
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirmed={doCreate}
+        title="Confirm new member"
+        description="Creating a member record is a sensitive action. Re-enter your password to continue."
+      />
     </div>
   );
 }

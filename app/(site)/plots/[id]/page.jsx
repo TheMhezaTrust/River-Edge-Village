@@ -93,7 +93,7 @@ export default async function PlotDetailPage({ params }) {
               <h2 className="text-lg font-bold text-forest-900 mb-4">Pricing & Payment Options</h2>
               <p className="text-4xl font-extrabold text-sunset-500">{zar(plot.price)}</p>
               <p className="text-sm text-gray-500">Promotional price until {dateFmt(plot.project.promoEndsAt)} · full payment required</p>
-              <p className="text-sm text-gray-500 mt-1"><span className="line-through">{zar(plot.project.standardPrice)}</span> standard price thereafter — 6, 12 & 24-month payment plans available</p>
+              <p className="text-sm text-gray-500 mt-1"><span className="line-through">{zar(plot.project.standardPrice)}</span> standard price thereafter</p>
               <ul className="mt-5 space-y-2 text-sm text-gray-700 border-t border-gray-100 pt-4">
                 <li>✔ You acquire a heritable <strong>Right of Use</strong> — not a title deed (see <Link href="/terms" className="underline font-semibold text-forest-700">Terms and Conditions of Sale</Link>)</li>
                 <li>✔ Certificate of Land Use issued on full payment</li>

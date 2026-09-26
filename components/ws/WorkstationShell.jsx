@@ -18,6 +18,7 @@ const NAV = [
   { href: "/workstation/tasks", label: "Tasks", icon: "✅", perm: "tasks:view" },
   { href: "/workstation/communication", label: "Communication", icon: "✉️", perm: "communication:view" },
   { href: "/workstation/reports", label: "Reports", icon: "📈", perm: "reports:view" },
+  { href: "/workstation/content", label: "Website Content", icon: "📝", perm: "settings:manage" },
   { href: "/workstation/settings", label: "Settings", icon: "⚙️", perm: null },
 ];
 

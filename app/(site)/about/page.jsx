@@ -3,6 +3,7 @@ import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { SectionHeading } from "@/components/ui";
 import { zar } from "@/lib/format";
+import { getSiteContent } from "@/lib/site-content";
 
 export const metadata = {
   title: "About Us",
@@ -29,6 +30,7 @@ export default async function AboutPage() {
   const project = await prisma.project.findUnique({ where: { slug: "river-edge" } });
   const plotCounts = await prisma.plot.groupBy({ by: ["status"], _count: true });
   const counts = Object.fromEntries(plotCounts.map((g) => [g.status, g._count]));
+  const C = await getSiteContent();
 
   return (
     <>
@@ -36,10 +38,10 @@ export default async function AboutPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <p className="text-sm font-semibold uppercase tracking-wider text-forest-300 mb-2">About Us</p>
           <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight max-w-3xl">
-            The Mheza Trust — Legal Owner, Honest Steward
+            {C["about.heroTitle"]}
           </h1>
           <p className="mt-4 text-lg text-forest-100 max-w-3xl">
-            A registered trust holding land in trust for South African families, developing it legally, transparently, and permanently.
+            {C["about.heroSubtitle"]}
           </p>
         </div>
       </section>
@@ -74,15 +76,13 @@ export default async function AboutPage() {
               <div className="card p-5 border-l-4 border-l-forest-600">
                 <h3 className="font-bold text-forest-900">Our Mission</h3>
                 <p className="mt-2 text-sm text-gray-600">
-                  To deliver legal, planned, and affordable rural land ownership to South African families through transparent trust governance
-                  and full regulatory compliance.
+                  {C["about.mission"]}
                 </p>
               </div>
               <div className="card p-5 border-l-4 border-l-sunset-500">
                 <h3 className="font-bold text-forest-900">Our Vision</h3>
                 <p className="mt-2 text-sm text-gray-600">
-                  Rural communities across South Africa that are secure, serviced, self-governing, and proud — a replicable model starting at
-                  River Edge.
+                  {C["about.vision"]}
                 </p>
               </div>
             </div>

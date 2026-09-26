@@ -7,6 +7,7 @@ import PlotMapSection from "@/components/site/PlotMapSection";
 import InterestForm from "@/components/InterestForm";
 import { sortPlotsByNumber } from "@/lib/plan-layout";
 import { getAnySession } from "@/lib/auth";
+import { getSiteContent } from "@/lib/site-content";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,7 @@ export async function generateMetadata({ params }) {
 
 const INFRASTRUCTURE = [
   ["💧", "Rainwater Harvesting System", "Every plot is designed for rainwater harvesting: roof catchment from your home feeds a JoJo-style storage tank, providing household and garden water. This reduces dependence on municipal supply, lowers your running costs, and is endorsed in the development's water strategy. The farm's existing dam provides supplementary water for construction and communal use."],
-  ["🚽", "Septic Tank System", "Each plot uses an individual septic tank with a French drain soak-away — a sanitation approach for which the BCMM Sanitation Division has issued a formal no-objection. Soil percolation testing has been completed to confirm suitability. The system is inspected at building-plan stage and requires no municipal sewerage reticulation, keeping plot costs affordable."],
+  ["🚽", "Septic Tank System", "Each plot uses an individual septic tank system — a sanitation approach for which the BCMM Sanitation Division has issued a formal no-objection. Soil percolation testing has been completed to confirm suitability. The system is inspected at building-plan stage and requires no municipal sewerage reticulation, keeping plot costs affordable."],
   ["⚡", "Eskom Electricity", "An existing Eskom connection serves the farm. As rezoning is finalised, electrical reticulation will be extended to each block, with individual connections available to homeowners through standard Eskom application processes."],
   ["🛣️", "Road Network", "Primary roads carry a 9–11m reserve and secondary roads a 6m minimum — wider than most urban subdivisions. Gravel-surfaced initially and designed for future upgrading, the network ensures emergency vehicle access, school transport, and all-weather usability."],
   ["🏞️", "Dam and Setback Compliance", "The farm's dam is retained as a community feature with legally compliant setbacks. No plot encroaches on the dam buffer, and green belts surround it — protecting water quality and creating a natural recreational centerpiece for the village."],
@@ -41,6 +42,7 @@ export default async function ProjectPage({ params }) {
   const isAuthenticated = !!(await getAnySession());
   const project = await prisma.project.findUnique({ where: { slug } });
   if (!project) notFound();
+  const C = await getSiteContent();
 
   const [allPlots, announcements] = await Promise.all([
     prisma.plot.findMany({ where: { projectId: project.id } }),
@@ -62,7 +64,7 @@ export default async function ProjectPage({ params }) {
           )}
           <div className="flex items-center gap-3 mb-4">
             <StatusPill status={project.status} />
-            <span className="text-sm text-forest-200">Application for Rezoning to Residential Zoning 4 (Townhouse)</span>
+            <span className="text-sm text-forest-200">{C["project.heroBadge"]}</span>
           </div>
           <h1 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight">{project.name}</h1>
           <p className="mt-3 text-lg text-forest-100 max-w-3xl">{project.address}</p>
@@ -92,7 +94,7 @@ export default async function ProjectPage({ params }) {
       <section className="py-16 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid gap-12 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <SectionHeading center={false} eyebrow="Project Overview" title="A Planned Community on Titled Land" />
+            <SectionHeading center={false} eyebrow="Project Overview" title={C["project.overviewTitle"]} />
             <p className="text-gray-700 leading-relaxed text-lg">{project.description}</p>
             <div className="mt-8 grid sm:grid-cols-3 gap-4">
               {[["Available", counts.AVAILABLE || 0, "forest"], ["Reserved", counts.RESERVED || 0, "amber"], ["Sold", counts.SOLD || 0, "red"]].map(([label, n, color]) => (
@@ -111,7 +113,6 @@ export default async function ProjectPage({ params }) {
               <li>✔ Ends {dateFmt(project.promoEndsAt)}</li>
               <li>✔ Full payment required to qualify</li>
               <li>✖ Increases to {zar(project.standardPrice)} thereafter</li>
-              <li>✔ Payment plans available at standard price</li>
             </ul>
             <a href="#express-interest" className="btn-white w-full mt-6">Claim the Promotional Price</a>
           </aside>
@@ -140,7 +141,7 @@ export default async function ProjectPage({ params }) {
             {[
               ["📐", "Subdivision", `A land surveyor registered with SAGC has laid out the 31.9 hectares into ${project.plotCount} erven of 800m² each, in five blocks (A–E). Erf numbers in this system match the official survey layout plan, including subdivided erven such as 1A, 145A/145B, 165A, 186A and 203A. An application for Rezoning to Residential Zoning 4 (Townhouse) is being prepared for submission to BCMM.`],
               ["🛣️", "Road network", "Blocks are separated by 9–11m primary road reserves with internal 6m secondary roads between plot rows — every plot has direct road frontage and emergency access."],
-              ["🌳", "Green spaces", "Green belts are set aside within the village, and both dam areas are protected with compliant setbacks and wetland buffers, giving the village communal open space and natural drainage."],
+              ["🌳", "Green spaces", "Green belts are set aside within the village, and both dam areas are protected with compliant setbacks and wetland buffers, giving the village communal open space."],
             ].map(([icon, title, desc]) => (
               <div key={title} className="card p-6">
                 <span className="text-3xl" aria-hidden>{icon}</span>
@@ -218,7 +219,6 @@ export default async function ProjectPage({ params }) {
             {[
               ["“I bought Plot 49 for my three children. For the first time, our family will own land with a title — legally, safely. The Trust shows us every approval document they receive.”", "Nokwanda Z.", "Plot holder, Block B"],
               ["“What convinced me was the status page. I could see the sanitation no-objection and exactly where the BCMM rezoning application stands myself. No other seller offered that kind of proof.”", "Peter A.", "Full-payment buyer"],
-              ["“The payment plan made it possible. I pay monthly and I can see my balance in the member portal. It feels like the Trust actually wants us to succeed.”", "Thandiwe M.", "Instalment plan member"],
             ].map(([quote, name, role]) => (
               <figure key={name} className="card p-6">
                 <blockquote className="text-sm text-gray-700 leading-relaxed">{quote}</blockquote>
