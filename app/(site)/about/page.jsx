@@ -50,23 +50,26 @@ export default async function AboutPage() {
             <h2 className="text-2xl font-bold text-forest-900 mb-4">Our Background</h2>
             <div className="space-y-4 text-gray-700 leading-relaxed">
               <p>
-                The Mheza Trust was established to solve a problem that has plagued rural South Africa for generations: families living on
-                land without legal security. Informal occupation means no title, no services, constant fear of demolition, and no asset to
-                pass on to children.
+                The Mheza Trust was founded by its Trustees, who united around a shared vision to address the escalating peri-urban
+                challenges across the Eastern Cape, particularly within the Buffalo City Metro Municipality (BCMM). They witnessed
+                firsthand the devastating impact of illegitimate land dealings, where vulnerable individuals faced not only the demolition
+                of their homes but also the loss of their life savings.
               </p>
               <p>
-                The Trust purchased Portion 2 of Farm 970 in Cove Ridge East — 31.9 hectares of titled land within the Buffalo City
-                Metropolitan Municipality — and is developing it into <strong>River Edge Rural Village</strong>: a fully planned residential
-                community for 165 families, with erf numbers matching the official survey layout plan.
+                Driven by a commitment to protect these communities, The Mheza Trust was established to provide a lasting, lawful
+                solution. Recognizing that the Trust structure is not designed to directly run communities, but rather to serve as an
+                umbrella for multiple independent, community-driven projects, the Trust empowers each community to govern itself through
+                its own constitution.
               </p>
               <p>
-                <strong>All The Mheza Trust projects are administered by River Edge Primary Co-Op</strong>, which handles the day-to-day
-                running of River Edge Rural Village on behalf of the Trust and its beneficiaries.
+                The core mission of The Mheza Trust is to facilitate access to legitimate, legally secure land for individuals who cannot
+                afford traditional bank bonds. By offering affordable and legally recognized home ownership, the Trust bridges the critical
+                gap between communities and the government. It promotes solutions that foster cooperative, law-abiding relationships
+                between citizens and state entities, ensuring that development occurs within the framework of the law.
               </p>
               <p>
-                The Trust is the <strong>legal owner</strong> of the land, registered with the Master of the High Court. It holds the property
-                in trust for the benefit of the community and plot holders, while a Communal Property Association (CPA) registration — in
-                progress with DALRRD — will give members democratic governance over the community&apos;s affairs.
+                The Mheza Trust is formally registered by the Master of the High Court under Trust Number IT000099/2024(E), finalized in
+                2024.
               </p>
             </div>
 
