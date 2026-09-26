@@ -28,8 +28,6 @@ const TRUSTEES = [
 
 export default async function AboutPage() {
   const project = await prisma.project.findUnique({ where: { slug: "river-edge" } });
-  const plotCounts = await prisma.plot.groupBy({ by: ["status"], _count: true });
-  const counts = Object.fromEntries(plotCounts.map((g) => [g.status, g._count]));
   const C = await getSiteContent();
 
   return (
@@ -59,7 +57,7 @@ export default async function AboutPage() {
               <p>
                 The Trust purchased Portion 2 of Farm 970 in Cove Ridge East — 31.9 hectares of titled land within the Buffalo City
                 Metropolitan Municipality — and is developing it into <strong>River Edge Rural Village</strong>: a fully planned residential
-                community of {project?.plotCount ?? 216} plots for 165 families, with erf numbers matching the official survey layout plan.
+                community for 165 families, with erf numbers matching the official survey layout plan.
               </p>
               <p>
                 <strong>All The Mheza Trust projects are administered by River Edge Primary Co-Op</strong>, which handles the day-to-day

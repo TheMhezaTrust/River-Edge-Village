@@ -46,7 +46,7 @@ export default async function TrustInfoPage() {
                       ["Trust name", "The Mheza Trust"],
                       ["Trust registration number", `${TRUST.registrationNumber} (Master of the High Court)`],
                       ["Registered as legal owner", "Portion 2 of Farm 970, Cove Ridge East, Buffalo City Metropolitan Municipality"],
-                      ["Extent of land held", `31.9 hectares (${project?.plotCount} residential plots of 800m²)`],
+                      ["Extent of land held", `31.9 hectares (residential plots of 800m²)`],
                       ["Original seller", sellerName(isMember, "Available to registered members")],
                       ["Trust attorney", attorneyName(isMember, "Available to registered members")],
                       ["Project administration", `All ${TRUST.legalName} projects are administered by ${TRUST.administrator}`],

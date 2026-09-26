@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { zar, dateFmt } from "@/lib/format";
 import InterestForm from "@/components/InterestForm";
 import { SectionHeading } from "@/components/ui";
-import { sortPlotsByNumber } from "@/lib/plan-layout";
 import { TRUST, sellerName, attorneyName } from "@/lib/contact";
 import { getAnySession } from "@/lib/auth";
 import { getSiteContent } from "@/lib/site-content";
@@ -12,7 +11,7 @@ import { getSiteContent } from "@/lib/site-content";
 export const metadata = {
   title: "The Mheza Trust | River Edge Rural Village – Your Land. Your Home. Your Future.",
   description:
-    "River Edge Rural Village: 216 residential 800m² plots on 31.9 hectares in Cove Ridge East, Buffalo City. Promotional price R75,000 until 30 November 2026. Plot layout, prices, terms and conditions, contact details and member login.",
+    "River Edge Rural Village: residential 800m² plots on 31.9 hectares in Cove Ridge East, Buffalo City. Promotional price R75,000 until 30 November 2026. Prices, terms and conditions, contact details and member login.",
 };
 
 export const dynamic = "force-dynamic";
@@ -29,14 +28,13 @@ export default async function HomePage() {
   const isMember = session?.scope === "portal";
   const C = await getSiteContent();
   const project = await prisma.project.findUnique({ where: { slug: "river-edge" } });
-  const [plots, announcements] = await Promise.all([
-    prisma.plot.findMany({ where: { projectId: project?.id } }),
-    prisma.announcement.findMany({ where: { audience: "PUBLIC" }, orderBy: { createdAt: "desc" }, take: 3 }),
-  ]);
+  const announcements = await prisma.announcement.findMany({
+    where: { audience: "PUBLIC" },
+    orderBy: { createdAt: "desc" },
+    take: 3,
+  });
 
-  const sorted = sortPlotsByNumber(plots);
   const timeline = project?.timeline ? JSON.parse(project.timeline) : [];
-  const plotCount = project?.plotCount ?? sorted.length;
 
   return (
     <>
@@ -57,7 +55,7 @@ export default async function HomePage() {
               {C["home.heroTagline"]}
             </p>
             <p className="mt-4 text-forest-200 max-w-xl">
-              {plotCount} residential 800m² plots on 31.9 hectares in Cove Ridge East, Buffalo City. From{" "}
+              Residential 800m² plots on 31.9 hectares in Cove Ridge East, Buffalo City. From{" "}
               <strong className="text-white">{zar(project?.promoPrice)}</strong> until {dateFmt(project?.promoEndsAt)}.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -89,7 +87,7 @@ export default async function HomePage() {
                       ["Registration number", TRUST.registrationNumber],
                       ["Flagship project", "River Edge Rural Village"],
                       ["Property", "Portion 2 of Farm 970, Cove Ridge East, Buffalo City Metropolitan Municipality"],
-                      ["Extent", `31.9 hectares · ${plotCount} residential plots of 800m² · 165 families`],
+                      ["Extent", `31.9 hectares · residential plots of 800m² · 165 families`],
                       ["Original seller", sellerName(isMember, "Available to registered members")],
                       ["Trust attorney", attorneyName(isMember, "Available to registered members")],
                       ["Project administration", `All ${TRUST.legalName} projects are administered by ${TRUST.administrator}`],

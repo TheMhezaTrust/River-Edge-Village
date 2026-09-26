@@ -66,7 +66,7 @@ export default async function ProjectPage({ params }) {
           <dl className="mt-8 grid grid-cols-2 md:grid-cols-5 gap-4 max-w-4xl">
             {[
               ["Farm size", `${project.farmSizeHa} ha`],
-              ["Plots", `${project.plotCount} × 800m²`],
+              ["Plot size", "800m²"],
               ["Families", project.familyCount],
               ["Promotional price", zar(project.promoPrice)],
               ["Standard price", zar(project.standardPrice)],
@@ -111,7 +111,7 @@ export default async function ProjectPage({ params }) {
           <SectionHeading eyebrow="Development Plan" title="How the Land Is Subdivided" />
           <div className="grid gap-6 md:grid-cols-3">
             {[
-              ["📐", "Subdivision", `A land surveyor registered with SAGC has laid out the 31.9 hectares into ${project.plotCount} erven of 800m² each, in five blocks (A–E). Erf numbers in this system match the official survey layout plan, including subdivided erven such as 1A, 145A/145B, 165A, 186A and 203A. An application for Rezoning to Residential Zoning 4 (Townhouse) is being prepared for submission to BCMM.`],
+              ["📐", "Subdivision", `A land surveyor registered with SAGC has laid out the 31.9 hectares into erven of 800m² each, in five blocks (A–E). Erf numbers in this system match the official survey layout plan, including subdivided erven such as 1A, 145A/145B, 165A, 186A and 203A. An application for Rezoning to Residential Zoning 4 (Townhouse) is being prepared for submission to BCMM.`],
               ["🛣️", "Road network", "Blocks are separated by 9–11m primary road reserves with internal 6m secondary roads between plot rows — every plot has direct road frontage and emergency access."],
               ["🌳", "Green spaces", "Green belts are set aside within the village, and both dam areas are protected with compliant setbacks and wetland buffers, giving the village communal open space."],
             ].map(([icon, title, desc]) => (

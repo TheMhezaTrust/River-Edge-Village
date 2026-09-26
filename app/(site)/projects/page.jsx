@@ -10,7 +10,7 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function ProjectsPage() {
-  const projects = await prisma.project.findMany({ orderBy: { id: "asc" }, include: { _count: { select: { plots: true } } } });
+  const projects = await prisma.project.findMany({ orderBy: { id: "asc" } });
 
   return (
     <>
@@ -46,7 +46,6 @@ export default async function ProjectsPage() {
                     <p className="mt-3 text-sm text-gray-600 leading-relaxed flex-1">{p.description.slice(0, 240)}{p.description.length > 240 ? "…" : ""}</p>
                     <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-700">
                       {p.farmSizeHa && <span><strong>{p.farmSizeHa}</strong> ha</span>}
-                      {p.plotCount && <span><strong>{p._count.plots || p.plotCount}</strong> plots</span>}
                       {p.familyCount && <span><strong>{p.familyCount}</strong> families</span>}
                       {p.promoPrice && <span className="text-sunset-500 font-bold">from {zar(p.promoPrice)}</span>}
                     </div>
