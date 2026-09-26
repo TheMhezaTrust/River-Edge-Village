@@ -191,11 +191,11 @@ export default async function HomePage() {
             />
             <ul className="mt-6 space-y-2.5 text-sm text-forest-100">
               {[
-                "You acquire a heritable Right of Use, not a title deed — ownership stays with the Trust until transfer to the CPA.",
-                "On full payment you receive a Certificate of Land Use and the right to occupy, build, transfer and nominate beneficiaries.",
-                "Residential use only: no animal farming, no slaughtering, no commercial or industrial activity.",
-                "Building requires CPA Committee approval; setbacks are 5m front, 2m side, 3m rear.",
-                "Annual levies are payable to the CPA; disputes go to mediation, then CSOS, then court.",
+                "You become a Beneficiary of The Mheza Trust for your specific plot; beneficial rights are limited to the River Edge project only.",
+                "The Trust remains the registered title holder of Farm 970 — no individual title deed is issued. Proof of ownership is a Certificate of Beneficial Interest, on full payment.",
+                "Residential use only: no animal farming, no alcohol manufacture/distribution/sale, and no illegal activities or illicit drugs.",
+                "Off-grid living: you install and maintain your own SANS 10400-compliant septic tank, water source (borehole/rainwater) and Eskom electricity connection.",
+                "Material breach can lead to deregistration as a Beneficiary and a refund of the purchase price less a 15% administration and penalty fee.",
               ].map((t) => (
                 <li key={t} className="flex gap-2.5">
                   <span className="text-forest-400 shrink-0" aria-hidden>✔</span>
