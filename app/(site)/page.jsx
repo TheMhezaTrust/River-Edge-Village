@@ -155,7 +155,6 @@ export default async function HomePage() {
                       <span className="text-xs font-semibold text-gray-500">{style.label}</span>
                     </div>
                     <p className="mt-1 text-sm text-gray-600">{item.description}</p>
-                    {item.date && <p className="mt-2 text-xs text-gray-400">{item.date}</p>}
                   </div>
                 </div>
               );

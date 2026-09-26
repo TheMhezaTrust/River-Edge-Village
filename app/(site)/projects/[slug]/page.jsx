@@ -173,7 +173,6 @@ export default async function ProjectPage({ params }) {
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-bold text-gray-900">{item.label}</h3>
                     <StatusPill status={item.status} />
-                    {item.date && <span className="text-xs text-gray-500">{item.date}</span>}
                   </div>
                   <p className="mt-1 text-sm text-gray-600">{item.description}</p>
                 </div>
