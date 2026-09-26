@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { zar, dateFmt } from "@/lib/format";
 import { StatusPill } from "@/components/ui";
 import InterestForm from "@/components/InterestForm";
-import Forbidden from "@/components/site/Forbidden";
 import { PLAN_W, PLAN_H } from "@/lib/plan-layout";
 import { getAnySession, isStaffAdmin } from "@/lib/auth";
 
@@ -19,7 +18,7 @@ export async function generateMetadata({ params }) {
 export default async function PlotDetailPage({ params }) {
   const session = await getAnySession();
   if (!session) redirect("/login");
-  if (!isStaffAdmin(session)) return <Forbidden />;
+  if (!isStaffAdmin(session)) notFound();
   const { id } = await params;
   const plot = await prisma.plot.findUnique({ where: { id: Number(id) }, include: { project: true } });
   if (!plot) notFound();
@@ -64,7 +63,6 @@ export default async function PlotDetailPage({ params }) {
                 ))}
               </svg>
               <p className="mt-4 text-sm text-gray-600">Position of Erf {plot.number} (Block {plot.block}) on the official layout plan, highlighted.</p>
-              <Link href="/projects/river-edge#map" className="btn-outline btn-sm mt-4">Open full interactive map</Link>
             </div>
 
             <div className="mt-8">

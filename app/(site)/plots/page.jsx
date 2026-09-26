@@ -1,9 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { dateFmt } from "@/lib/format";
 import PlotsBrowser from "@/components/site/PlotsBrowser";
-import Forbidden from "@/components/site/Forbidden";
 import { sortPlotsByNumber } from "@/lib/plan-layout";
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import { getAnySession, isStaffAdmin } from "@/lib/auth";
 import Link from "next/link";
 
@@ -16,7 +15,7 @@ export const dynamic = "force-dynamic";
 export default async function PlotsPage() {
   const session = await getAnySession();
   if (!session) redirect("/login");
-  if (!isStaffAdmin(session)) return <Forbidden />;
+  if (!isStaffAdmin(session)) notFound();
   const project = await prisma.project.findUnique({ where: { slug: "river-edge" } });
   const plots = sortPlotsByNumber(await prisma.plot.findMany({
     where: { projectId: project.id },
@@ -32,7 +31,6 @@ export default async function PlotsPage() {
             <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">Available Plots</h1>
             <p className="mt-2 text-forest-100">Every plot is 800m² of planned residential land, sold as a heritable Right of Use. See the <Link href="/terms" className="underline font-semibold text-white">Terms and Conditions of Sale</Link>.</p>
           </div>
-          <Link href="/projects/river-edge#map" className="btn-accent">View on Interactive Map</Link>
         </div>
       </section>
 

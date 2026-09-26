@@ -68,7 +68,7 @@ export async function POST(req) {
     return ok({
       reply:
         "I'm not connected to the AI service yet (no DEEPSEEK_API_KEY configured). " +
-        "Meanwhile, you can find pricing and plots at /plots, banking and Trust details at /trust-info, " +
+        "Meanwhile, you can find banking and Trust details at /trust-info, " +
         "the sale terms at /terms, project status at /status, or contact us at /contact.",
     });
   }

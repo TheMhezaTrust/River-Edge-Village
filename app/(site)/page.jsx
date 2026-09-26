@@ -3,11 +3,10 @@ import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { zar, dateFmt } from "@/lib/format";
 import InterestForm from "@/components/InterestForm";
-import PlotMapSection from "@/components/site/PlotMapSection";
 import { SectionHeading } from "@/components/ui";
 import { sortPlotsByNumber } from "@/lib/plan-layout";
 import { TRUST, sellerName, attorneyName } from "@/lib/contact";
-import { getAnySession, isStaffAdmin } from "@/lib/auth";
+import { getAnySession } from "@/lib/auth";
 import { getSiteContent } from "@/lib/site-content";
 
 export const metadata = {
@@ -28,7 +27,6 @@ const STATUS_STYLE = {
 export default async function HomePage() {
   const session = await getAnySession();
   const isMember = session?.scope === "portal";
-  const isAdmin = isStaffAdmin(session);
   const C = await getSiteContent();
   const project = await prisma.project.findUnique({ where: { slug: "river-edge" } });
   const [plots, announcements] = await Promise.all([
@@ -139,24 +137,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* ============ PLOTS LAYOUT AND PICTURE (administrators only) ============ */}
-      {isAdmin && (
-      <section className="py-16 bg-earth-50" aria-label="Plot layout">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionHeading
-            eyebrow="The Layout"
-            title="Plots, Roads and the Official Site Plan"
-            subtitle={`${plotCount} erven numbered exactly as on the surveyor's layout plan, including subdivided erven such as 1A, 145A/145B, 165A, 186A and 203A. Switch between the official site plan picture and the interactive availability map.`}
-          />
-          <PlotMapSection plots={plots} standardPrice={project?.standardPrice} />
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link href="/plots" className="btn-primary">Browse All Plots & Prices</Link>
-            <Link href="/projects/river-edge" className="btn-outline">Full Project Page</Link>
-          </div>
-        </div>
-      </section>
-      )}
 
       {/* ============ PROJECT PROGRESS ============ */}
       <section className="py-16 bg-white" aria-label="Project progress">

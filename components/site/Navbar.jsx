@@ -8,21 +8,15 @@ const LINKS = [
   ["/", "Home"],
   ["/about", "About Us"],
   ["/projects", "Projects"],
-  ["/plots", "Plots"],
   ["/status", "Status"],
   ["/trust-info", "Trust Info"],
   ["/terms", "Terms"],
   ["/contact", "Contact"],
 ];
 
-// Links that are only shown to administrators (staff with the ADMIN role).
-const ADMIN_ONLY = new Set(["/plots"]);
-
-export default function Navbar({ isAdmin = false }) {
+export default function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-
-  const links = LINKS.filter(([href]) => !ADMIN_ONLY.has(href) || isAdmin);
 
   const isActive = (href) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
@@ -39,7 +33,7 @@ export default function Navbar({ isAdmin = false }) {
           </Link>
 
           <nav className="hidden lg:flex items-center gap-1" aria-label="Main navigation">
-            {links.map(([href, label]) => (
+            {LINKS.map(([href, label]) => (
               <Link
                 key={href}
                 href={href}
@@ -54,7 +48,6 @@ export default function Navbar({ isAdmin = false }) {
 
           <div className="hidden lg:flex items-center gap-2">
             <Link href="/login" className="btn-outline btn-sm">Login</Link>
-            {isAdmin && <Link href="/plots" className="btn-accent btn-sm">View Available Plots</Link>}
           </div>
 
           <button
@@ -72,7 +65,7 @@ export default function Navbar({ isAdmin = false }) {
 
       {open && (
         <nav className="lg:hidden border-t border-gray-200 bg-white px-4 py-3 space-y-1" aria-label="Mobile navigation">
-          {links.map(([href, label]) => (
+          {LINKS.map(([href, label]) => (
             <Link
               key={href}
               href={href}
@@ -84,7 +77,6 @@ export default function Navbar({ isAdmin = false }) {
           ))}
           <div className="pt-2 flex flex-col gap-2 border-t border-gray-100 mt-2">
             <Link href="/login" onClick={() => setOpen(false)} className="btn-primary btn-sm">Login</Link>
-            {isAdmin && <Link href="/plots" onClick={() => setOpen(false)} className="btn-accent btn-sm">View Available Plots</Link>}
           </div>
         </nav>
       )}

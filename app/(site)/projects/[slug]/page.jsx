@@ -3,10 +3,8 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { zar, dateFmt } from "@/lib/format";
 import { SectionHeading, StatusPill } from "@/components/ui";
-import PlotMapSection from "@/components/site/PlotMapSection";
 import InterestForm from "@/components/InterestForm";
 import { sortPlotsByNumber } from "@/lib/plan-layout";
-import { getAnySession, isStaffAdmin } from "@/lib/auth";
 import { getSiteContent } from "@/lib/site-content";
 
 export const dynamic = "force-dynamic";
@@ -39,8 +37,6 @@ const TIMELINE_ICONS = { COMPLETED: "✅", IN_PROGRESS: "🔄", PENDING: "⏳", 
 
 export default async function ProjectPage({ params }) {
   const { slug } = await params;
-  const session = await getAnySession();
-  const isAdmin = isStaffAdmin(session);
   const project = await prisma.project.findUnique({ where: { slug } });
   if (!project) notFound();
   const C = await getSiteContent();
@@ -85,7 +81,6 @@ export default async function ProjectPage({ params }) {
           </dl>
           <p className="mt-4 text-sm text-sunset-400 font-semibold">Promotional pricing valid until {dateFmt(project.promoEndsAt)} · full payment required to qualify.</p>
           <div className="mt-8 flex flex-wrap gap-4">
-            {isAdmin && <a href="#map" className="btn-accent px-6 py-3">Explore the Farm Map</a>}
             <a href="#express-interest" className="btn-white px-6 py-3">Express Interest</a>
           </div>
         </div>
@@ -119,20 +114,6 @@ export default async function ProjectPage({ params }) {
           </aside>
         </div>
       </section>
-
-      {/* Interactive map (administrators only) */}
-      {isAdmin && (
-      <section id="map" className="py-16 bg-earth-50">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionHeading
-            eyebrow="Interactive Farm Layout"
-            title="Explore Every Plot"
-            subtitle={`The full 31.9-hectare layout: ${project.plotCount} plots in five blocks, with erf numbers matching the official survey layout plan, primary and secondary roads, green belts and dams. Click any plot for details.`}
-          />
-          <PlotMapSection plots={plots} standardPrice={project.standardPrice} />
-        </div>
-      </section>
-      )}
 
       {/* Development plan */}
       <section className="py-16 bg-white">

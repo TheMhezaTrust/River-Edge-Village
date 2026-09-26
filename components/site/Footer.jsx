@@ -5,7 +5,6 @@ const QUICK_LINKS = [
   ["/about", "About Us"],
   ["/projects", "Projects"],
   ["/projects/river-edge", "River Edge Rural Village"],
-  ["/plots", "Available Plots"],
   ["/status", "Project Status"],
   ["/trust-info", "Trust Information"],
   ["/terms", "Terms & Conditions of Sale"],
@@ -13,11 +12,8 @@ const QUICK_LINKS = [
   ["/login", "Login (Staff or Member)"],
 ];
 
-// Links only shown to administrators (staff with the ADMIN role).
-const ADMIN_ONLY = new Set(["/plots"]);
-
-export default function Footer({ isAdmin = false }) {
-  const quickLinks = QUICK_LINKS.filter(([href]) => !ADMIN_ONLY.has(href) || isAdmin);
+export default function Footer() {
+  const quickLinks = QUICK_LINKS;
   return (
     <footer className="bg-forest-900 text-forest-100">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14">
