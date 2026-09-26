@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { zar, dateFmt } from "@/lib/format";
 import { SectionHeading, StatusPill } from "@/components/ui";
 import InterestForm from "@/components/InterestForm";
-import { sortPlotsByNumber } from "@/lib/plan-layout";
 import { getSiteContent } from "@/lib/site-content";
 
 export const dynamic = "force-dynamic";
@@ -41,14 +40,13 @@ export default async function ProjectPage({ params }) {
   if (!project) notFound();
   const C = await getSiteContent();
 
-  const [allPlots, announcements] = await Promise.all([
-    prisma.plot.findMany({ where: { projectId: project.id } }),
-    prisma.announcement.findMany({ where: { audience: "PUBLIC" }, orderBy: { createdAt: "desc" }, take: 3 }),
-  ]);
-  const plots = sortPlotsByNumber(allPlots);
+  const announcements = await prisma.announcement.findMany({
+    where: { audience: "PUBLIC" },
+    orderBy: { createdAt: "desc" },
+    take: 3,
+  });
 
   const timeline = project.timeline ? JSON.parse(project.timeline) : [];
-  const counts = plots.reduce((acc, p) => ({ ...acc, [p.status]: (acc[p.status] || 0) + 1 }), {});
 
   return (
     <>
@@ -92,14 +90,6 @@ export default async function ProjectPage({ params }) {
           <div className="lg:col-span-2">
             <SectionHeading center={false} eyebrow="Project Overview" title={C["project.overviewTitle"]} />
             <p className="text-gray-700 leading-relaxed text-lg">{project.description}</p>
-            <div className="mt-8 grid sm:grid-cols-3 gap-4">
-              {[["Available", counts.AVAILABLE || 0, "forest"], ["Reserved", counts.RESERVED || 0, "amber"], ["Sold", counts.SOLD || 0, "red"]].map(([label, n, color]) => (
-                <div key={label} className="card p-5 text-center">
-                  <p className={`text-3xl font-extrabold ${color === "forest" ? "text-forest-700" : color === "amber" ? "text-amber-600" : "text-red-600"}`}>{n}</p>
-                  <p className="text-sm font-medium text-gray-600 mt-1">{label} plots</p>
-                </div>
-              ))}
-            </div>
           </div>
           <aside className="card p-6 bg-sunset-500 text-white border-0 shadow-lg h-fit">
             <p className="text-sm font-bold uppercase tracking-wide text-orange-100">Limited Time Offer</p>

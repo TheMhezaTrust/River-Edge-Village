@@ -35,7 +35,6 @@ export default async function HomePage() {
   ]);
 
   const sorted = sortPlotsByNumber(plots);
-  const availableCount = sorted.filter((p) => p.status === "AVAILABLE").length;
   const timeline = project?.timeline ? JSON.parse(project.timeline) : [];
   const plotCount = project?.plotCount ?? sorted.length;
 
@@ -66,7 +65,7 @@ export default async function HomePage() {
               <a href="#interest" className="btn-outline px-7 py-3.5 text-base border-white/40 text-white hover:bg-white/10">I'm Interested</a>
             </div>
             <p className="mt-4 text-xs text-forest-300">
-              {availableCount} of {plotCount} plots currently available · Staff sign in via <Link href="/login?to=staff" className="underline hover:text-white">Login → Administrator / Staff</Link>
+              Staff sign in via <Link href="/login?to=staff" className="underline hover:text-white">Login → Administrator / Staff</Link>
             </p>
           </div>
         </div>
