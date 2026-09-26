@@ -7,7 +7,7 @@ import PlotMapSection from "@/components/site/PlotMapSection";
 import { SectionHeading } from "@/components/ui";
 import { sortPlotsByNumber } from "@/lib/plan-layout";
 import { TRUST, sellerName, attorneyName } from "@/lib/contact";
-import { getAnySession } from "@/lib/auth";
+import { getAnySession, isStaffAdmin } from "@/lib/auth";
 import { getSiteContent } from "@/lib/site-content";
 
 export const metadata = {
@@ -28,7 +28,7 @@ const STATUS_STYLE = {
 export default async function HomePage() {
   const session = await getAnySession();
   const isMember = session?.scope === "portal";
-  const isAuthenticated = !!session;
+  const isAdmin = isStaffAdmin(session);
   const C = await getSiteContent();
   const project = await prisma.project.findUnique({ where: { slug: "river-edge" } });
   const [plots, announcements] = await Promise.all([
@@ -140,8 +140,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ============ PLOTS LAYOUT AND PICTURE (authenticated only) ============ */}
-      {isAuthenticated && (
+      {/* ============ PLOTS LAYOUT AND PICTURE (administrators only) ============ */}
+      {isAdmin && (
       <section className="py-16 bg-earth-50" aria-label="Plot layout">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <SectionHeading

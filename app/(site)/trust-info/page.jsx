@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { SectionHeading } from "@/components/ui";
 import { zar } from "@/lib/format";
 import { TRUST, sellerName, attorneyName } from "@/lib/contact";
-import { getPortalSession } from "@/lib/auth";
+import { getPortalSession, getAnySession, isStaffAdmin } from "@/lib/auth";
 
 export const metadata = {
   title: "Trust Information",
@@ -21,6 +21,7 @@ const TRUSTEES = [
 
 export default async function TrustInfoPage() {
   const isMember = !!(await getPortalSession());
+  const isAdmin = isStaffAdmin(await getAnySession());
   const project = await prisma.project.findUnique({ where: { slug: "river-edge" } });
 
   return (
@@ -154,7 +155,7 @@ export default async function TrustInfoPage() {
               <p className="text-sm text-gray-600">
                 Plots are {zar(project?.promoPrice)} (promotional, full payment) until {project?.promoEndsAt}, then {zar(project?.standardPrice)}.
               </p>
-              <Link href="/plots" className="btn-outline btn-sm mt-4">Browse Plots</Link>
+              {isAdmin && <Link href="/plots" className="btn-outline btn-sm mt-4">Browse Plots</Link>}
             </div>
           </aside>
         </div>

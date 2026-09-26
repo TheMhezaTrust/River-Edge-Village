@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { dateFmt } from "@/lib/format";
 import PlotsBrowser from "@/components/site/PlotsBrowser";
+import Forbidden from "@/components/site/Forbidden";
 import { sortPlotsByNumber } from "@/lib/plan-layout";
 import { redirect } from "next/navigation";
-import { getAnySession } from "@/lib/auth";
+import { getAnySession, isStaffAdmin } from "@/lib/auth";
 import Link from "next/link";
 
 export const metadata = {
@@ -13,7 +14,9 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function PlotsPage() {
-  if (!(await getAnySession())) redirect("/login");
+  const session = await getAnySession();
+  if (!session) redirect("/login");
+  if (!isStaffAdmin(session)) return <Forbidden />;
   const project = await prisma.project.findUnique({ where: { slug: "river-edge" } });
   const plots = sortPlotsByNumber(await prisma.plot.findMany({
     where: { projectId: project.id },

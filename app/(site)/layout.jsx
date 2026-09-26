@@ -1,15 +1,17 @@
 import Navbar from "@/components/site/Navbar";
 import Footer from "@/components/site/Footer";
 import ChatBot from "@/components/site/ChatBot";
-import { getAnySession } from "@/lib/auth";
+import { getAnySession, isStaffAdmin } from "@/lib/auth";
 
 export default async function SiteLayout({ children }) {
-  const isAuthenticated = !!(await getAnySession());
+  const session = await getAnySession();
+  const isAuthenticated = !!session;
+  const isAdmin = isStaffAdmin(session);
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar isAuthenticated={isAuthenticated} />
+      <Navbar isAuthenticated={isAuthenticated} isAdmin={isAdmin} />
       <main className="flex-1">{children}</main>
-      <Footer isAuthenticated={isAuthenticated} />
+      <Footer isAuthenticated={isAuthenticated} isAdmin={isAdmin} />
       <ChatBot />
     </div>
   );

@@ -13,11 +13,11 @@ const QUICK_LINKS = [
   ["/login", "Login (Staff or Member)"],
 ];
 
-// Links only shown to authenticated visitors (members or staff).
-const AUTH_ONLY = new Set(["/plots"]);
+// Links only shown to administrators (staff with the ADMIN role).
+const ADMIN_ONLY = new Set(["/plots"]);
 
-export default function Footer({ isAuthenticated = false }) {
-  const quickLinks = QUICK_LINKS.filter(([href]) => isAuthenticated || !AUTH_ONLY.has(href));
+export default function Footer({ isAdmin = false }) {
+  const quickLinks = QUICK_LINKS.filter(([href]) => !ADMIN_ONLY.has(href) || isAdmin);
   return (
     <footer className="bg-forest-900 text-forest-100">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14">

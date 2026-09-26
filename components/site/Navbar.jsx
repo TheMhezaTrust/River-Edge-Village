@@ -15,14 +15,14 @@ const LINKS = [
   ["/contact", "Contact"],
 ];
 
-// Links that are only shown to authenticated visitors (members or staff).
-const AUTH_ONLY = new Set(["/plots"]);
+// Links that are only shown to administrators (staff with the ADMIN role).
+const ADMIN_ONLY = new Set(["/plots"]);
 
-export default function Navbar({ isAuthenticated = false }) {
+export default function Navbar({ isAdmin = false }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
-  const links = LINKS.filter(([href]) => isAuthenticated || !AUTH_ONLY.has(href));
+  const links = LINKS.filter(([href]) => !ADMIN_ONLY.has(href) || isAdmin);
 
   const isActive = (href) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
@@ -54,7 +54,7 @@ export default function Navbar({ isAuthenticated = false }) {
 
           <div className="hidden lg:flex items-center gap-2">
             <Link href="/login" className="btn-outline btn-sm">Login</Link>
-            {isAuthenticated && <Link href="/plots" className="btn-accent btn-sm">View Available Plots</Link>}
+            {isAdmin && <Link href="/plots" className="btn-accent btn-sm">View Available Plots</Link>}
           </div>
 
           <button
@@ -84,7 +84,7 @@ export default function Navbar({ isAuthenticated = false }) {
           ))}
           <div className="pt-2 flex flex-col gap-2 border-t border-gray-100 mt-2">
             <Link href="/login" onClick={() => setOpen(false)} className="btn-primary btn-sm">Login</Link>
-            {isAuthenticated && <Link href="/plots" onClick={() => setOpen(false)} className="btn-accent btn-sm">View Available Plots</Link>}
+            {isAdmin && <Link href="/plots" onClick={() => setOpen(false)} className="btn-accent btn-sm">View Available Plots</Link>}
           </div>
         </nav>
       )}

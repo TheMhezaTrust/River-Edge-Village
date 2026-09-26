@@ -4,8 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { zar, dateFmt } from "@/lib/format";
 import { StatusPill } from "@/components/ui";
 import InterestForm from "@/components/InterestForm";
+import Forbidden from "@/components/site/Forbidden";
 import { PLAN_W, PLAN_H } from "@/lib/plan-layout";
-import { getAnySession } from "@/lib/auth";
+import { getAnySession, isStaffAdmin } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,9 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function PlotDetailPage({ params }) {
-  if (!(await getAnySession())) redirect("/login");
+  const session = await getAnySession();
+  if (!session) redirect("/login");
+  if (!isStaffAdmin(session)) return <Forbidden />;
   const { id } = await params;
   const plot = await prisma.plot.findUnique({ where: { id: Number(id) }, include: { project: true } });
   if (!plot) notFound();
