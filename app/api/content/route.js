@@ -3,6 +3,17 @@ import { guard, audit, verifyConfirmToken } from "@/lib/auth";
 import { ok, bad } from "@/lib/api";
 import { CONTENT_FIELDS, getSiteContent } from "@/lib/site-content";
 
+// The SiteContent table is additive and may not exist yet if `prisma db push`
+// has not been run against a given environment. Create it on first save so the
+// CMS works without a separate migration step. Idempotent and matches Prisma's
+// PostgreSQL mapping for the model.
+const ENSURE_TABLE = `CREATE TABLE IF NOT EXISTS "SiteContent" (
+  "key" TEXT NOT NULL,
+  "value" TEXT NOT NULL,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "SiteContent_pkey" PRIMARY KEY ("key")
+)`;
+
 export async function GET() {
   const { error } = await guard("settings:manage");
   if (error) return error;
@@ -26,6 +37,7 @@ export async function PUT(req) {
     const allowed = new Set(CONTENT_FIELDS.map((f) => f.key));
     const incoming = b.values || {};
     const changed = [];
+    await prisma.$executeRawUnsafe(ENSURE_TABLE);
     for (const [key, raw] of Object.entries(incoming)) {
       if (!allowed.has(key)) continue;
       const value = String(raw ?? "");
