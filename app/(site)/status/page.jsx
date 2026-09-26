@@ -150,6 +150,51 @@ export default async function StatusPage() {
               We will continue to update this page as we progress through the rezoning process.
             </p>
           </div>
+
+          {/* DALRRD CPA Registration Status */}
+          <div className="mt-10 rounded-2xl border border-forest-200 bg-earth-50 p-6 md:p-10">
+            <p className="text-sm font-semibold uppercase tracking-wider text-forest-600 mb-1">DALRRD CPA Registration Status – River Edge Rural Village</p>
+            <p className="text-sm text-gray-600"><strong>Current Status:</strong> CPA Registration in Progress with DALRRD</p>
+            <p className="text-sm text-gray-600"><strong>Last Updated:</strong> 25 September 2026</p>
+
+            <h2 className="mt-8 text-xl font-bold text-forest-900">Summary of Our Engagement with DALRRD</h2>
+            <p className="mt-3 text-gray-700 leading-relaxed">
+              On 17 July 2026, The Mheza Trust and the River Edge Village Community Committee held a meeting with DALRRD officials. The
+              purpose of the meeting was to discuss the community&apos;s intended governance structure and the process for registering the
+              Communal Property Association (CPA).
+            </p>
+            <p className="mt-3 text-gray-700 leading-relaxed">
+              We explained that the plan is not to run the community through the Trust, as the Trust is not structured for that purpose.
+              Instead, The Mheza Trust was formed to run different independent projects, with each community governing itself through its
+              own constitution.
+            </p>
+            <p className="mt-3 text-gray-700 leading-relaxed">
+              DALRRD officials acknowledged our approach and provided a clear way forward. They explained that the next step involves
+              writing a motivational letter to the Minister. Once the Minister gives approval, the formal registration process will begin.
+              Officials noted that the letter will travel through various government offices before returning to them, so it will take some
+              time.
+            </p>
+            <p className="mt-3 text-gray-700 leading-relaxed">
+              Following ministerial approval, DALRRD will review and finalize our constitution, arrange a general meeting with the community
+              to formally adopt it, and facilitate training for all elected committee members. Future requirements will include yearly
+              reporting to the department, charging fees to the community, and producing minutes of meetings.
+            </p>
+            <p className="mt-3 text-gray-700 leading-relaxed">
+              A designated DALRRD liaison officer has been assigned to communicate with us going forward. To initiate the verification
+              process, DALRRD required the following documents: all Trust documents, the community member list with their details, and the
+              Title Deed of the Farm (to confirm that the Trust is the current owner).
+            </p>
+            <p className="mt-3 text-gray-700 leading-relaxed">
+              <strong>Latest Status:</strong> We have sent all of these documents to the department, and they are currently under
+              verification.
+            </p>
+
+            <h2 className="mt-8 text-xl font-bold text-forest-900">Important Note</h2>
+            <p className="mt-3 text-sm text-gray-700 leading-relaxed">
+              Once the CPA registration is successful, ownership of the land will be transferred to the CPA. This enables the community to
+              govern itself democratically through a community constitution.
+            </p>
+          </div>
         </div>
       </section>
 
