@@ -12,14 +12,14 @@ export const metadata = {
     template: "%s | The Mheza Trust",
   },
   description:
-    "The Mheza Trust builds legal, planned rural communities for South African families. River Edge Rural Village: 216 serviced 800m2 plots on 31.9 hectares in Buffalo City, Eastern Cape.",
+    "The Mheza Trust builds legal, planned rural communities for South African families. River Edge Rural Village: serviced 800m2 plots on 31.9 hectares in Buffalo City, Eastern Cape.",
   openGraph: {
     type: "website",
     url: SITE_URL,
     siteName: "The Mheza Trust",
     title: "The Mheza Trust | River Edge Rural Village",
     description:
-      "The Mheza Trust builds legal, planned rural communities for South African families. River Edge Rural Village: 216 serviced 800m2 plots on 31.9 hectares in Buffalo City, Eastern Cape.",
+      "The Mheza Trust builds legal, planned rural communities for South African families. River Edge Rural Village: serviced 800m2 plots on 31.9 hectares in Buffalo City, Eastern Cape.",
   },
 };
 
