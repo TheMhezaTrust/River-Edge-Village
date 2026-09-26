@@ -204,7 +204,7 @@ export default async function HomePage() {
               ))}
             </ul>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/terms" className="btn-accent">Read All 21 Clauses</Link>
+              <Link href="/terms" className="btn-accent">Read the Full Terms and Conditions</Link>
             </div>
           </div>
           <div className="rounded-2xl bg-white/95 p-6 shadow-xl">

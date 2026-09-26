@@ -280,6 +280,17 @@ model SiteContent {
   updatedAt DateTime @default(now()) @updatedAt
 }
 
+// Records a visitor's acceptance of the River Edge Terms and Conditions.
+// userId holds the logged-in user's id when present, otherwise an anonymous
+// session id generated in the browser. The table is auto-provisioned at runtime
+// (CREATE TABLE IF NOT EXISTS in the API route) so no manual migration is needed.
+model TermsAcceptance {
+  id         String   @id @default(cuid())
+  userId     String
+  acceptedAt DateTime @default(now())
+  ipAddress  String?
+}
+
 model AuditLog {
   id        Int      @id @default(autoincrement())
   userId    Int?
