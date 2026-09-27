@@ -84,7 +84,7 @@ export default async function PlotDetailPage({ params }) {
                 ))}
               </dl>
               <div className="mt-6 rounded-lg bg-blue-50 border border-blue-100 p-4 text-sm text-blue-800">
-                📷 360° panoramic photos of this plot will be published here as soon as the media team has captured them. Site viewings are available every Saturday — <Link href="/contact#viewing" className="underline font-semibold">book a viewing</Link>.
+                📷 360° panoramic photos of this plot will be published here as soon as the media team has captured them. Site viewings are available by appointment — <Link href="/contact#viewing" className="underline font-semibold">book a viewing</Link>.
               </div>
             </div>
           </div>

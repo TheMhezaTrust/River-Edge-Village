@@ -41,7 +41,7 @@ export default async function ContactPage() {
                 ["📞", "Phone Numbers", TRUST.phones],
                 ["✉️", "Email", ["themhezatrust@gmail.com"]],
                 ["🌐", "Website", [TRUST.website]],
-                ["🕗", "Office Hours", ["Mon–Fri: 08:00–17:00", "Sat: 09:00–13:00", "Sun & public holidays: closed"]],
+                ["🕗", "Office Hours", ["Mon–Fri: 08:00–17:00", "Sat, Sun & public holidays: closed"]],
               ].map(([icon, title, lines]) => (
                 <div key={title} className="card p-5">
                   <span className="text-2xl" aria-hidden>{icon}</span>
@@ -82,7 +82,7 @@ export default async function ContactPage() {
           <div id="viewing" className="card p-6 md:p-8">
             <h2 className="text-xl font-bold text-forest-900 mb-1">Schedule a Site Viewing</h2>
             <p className="text-sm text-gray-500 mb-5">
-              Walk the land before you buy. Viewings run every Saturday, and mid-week visits can be arranged.
+              Walk the land before you buy. Viewings are by appointment during office hours (Mon–Fri).
             </p>
             <InterestForm kind="VIEWING" />
           </div>

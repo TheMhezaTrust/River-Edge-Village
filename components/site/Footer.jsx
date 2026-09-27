@@ -73,7 +73,7 @@ export default function Footer() {
               </li>
               <li>
                 <span className="block text-white font-medium">Hours</span>
-                Mon–Fri 08:00–17:00 · Sat 09:00–13:00
+                Mon–Fri 08:00–17:00 · Sat, Sun & public holidays: closed
               </li>
             </ul>
           </div>

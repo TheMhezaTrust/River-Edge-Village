@@ -246,7 +246,7 @@ export default async function StatusPage() {
                 ))}</li>
                 <li><strong>Email:</strong> <a href="mailto:themhezatrust@gmail.com" className="text-forest-700 hover:underline">themhezatrust@gmail.com</a></li>
                 <li><strong>Office:</strong> Cove Ridge East, Buffalo City, Eastern Cape</li>
-                <li><strong>Hours:</strong> Mon–Fri 08:00–17:00 · Sat 09:00–13:00</li>
+                <li><strong>Hours:</strong> Mon–Fri 08:00–17:00 · Sat, Sun & public holidays: closed</li>
               </ul>
               <Link href="/contact" className="btn-outline btn-sm mt-4">Full Contact Page</Link>
             </div>
