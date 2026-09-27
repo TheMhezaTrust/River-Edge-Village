@@ -3,14 +3,13 @@ import { issueSignedToken } from "@vercel/blob";
 import { NextResponse } from "next/server";
 import { getStaffSession, verifyConfirmToken } from "@/lib/auth";
 
-// OIDC-compatible gallery upload. The Vercel project authenticates to its Blob
-// store via OIDC (VERCEL_OIDC_TOKEN + BLOB_STORE_ID), not the legacy
-// BLOB_READ_WRITE_TOKEN, so the old handleUpload/generateClientTokenFromReadWriteToken
-// flow ("Failed to retrieve the client token") no longer works. Instead we use the
+// OIDC-compatible gallery upload. The Blob store env vars are created with a
+// PUBLIC_ prefix (PUBLIC_BLOB_STORE_ID / PUBLIC_BLOB_READ_WRITE_TOKEN) because a
+// second store is connected to the project, so we pass them to the SDK explicitly
+// rather than relying on auto-detection of the unprefixed names. We use the
 // presigned flow: the browser calls uploadPresigned(), which POSTs here for a
-// short-lived, put-scoped signed token. issueSignedToken() picks up OIDC creds
-// from the environment automatically. The image metadata itself is persisted by a
-// separate POST /api/gallery call from the browser once the upload resolves.
+// short-lived, put-scoped signed token. The image metadata itself is persisted by
+// a separate POST /api/gallery call from the browser once the upload resolves.
 export async function POST(request) {
   const session = await getStaffSession();
   const body = await request.json();
@@ -34,6 +33,8 @@ export async function POST(request) {
         }
 
         const token = await issueSignedToken({
+          token: process.env.PUBLIC_BLOB_READ_WRITE_TOKEN,
+          storeId: process.env.PUBLIC_BLOB_STORE_ID,
           pathname,
           operations: ["put"],
           allowedContentTypes: ["image/*"],
