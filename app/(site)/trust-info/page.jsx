@@ -4,6 +4,7 @@ import { SectionHeading } from "@/components/ui";
 import { zar } from "@/lib/format";
 import { TRUST, sellerName, attorneyName } from "@/lib/contact";
 import { getPortalSession } from "@/lib/auth";
+import { getSiteContent, parseTrustees } from "@/lib/site-content";
 
 export const metadata = {
   title: "Trust Information",
@@ -11,17 +12,11 @@ export const metadata = {
 };
 export const dynamic = "force-dynamic";
 
-const TRUSTEES = [
-  ["Bongani Sifiniza", "Trustee"],
-  ["Lihle Jacob", "Trustee"],
-  ["Sydney Velapi", "Trustee"],
-  ["Sisanda Toni", "Trustee"],
-  ["Sipho Jauka", "Trustee"],
-];
-
 export default async function TrustInfoPage() {
   const isMember = !!(await getPortalSession());
   const project = await prisma.project.findUnique({ where: { slug: "river-edge" } });
+  const C = await getSiteContent();
+  const trustees = parseTrustees(C["about.trustees"]);
 
   return (
     <>
@@ -69,14 +64,15 @@ export default async function TrustInfoPage() {
             <div>
               <h2 className="text-2xl font-bold text-forest-900 mb-4">Trustees</h2>
               <div className="grid gap-4 sm:grid-cols-2">
-                {TRUSTEES.map(([name, role]) => (
-                  <div key={name} className="card p-5 flex items-center gap-4">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-forest-100 text-forest-800 font-bold" aria-hidden>
-                      {name.split(" ").map((n) => n[0]).join("")}
+                {trustees.map(({ name, role, org }) => (
+                  <div key={name} className="card p-5 flex items-start gap-4">
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-forest-100 text-forest-800 font-bold" aria-hidden>
+                      {name.split(" ").map((n) => n[0]).join("").slice(0, 3)}
                     </span>
-                    <div>
-                      <p className="font-bold text-gray-900">{name}</p>
+                    <div className="min-w-0">
+                      <p className="font-bold text-gray-900 leading-snug">{name}</p>
                       <p className="text-sm text-forest-700">{role}</p>
+                      {org && <p className="mt-0.5 text-xs text-gray-500 leading-snug">Representing {org}</p>}
                     </div>
                   </div>
                 ))}

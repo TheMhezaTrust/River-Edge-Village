@@ -3,7 +3,7 @@ import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { SectionHeading } from "@/components/ui";
 import { zar } from "@/lib/format";
-import { getSiteContent } from "@/lib/site-content";
+import { getSiteContent, parseTrustees } from "@/lib/site-content";
 
 export const metadata = {
   title: "About Us",
@@ -18,17 +18,10 @@ const VALUES = [
   ["Rural Dignity", "Rural communities deserve planned, serviced, beautiful environments — not informal compromises."],
 ];
 
-const TRUSTEES = [
-  ["Bongani Sifiniza", "Trustee"],
-  ["Lihle Jacob", "Trustee"],
-  ["Sydney Velapi", "Trustee"],
-  ["Sisanda Toni", "Trustee"],
-  ["Sipho Jauka", "Trustee"],
-];
-
 export default async function AboutPage() {
   const project = await prisma.project.findUnique({ where: { slug: "river-edge" } });
   const C = await getSiteContent();
+  const trustees = parseTrustees(C["about.trustees"]);
 
   return (
     <>
@@ -143,15 +136,16 @@ export default async function AboutPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <SectionHeading eyebrow="Governance" title="Trustees" subtitle="The people accountable for the Trust — and to the community." />
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {TRUSTEES.map(([name, role]) => (
+            {trustees.map(({ name, role, org }) => (
               <div key={name} className="card p-6">
-                <div className="flex items-center gap-4">
-                  <span className="flex h-14 w-14 items-center justify-center rounded-full bg-forest-100 text-forest-800 font-bold text-lg" aria-hidden>
-                    {name.split(" ").map((n) => n[0]).join("")}
+                <div className="flex items-start gap-4">
+                  <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-forest-100 text-forest-800 font-bold text-lg" aria-hidden>
+                    {name.split(" ").map((n) => n[0]).join("").slice(0, 3)}
                   </span>
-                  <div>
-                    <h3 className="font-bold text-gray-900">{name}</h3>
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-gray-900 leading-snug">{name}</h3>
                     <p className="text-sm text-forest-700 font-medium">{role}</p>
+                    {org && <p className="mt-1 text-xs text-gray-500 leading-snug">Representing {org}</p>}
                   </div>
                 </div>
               </div>
