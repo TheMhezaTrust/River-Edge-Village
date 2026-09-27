@@ -29,7 +29,7 @@ export default function Navbar() {
             <img src="/images/trust-logo.jpg" alt="The Mheza Trust logo" className="h-10 w-10 rounded-lg object-cover" width={40} height={40} />
             <span className="leading-tight">
               <span className="block font-bold text-forest-900 text-sm">The Mheza Trust</span>
-              <span className="block text-[11px] text-earth-500 font-medium">River Edge Rural Village</span>
+              <span className="block text-[11px] text-earth-500 font-medium">Land held in trust for communities</span>
             </span>
           </Link>
 

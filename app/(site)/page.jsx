@@ -1,7 +1,8 @@
 import Link from "next/link";
+import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { SectionHeading, StatusPill } from "@/components/ui";
-import { zar } from "@/lib/format";
+import { zar, dateFmt } from "@/lib/format";
 import { TRUST } from "@/lib/contact";
 import { getSiteContent } from "@/lib/site-content";
 
@@ -42,11 +43,28 @@ export default async function HomePage() {
   const C = await getSiteContent();
   const projects = await prisma.project.findMany({ orderBy: { id: "asc" } });
 
+  // Active promotions across ALL projects under the Trust: a project qualifies
+  // when it has a promotional price whose end date is today or later.
+  const now = Date.now();
+  const promos = projects.filter(
+    (p) => p.promoPrice && p.promoEndsAt && new Date(p.promoEndsAt).getTime() >= now,
+  );
+
   return (
     <>
       {/* ============ HERO: The Mheza Trust as parent organisation ============ */}
-      <section className="relative bg-forest-900">
-        <div className="absolute inset-0 bg-gradient-to-br from-forest-900 via-forest-800 to-forest-900" aria-hidden />
+      <section className="relative bg-forest-900 overflow-hidden">
+        {/* Background image: place the new Trust-level photo at
+            public/images/trust-hero.jpg. Until then the forest gradient shows. */}
+        <Image
+          src="/images/trust-hero.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-forest-900/95 via-forest-900/80 to-forest-900/45" aria-hidden />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-24 md:py-32">
           <div className="max-w-3xl">
             <div className="flex items-center gap-3 mb-6">
@@ -71,8 +89,8 @@ export default async function HomePage() {
             </p>
             <p className="mt-5 text-forest-200 max-w-2xl text-lg leading-relaxed">
               We hold land in trust for South African families and support a growing family of
-              independent, self-governing projects — each developed legally, transparently, and
-              permanently, starting with River Edge Rural Village.
+              independent, self-governing projects across the Eastern Cape — each developed legally,
+              transparently, and permanently.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link href="/projects" className="btn-accent px-7 py-3.5 text-base">Explore Our Projects</Link>
@@ -81,6 +99,44 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ============ CURRENT OPPORTUNITIES (active promotions) ============ */}
+      {promos.length > 0 && (
+        <section className="py-14 bg-sunset-500" aria-label="Current opportunities">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <p className="text-sm font-semibold uppercase tracking-wider text-orange-100">Current Opportunities</p>
+            <h2 className="mt-1 text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+              Active Promotions
+            </h2>
+            <p className="mt-2 text-orange-50 max-w-2xl">
+              Limited-time offers across The Mheza Trust projects. Each promotion belongs to its own
+              independent project — follow through for full details and terms.
+            </p>
+            <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {promos.map((p) => (
+                <div key={p.id} className="rounded-2xl bg-white p-6 shadow-lg flex flex-col">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-bold text-forest-900 text-lg leading-snug">{p.name}</h3>
+                    <StatusPill status={p.status} />
+                  </div>
+                  <p className="mt-1 text-sm text-gray-500 flex items-center gap-1">📍 {p.location}</p>
+                  <p className="mt-4 text-4xl font-extrabold text-sunset-600">{zar(p.promoPrice)}</p>
+                  <p className="text-sm text-gray-600">
+                    promotional price
+                    {p.standardPrice ? ` · thereafter ${zar(p.standardPrice)}` : ""}
+                  </p>
+                  <p className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-forest-700">
+                    <span aria-hidden>⏳</span> Ends {dateFmt(p.promoEndsAt)}
+                  </p>
+                  <Link href={`/projects/${p.slug}`} className="btn-primary mt-5 self-start">
+                    View {p.name} →
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ============ BACKGROUND + MISSION / VISION ============ */}
       <section className="py-16 md:py-20 bg-white" aria-label="About the Trust">
