@@ -61,7 +61,19 @@ export default async function ProjectPage({ params }) {
             <StatusPill status={project.status} />
             <span className="text-sm text-forest-200">{C["project.heroBadge"]}</span>
           </div>
-          <h1 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight">{project.name}</h1>
+          {project.slug === "river-edge" ? (
+            <h1 className="mb-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/river-edge-welcome.jpg"
+                alt=""
+                className="w-full max-w-xl rounded-2xl shadow-2xl ring-1 ring-white/25"
+              />
+              <span className="sr-only">{project.name}</span>
+            </h1>
+          ) : (
+            <h1 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight">{project.name}</h1>
+          )}
           <p className="mt-3 text-lg text-forest-100 max-w-3xl">{project.address}</p>
           <dl className="mt-8 grid grid-cols-2 md:grid-cols-5 gap-4 max-w-4xl">
             {[
