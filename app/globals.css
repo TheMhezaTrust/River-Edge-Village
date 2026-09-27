@@ -77,6 +77,14 @@ body {
 .btn-white:hover:not(:disabled) { background-color: var(--color-forest-50); }
 .btn-sm { padding: 0.375rem 0.75rem; font-size: 0.75rem; }
 
+/* Soft, subtle shadow so hero heading/subheading stay legible and feel
+   premium over photographic backgrounds. Deliberately gentle, not harsh. */
+.hero-text-shadow {
+  text-shadow:
+    0 1px 2px rgba(8, 28, 21, 0.4),
+    0 2px 12px rgba(8, 28, 21, 0.28);
+}
+
 .card {
   background: #fff;
   border-radius: 0.75rem;

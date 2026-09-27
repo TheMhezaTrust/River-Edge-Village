@@ -81,10 +81,10 @@ export default async function HomePage() {
                 Registration Number {TRUST.registrationNumber}
               </p>
             </div>
-            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white leading-tight">
+            <h1 className="hero-text-shadow text-4xl md:text-6xl font-extrabold tracking-tight text-white leading-tight">
               The Mheza Trust
             </h1>
-            <p className="mt-5 text-xl md:text-2xl text-forest-100 font-medium">
+            <p className="hero-text-shadow mt-5 text-xl md:text-2xl text-forest-100 font-medium">
               Legal owner. Honest steward. The umbrella for community-driven rural development.
             </p>
             <p className="mt-5 text-forest-200 max-w-2xl text-lg leading-relaxed">
