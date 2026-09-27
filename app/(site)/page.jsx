@@ -1,295 +1,252 @@
 import Link from "next/link";
-import Image from "next/image";
 import { prisma } from "@/lib/prisma";
-import { zar, dateFmt } from "@/lib/format";
-import InterestForm from "@/components/InterestForm";
-import { SectionHeading } from "@/components/ui";
-import { TRUST, sellerName, attorneyName } from "@/lib/contact";
-import { getAnySession } from "@/lib/auth";
+import { SectionHeading, StatusPill } from "@/components/ui";
+import { zar } from "@/lib/format";
+import { TRUST } from "@/lib/contact";
 import { getSiteContent } from "@/lib/site-content";
 
 export const metadata = {
-  title: "The Mheza Trust | River Edge Rural Village – Your Land. Your Home. Your Future.",
+  title: "The Mheza Trust | Legal, planned rural communities for South African families",
   description:
-    "River Edge Rural Village: residential 800m² plots on 31.9 hectares in Cove Ridge East, Buffalo City. Promotional price R75,000 until 30 November 2026. Prices, terms and conditions, contact details and member login.",
+    "The Mheza Trust (Registration Number IT000099/2024(E)) holds land in trust and supports independent, community-driven rural developments across the Eastern Cape. Our mission, vision, background and projects.",
 };
 
 export const dynamic = "force-dynamic";
 
-const STATUS_STYLE = {
-  COMPLETED: { dot: "bg-forest-500", label: "Completed" },
-  IN_PROGRESS: { dot: "bg-blue-500 animate-pulse", label: "In Progress" },
-  PENDING: { dot: "bg-amber-400", label: "Pending" },
-  ONGOING: { dot: "bg-trust-400 animate-pulse", label: "Ongoing" },
-};
+// The Trust's approach: it does not run communities directly, it is the legal
+// umbrella under which independent, self-governing projects operate.
+const APPROACH = [
+  [
+    "🏛️",
+    "An umbrella, not an operator",
+    "The Trust holds the land and carries the legal, compliance and governance backbone. Each development runs as its own independent project with its own assets, rules and finances.",
+  ],
+  [
+    "🤝",
+    "Communities govern themselves",
+    "Every project adopts its own constitution and, where applicable, registers a Communal Property Association (CPA) so members elect the structures that manage their village.",
+  ],
+  [
+    "⚖️",
+    "Legality first",
+    "Title is held in trust, rezoning and departmental approvals are pursued openly, and progress is published so families can verify every step before they commit.",
+  ],
+  [
+    "🌱",
+    "Funded by sales, not debt",
+    "Plot sales fund infrastructure and compliance work. The Trust is self-funded and accountable to the members of each project it serves.",
+  ],
+];
 
 export default async function HomePage() {
-  const session = await getAnySession();
-  const isMember = session?.scope === "portal";
   const C = await getSiteContent();
-  const project = await prisma.project.findUnique({ where: { slug: "river-edge" } });
-  const announcements = await prisma.announcement.findMany({
-    where: { audience: "PUBLIC" },
-    orderBy: { createdAt: "desc" },
-    take: 3,
-  });
-
-  const timeline = project?.timeline ? JSON.parse(project.timeline) : [];
+  const projects = await prisma.project.findMany({ orderBy: { id: "asc" } });
 
   return (
     <>
-      {/* ============ HERO: picture + login buttons ============ */}
-      <section className="relative min-h-[88vh] flex items-center">
-        <Image src="/images/hero.png" alt="Aerial view of River Edge Rural Village planned community" fill priority className="object-cover" sizes="100vw" />
-        <div className="absolute inset-0 bg-gradient-to-r from-forest-900/90 via-forest-900/70 to-forest-900/30" />
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-24 w-full">
-          <div className="max-w-2xl">
-            <p className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-4 py-1.5 text-sm font-medium text-forest-100 backdrop-blur mb-6">
-              <span className="h-2 w-2 rounded-full bg-forest-400 animate-pulse" aria-hidden />
-              {TRUST.legalName} · Registration Number {TRUST.registrationNumber}
-            </p>
+      {/* ============ HERO: The Mheza Trust as parent organisation ============ */}
+      <section className="relative bg-forest-900">
+        <div className="absolute inset-0 bg-gradient-to-br from-forest-900 via-forest-800 to-forest-900" aria-hidden />
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-24 md:py-32">
+          <div className="max-w-3xl">
+            <div className="flex items-center gap-3 mb-6">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/trust-logo.jpg"
+                alt="The Mheza Trust logo"
+                className="h-14 w-14 rounded-xl object-cover bg-cream ring-2 ring-white/20"
+                width={56}
+                height={56}
+              />
+              <p className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-4 py-1.5 text-sm font-medium text-forest-100 backdrop-blur">
+                <span className="h-2 w-2 rounded-full bg-forest-400 animate-pulse" aria-hidden />
+                Registration Number {TRUST.registrationNumber}
+              </p>
+            </div>
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white leading-tight">
-              {C["home.heroTitle"]}
+              The Mheza Trust
             </h1>
             <p className="mt-5 text-xl md:text-2xl text-forest-100 font-medium">
-              {C["home.heroTagline"]}
+              Legal owner. Honest steward. The umbrella for community-driven rural development.
             </p>
-            <p className="mt-4 text-forest-200 max-w-xl">
-              Residential 800m² plots on 31.9 hectares in Cove Ridge East, Buffalo City. From{" "}
-              <strong className="text-white">{zar(project?.promoPrice)}</strong> until {dateFmt(project?.promoEndsAt)}.
+            <p className="mt-5 text-forest-200 max-w-2xl text-lg leading-relaxed">
+              We hold land in trust for South African families and support a growing family of
+              independent, self-governing projects — each developed legally, transparently, and
+              permanently, starting with River Edge Rural Village.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/login" className="btn-accent px-7 py-3.5 text-base">Login</Link>
-              <a href="#interest" className="btn-outline px-7 py-3.5 text-base border-white/40 text-white hover:bg-white/10">I'm Interested</a>
-            </div>
-            <p className="mt-4 text-xs text-forest-300">
-              Staff sign in via <Link href="/login?to=staff" className="underline hover:text-white">Login → Administrator / Staff</Link>
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ============ TRUST BASIC INFORMATION ============ */}
-      <section className="py-16 bg-white" aria-label="Trust information">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionHeading
-            eyebrow="Who We Are"
-            title="Trust Information"
-            subtitle={C["home.trustSubtitle"]}
-          />
-          <div className="grid gap-8 lg:grid-cols-3 items-start">
-            <div className="lg:col-span-2">
-              <div className="card overflow-hidden">
-                <table className="table-base">
-                  <tbody>
-                    {[
-                      ["Trust name", TRUST.legalName],
-                      ["Registration number", TRUST.registrationNumber],
-                      ["Flagship project", "River Edge Rural Village"],
-                      ["Property", "Portion 2 of Farm 970, Cove Ridge East, Buffalo City Metropolitan Municipality"],
-                      ["Extent", `31.9 hectares · residential plots of 800m² · 165 families`],
-                      ["Original seller", sellerName(isMember, "Available to registered members")],
-                      ["Trust attorney", attorneyName(isMember, "Available to registered members")],
-                      ["Project administration", `All ${TRUST.legalName} projects are administered by ${TRUST.administrator}`],
-                      ["Title deed", "Held by The Mheza Trust"],
-                      ["What a buyer acquires", "A heritable Right of Use — not a title deed or land ownership"],
-                      ["Zoning", "Application for Rezoning to Residential Zoning 4 (Townhouse) — BCMM is prepared to consider an application"],
-                      ["CPA registration", "In progress with DALRRD"],
-                    ].map(([k, v]) => (
-                      <tr key={k}>
-                        <th className="w-2/5 bg-white border-b border-gray-100 text-left">{k}</th>
-                        <td className="text-gray-700 border-b border-gray-100">{v}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <Link href="/trust-info" className="btn-outline btn-sm">Full Trust Information</Link>
-                <Link href="/about" className="btn-outline btn-sm">About The Trust</Link>
-                <Link href="/terms" className="btn-outline btn-sm">Terms & Conditions of Sale</Link>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div className="rounded-xl bg-sunset-500 p-6 text-white shadow-lg">
-                <p className="text-sm font-semibold uppercase tracking-wide text-orange-100">Promotional Price</p>
-                <p className="mt-1 text-4xl font-extrabold">{zar(project?.promoPrice)}</p>
-                <p className="mt-1 text-sm text-orange-100">per 800m² plot · full payment</p>
-                <p className="mt-4 pt-4 border-t border-white/25 text-sm">
-                  Ends <strong>{dateFmt(project?.promoEndsAt)}</strong>. Thereafter {zar(project?.standardPrice)}.
-                </p>
-              </div>
-              <div className="card p-5">
-                <h3 className="font-bold text-forest-900 mb-3">Pricing at a glance</h3>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  <li className="flex justify-between gap-3"><span>Promotional (until {dateFmt(project?.promoEndsAt)})</span><strong className="text-forest-700 whitespace-nowrap">{zar(project?.promoPrice)}</strong></li>
-                  <li className="flex justify-between gap-3"><span>Standard thereafter</span><strong className="whitespace-nowrap">{zar(project?.standardPrice)}</strong></li>
-                  <li className="flex justify-between gap-3"><span>Plot size</span><strong>800m²</strong></li>
-                  <li className="flex justify-between gap-3"><span>Late payment interest</span><strong>2% per month</strong></li>
-                  <li className="flex justify-between gap-3"><span>Transfer fee</span><strong>5% or R5,000</strong></li>
-                </ul>
-                <p className="mt-3 text-xs text-gray-500">{C["home.pricingNote"]}</p>
-              </div>
+            <div className="mt-9 flex flex-wrap gap-3">
+              <Link href="/projects" className="btn-accent px-7 py-3.5 text-base">Explore Our Projects</Link>
+              <Link href="/about" className="btn-outline px-7 py-3.5 text-base border-white/40 text-white hover:bg-white/10">About The Trust</Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ============ PROJECT PROGRESS ============ */}
-      <section className="py-16 bg-white" aria-label="Project progress">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionHeading
-            eyebrow="Where We Stand"
-            title="Project Progress"
-            subtitle={C["home.progressSubtitle"]}
-          />
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {timeline.map((item) => {
-              const style = STATUS_STYLE[item.status] || STATUS_STYLE.PENDING;
-              return (
-                <div key={item.label} className="card p-5 flex gap-4">
-                  <span className={`mt-1.5 h-3.5 w-3.5 shrink-0 rounded-full ${style.dot}`} aria-hidden />
-                  <div>
-                    <div className="flex items-center justify-between gap-2">
-                      <h3 className="font-semibold text-gray-900">{item.label}</h3>
-                      <span className="text-xs font-semibold text-gray-500">{style.label}</span>
-                    </div>
-                    <p className="mt-1 text-sm text-gray-600">{item.description}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          {announcements.length > 0 && (
-            <div className="mt-10 grid gap-4 md:grid-cols-3">
-              {announcements.map((a) => (
-                <article key={a.id} className="card p-5">
-                  <time className="text-xs text-gray-400">{dateFmt(a.createdAt)}</time>
-                  <h3 className="mt-1 font-bold text-forest-900">{a.title}</h3>
-                  <p className="mt-1 text-sm text-gray-600">{a.body}</p>
-                </article>
-              ))}
-            </div>
-          )}
-          <div className="mt-8 text-center">
-            <Link href="/status" className="btn-outline">Full Status Report →</Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ============ TERMS AND CONDITIONS ============ */}
-      <section className="py-16 bg-forest-800" aria-label="Terms and conditions">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid gap-10 lg:grid-cols-2 items-center">
+      {/* ============ BACKGROUND + MISSION / VISION ============ */}
+      <section className="py-16 md:py-20 bg-white" aria-label="About the Trust">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid gap-12 lg:grid-cols-2 items-start">
           <div>
-            <SectionHeading
-              light
-              center={false}
-              eyebrow="Read Before You Buy"
-              title="Terms and Conditions of Sale"
-              subtitle={C["home.tncSubtitle"]}
-            />
-            <ul className="mt-6 space-y-2.5 text-sm text-forest-100">
-              {[
-                "You become a Beneficiary of The Mheza Trust for your specific plot; beneficial rights are limited to the River Edge project only.",
-                "The Trust remains the registered title holder of Farm 970 — no individual title deed is issued. Proof of ownership is a Certificate of Beneficial Interest, on full payment.",
-                "Residential use only: no animal farming, no alcohol manufacture/distribution/sale, and no illegal activities or illicit drugs.",
-                "Off-grid living: you install and maintain your own SANS 10400-compliant septic tank, water source (borehole/rainwater) and Eskom electricity connection.",
-                "Material breach can lead to deregistration as a Beneficiary and a refund of the purchase price less a 15% administration and penalty fee.",
-              ].map((t) => (
-                <li key={t} className="flex gap-2.5">
-                  <span className="text-forest-400 shrink-0" aria-hidden>✔</span>
-                  <span>{t}</span>
-                </li>
-              ))}
-            </ul>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/terms" className="btn-accent">Read the Full Terms and Conditions</Link>
+            <SectionHeading center={false} eyebrow="Who We Are" title="Our Background" />
+            <div className="mt-6 space-y-4 text-gray-700 leading-relaxed">
+              <p>
+                The Mheza Trust was founded by its Trustees, who united around a shared vision to
+                address the escalating peri-urban challenges across the Eastern Cape, particularly
+                within the Buffalo City Metro Municipality (BCMM). They witnessed firsthand the
+                devastating impact of illegitimate land dealings, where vulnerable individuals faced
+                not only the demolition of their homes but also the loss of their life savings.
+              </p>
+              <p>
+                Driven by a commitment to protect these communities, The Mheza Trust was established
+                to provide a lasting, lawful solution. Recognising that the Trust structure is not
+                designed to directly run communities, but rather to serve as an umbrella for multiple
+                independent, community-driven projects, the Trust empowers each community to govern
+                itself through its own constitution.
+              </p>
+              <p>
+                The Mheza Trust is formally registered by the Master of the High Court under Trust
+                Number {TRUST.registrationNumber}, finalised in 2024.
+              </p>
+            </div>
+            <div className="mt-8">
+              <Link href="/about" className="btn-outline btn-sm">Read Our Full Story →</Link>
             </div>
           </div>
-          <div className="rounded-2xl bg-white/95 p-6 shadow-xl">
-            <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Document</p>
-            <h3 className="mt-1 text-lg font-bold text-forest-900">Terms and Conditions of Sale</h3>
-            <p className="text-sm text-gray-600">River Edge Rural Village – Portion 2 of Farm 970</p>
-            <dl className="mt-4 space-y-2 text-sm border-t border-gray-100 pt-4">
-              {[
-                ["Trust", `${TRUST.legalName}`],
-                ["Registration number", TRUST.registrationNumber],
-                ["Effective date", "April 2025"],
-                ["Last updated", "24 September 2026"],
-                ["Clauses", "21"],
-              ].map(([k, v]) => (
-                <div key={k} className="flex justify-between gap-3">
-                  <dt className="text-gray-500">{k}</dt>
-                  <dd className="font-semibold text-gray-900 text-right">{v}</dd>
-                </div>
-              ))}
-            </dl>
-            <p className="mt-4 text-xs text-gray-500 border-t border-gray-100 pt-4">
-              Signing the Acknowledgement of Payment and Plot Allocation form binds you to every clause and to the Community Constitution.
-            </p>
+
+          <div className="space-y-6">
+            <div className="card p-6 border-l-4 border-l-forest-600">
+              <h3 className="font-bold text-forest-900 text-lg">Our Mission</h3>
+              <p className="mt-2 text-gray-600 leading-relaxed">{C["about.mission"]}</p>
+            </div>
+            <div className="card p-6 border-l-4 border-l-sunset-500">
+              <h3 className="font-bold text-forest-900 text-lg">Our Vision</h3>
+              <p className="mt-2 text-gray-600 leading-relaxed">{C["about.vision"]}</p>
+            </div>
+            <div className="rounded-xl bg-earth-50 border border-earth-200 p-6">
+              <h3 className="font-bold text-forest-900">The core mission</h3>
+              <p className="mt-2 text-sm text-gray-700 leading-relaxed">
+                To facilitate access to legitimate, legally secure land for individuals who cannot
+                afford traditional bank bonds — bridging the critical gap between communities and
+                government, and ensuring development always occurs within the framework of the law.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ============ CONTACT DETAILS ============ */}
-      <section className="py-16 bg-white" aria-label="Contact details">
+      {/* ============ APPROACH TO COMMUNITY-DRIVEN PROJECTS ============ */}
+      <section className="py-16 md:py-20 bg-forest-50/50" aria-label="Our approach">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionHeading eyebrow="Get In Touch" title="Contact Details" subtitle="Talk to a person before you pay anything." />
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              ["📞", "Phone", TRUST.phones],
-              ["✉️", "Email", [TRUST.email]],
-              ["📍", "Office", ["Cove Ridge East", "Buffalo City Metropolitan Municipality", "Eastern Cape, South Africa"]],
-              ["🕗", "Hours", ["Mon–Fri: 08:00–17:00", "Sat: 09:00–13:00", "Sun & public holidays: closed"]],
-            ].map(([icon, title, lines]) => (
-              <div key={title} className="card p-5">
-                <span className="text-2xl" aria-hidden>{icon}</span>
-                <h3 className="mt-2 font-bold text-forest-900">{title}</h3>
-                {lines.map((l) => (
-                  <p key={l} className="text-sm text-gray-600 mt-0.5">
-                    {title === "Phone" ? <a href={`tel:+27${l.slice(1).replace(/\s/g, "")}`} className="hover:text-forest-700">{l}</a>
-                      : title === "Email" ? <a href={`mailto:${l}`} className="hover:text-forest-700">{l}</a>
-                      : l}
-                  </p>
-                ))}
+          <SectionHeading
+            eyebrow="How We Work"
+            title="Our Approach to Community-Driven Projects"
+            subtitle="The Trust provides the legal foundation and stewardship; each community builds and governs its own village."
+          />
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {APPROACH.map(([icon, title, desc]) => (
+              <div key={title} className="card p-6 h-full">
+                <span className="text-3xl" aria-hidden>{icon}</span>
+                <h3 className="mt-3 font-bold text-forest-900 text-lg">{title}</h3>
+                <p className="mt-2 text-sm text-gray-600 leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
-          <div className="mt-6 rounded-lg bg-earth-50 border border-earth-200 p-4 text-sm text-gray-700">
-            <strong>Never deposit cash.</strong> The Trust will never ask you to pay into a personal account. Official banking
-            details appear on the <Link href="/trust-info" className="underline font-semibold text-forest-700">Trust Information</Link> page —
-            verify by phone before paying.
+        </div>
+      </section>
+
+      {/* ============ PROJECTS TEASER ============ */}
+      <section className="py-16 md:py-20 bg-white" aria-label="Our projects">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <SectionHeading
+            eyebrow="Under The Trust"
+            title="Our Projects"
+            subtitle="Each project is independent — with its own land, community, rules and finances — united under the stewardship of The Mheza Trust."
+          />
+          <div className="mt-10 grid gap-8 md:grid-cols-2">
+            {projects.map((p) => {
+              const isActive = p.slug === "river-edge";
+              return (
+                <article key={p.id} className="card overflow-hidden flex flex-col hover:shadow-lg transition-shadow">
+                  <div className={`h-44 relative ${isActive ? "bg-forest-700" : "bg-earth-200"}`}>
+                    {isActive ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src="/images/hero.png" alt={p.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-earth-100 to-earth-200">
+                        <span className="text-6xl" aria-hidden>🌄</span>
+                      </div>
+                    )}
+                    <div className="absolute top-4 right-4"><StatusPill status={p.status} /></div>
+                  </div>
+                  <div className="p-6 flex-1 flex flex-col">
+                    <h3 className="text-2xl font-bold text-forest-900">{p.name}</h3>
+                    <p className="mt-1 text-sm text-gray-500 flex items-center gap-1">📍 {p.location}</p>
+                    <p className="mt-3 text-sm text-gray-600 leading-relaxed flex-1">
+                      {p.description.slice(0, 200)}{p.description.length > 200 ? "…" : ""}
+                    </p>
+                    <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-700">
+                      {p.farmSizeHa && <span><strong>{p.farmSizeHa}</strong> ha</span>}
+                      {p.familyCount && <span><strong>{p.familyCount}</strong> families</span>}
+                      {p.promoPrice && <span className="text-sunset-500 font-bold">from {zar(p.promoPrice)}</span>}
+                    </div>
+                    <Link href={`/projects/${p.slug}`} className="btn-primary mt-6 self-start">View Project →</Link>
+                  </div>
+                </article>
+              );
+            })}
           </div>
-          <div className="mt-6 text-center">
-            <Link href="/contact" className="btn-outline">Full Contact Page & Site Viewing Bookings</Link>
+          <div className="mt-10 text-center">
+            <Link href="/projects" className="btn-outline">View All Projects →</Link>
           </div>
         </div>
       </section>
 
-      {/* ============ INTEREST FORM ============ */}
-      <section id="interest" className="py-16 bg-earth-50 border-t border-earth-100" aria-label="Register your interest">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid gap-12 lg:grid-cols-2">
-          <div>
+      {/* ============ GOVERNANCE / REGISTRATION BAND ============ */}
+      <section className="py-16 bg-forest-800" aria-label="Governance">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid gap-10 lg:grid-cols-3 items-center">
+          <div className="lg:col-span-2">
             <SectionHeading
+              light
               center={false}
-              eyebrow="Your Details"
-              title="Interested? Leave Your Details"
-              subtitle="A consultant will contact you within 24–48 hours. This does not create an account or reserve a plot — it lets us call you back."
+              eyebrow="Accountable & Registered"
+              title="Governed in the Open"
+              subtitle="The Mheza Trust is registered with the Master of the High Court and governed by its Trustees, who are accountable both to the Trust and to every community it serves."
             />
-            <div className="card p-5 space-y-3 text-sm text-gray-700">
-              <p className="font-semibold text-forest-900">Already a member?</p>
-              <p>Sign in to see your own payment history, outstanding balance and documents — that information is never public and never shown to another member.</p>
-              <div className="flex flex-wrap gap-3 pt-2">
-                <Link href="/login" className="btn-primary btn-sm">Login</Link>
-              </div>
-            </div>
-            <div className="mt-6 relative rounded-2xl overflow-hidden">
-              <Image src="/images/community.png" alt="A South African family on their plot at River Edge Rural Village" width={1536} height={1024} className="w-full" />
-            </div>
+            <dl className="mt-6 grid gap-4 sm:grid-cols-3">
+              {[
+                ["Trust name", TRUST.legalName],
+                ["Registration number", TRUST.registrationNumber],
+                ["Registered", "Master of the High Court, 2024"],
+              ].map(([k, v]) => (
+                <div key={k} className="rounded-xl bg-forest-900/50 border border-forest-700 p-4">
+                  <dt className="text-xs uppercase tracking-wide text-forest-300">{k}</dt>
+                  <dd className="mt-1 font-semibold text-white text-sm">{v}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
-          <div className="card p-6 md:p-8 h-fit">
-            <InterestForm kind="INTEREST" />
+          <div className="flex flex-col gap-3">
+            <Link href="/trust-info" className="btn-accent px-6 py-3 text-center">Full Trust Information</Link>
+            <Link href="/about" className="btn-outline px-6 py-3 text-center border-white/40 text-white hover:bg-white/10">Meet the Trustees</Link>
+            <Link href="/status" className="btn-outline px-6 py-3 text-center border-white/40 text-white hover:bg-white/10">Project Status Reports</Link>
           </div>
+        </div>
+      </section>
+
+      {/* ============ CONTACT CTA ============ */}
+      <section className="py-16 bg-earth-50 border-t border-earth-100" aria-label="Contact">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
+          <SectionHeading
+            eyebrow="Get In Touch"
+            title="Talk to Us Before You Commit"
+            subtitle="Whether you want to learn more about a project, book a site viewing, or verify our details, a person from the Trust will help you."
+          />
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link href="/contact" className="btn-primary px-7 py-3.5">Contact The Trust</Link>
+            <a href={TRUST.primaryPhoneHref} className="btn-outline px-7 py-3.5">Call {TRUST.primaryPhone}</a>
+          </div>
+          <p className="mt-6 text-sm text-gray-600">
+            Already a member or staff? <Link href="/login" className="underline font-semibold text-forest-700">Log in here</Link>.
+          </p>
         </div>
       </section>
     </>

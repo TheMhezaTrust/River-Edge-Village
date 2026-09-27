@@ -16,9 +16,13 @@ export default async function ProjectsPage() {
     <>
       <section className="bg-forest-800 py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <p className="text-sm font-semibold uppercase tracking-wider text-forest-300 mb-2">Our Developments</p>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">Projects</h1>
-          <p className="mt-3 text-forest-100 max-w-2xl text-lg">Current and future The Mheza Trust communities — each built on titled land, through legal process, with transparent progress. All The Mheza Trust projects are administered by River Edge Primary Co-Op.</p>
+          <p className="text-sm font-semibold uppercase tracking-wider text-forest-300 mb-2">Under The Mheza Trust</p>
+          <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">Our Projects</h1>
+          <p className="mt-3 text-forest-100 max-w-2xl text-lg">
+            The Mheza Trust is the legal umbrella; each project below is an independent,
+            community-driven development with its own land, community, rules and finances. Every one
+            is built on titled land, through legal process, with transparent progress.
+          </p>
         </div>
       </section>
 
