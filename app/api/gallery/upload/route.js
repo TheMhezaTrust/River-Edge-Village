@@ -1,40 +1,25 @@
-import { handleUpload } from "@vercel/blob/client";
+import { handleUploadPresigned } from "@vercel/blob/client";
+import { issueSignedToken } from "@vercel/blob";
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getStaffSession, verifyConfirmToken, audit } from "@/lib/auth";
+import { getStaffSession, verifyConfirmToken } from "@/lib/auth";
 
-// The GalleryImage table is additive and may not exist yet if `prisma db push`
-// has not been run against a given environment. Create it on first save so the
-// gallery works without a separate migration step. Idempotent and matches
-// Prisma's PostgreSQL mapping for the model.
-const ENSURE_TABLE = `CREATE TABLE IF NOT EXISTS "GalleryImage" (
-  "id" TEXT NOT NULL,
-  "url" TEXT NOT NULL,
-  "title" TEXT,
-  "description" TEXT,
-  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "GalleryImage_pkey" PRIMARY KEY ("id")
-)`;
-
-// Client-side upload handler. The browser calls `upload()` from
-// @vercel/blob/client, which POSTs here twice:
-//   1. GenerateClientTokenEvent — from the logged-in admin's browser (has the
-//      session cookie). We authorize here and require the short-lived password
-//      confirmation token, then hand back an upload token.
-//   2. UploadCompletedEvent — from Vercel Blob's servers (no cookie). We persist
-//      the image metadata to Postgres here.
+// OIDC-compatible gallery upload. The Vercel project authenticates to its Blob
+// store via OIDC (VERCEL_OIDC_TOKEN + BLOB_STORE_ID), not the legacy
+// BLOB_READ_WRITE_TOKEN, so the old handleUpload/generateClientTokenFromReadWriteToken
+// flow ("Failed to retrieve the client token") no longer works. Instead we use the
+// presigned flow: the browser calls uploadPresigned(), which POSTs here for a
+// short-lived, put-scoped signed token. issueSignedToken() picks up OIDC creds
+// from the environment automatically. The image metadata itself is persisted by a
+// separate POST /api/gallery call from the browser once the upload resolves.
 export async function POST(request) {
-  // Read the staff session up front so it is available to the token-generation
-  // callback (which runs within this same request). It is null for Vercel's
-  // server-to-server completion callback, which does not need it.
   const session = await getStaffSession();
   const body = await request.json();
 
   try {
-    const jsonResponse = await handleUpload({
+    const jsonResponse = await handleUploadPresigned({
       body,
       request,
-      onBeforeGenerateToken: async (pathname, clientPayload) => {
+      getSignedToken: async (pathname, clientPayload) => {
         if (!session) throw new Error("Unauthorized");
 
         let payload = {};
@@ -48,34 +33,20 @@ export async function POST(request) {
           throw new Error("Password confirmation required or expired. Please try again.");
         }
 
-        return {
+        const token = await issueSignedToken({
+          pathname,
+          operations: ["put"],
           allowedContentTypes: ["image/*"],
           maximumSizeInBytes: 100 * 1024 * 1024,
-          tokenPayload: JSON.stringify({
-            title: typeof payload.title === "string" ? payload.title.slice(0, 200) : null,
-            description: typeof payload.description === "string" ? payload.description.slice(0, 1000) : null,
-            uploadedBy: session.id,
-          }),
-        };
-      },
-      onUploadCompleted: async ({ blob, tokenPayload }) => {
-        let p = {};
-        try {
-          p = JSON.parse(tokenPayload || "{}");
-        } catch {
-          p = {};
-        }
-        await prisma.$executeRawUnsafe(ENSURE_TABLE);
-        const row = await prisma.galleryImage.create({
-          data: { url: blob.url, title: p.title ?? null, description: p.description ?? null },
         });
-        await audit(
-          p.uploadedBy != null ? { id: p.uploadedBy } : null,
-          "GALLERY_IMAGE_CREATED",
-          "GalleryImage",
-          row.id,
-          blob.url,
-        );
+
+        return {
+          token,
+          urlOptions: {
+            allowedContentTypes: ["image/*"],
+            maximumSizeInBytes: 100 * 1024 * 1024,
+          },
+        };
       },
     });
 

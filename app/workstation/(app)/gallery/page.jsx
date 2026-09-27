@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { upload } from "@vercel/blob/client";
+import { uploadPresigned } from "@vercel/blob/client";
 import { api } from "@/lib/api-client";
 import { useFetch, PageHeader, LoadingBlock, ErrorBlock } from "@/components/ws/common";
 import { Field, Alert } from "@/components/ui";
@@ -58,11 +58,22 @@ export default function GalleryAdminPage() {
     setBusy(true);
     setFormError(null);
     try {
-      await upload(file.name, file, {
+      // The presigned flow signs an exact pathname, so build a unique one to
+      // avoid collisions between uploads of files with the same name.
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-80);
+      const pathname = `gallery/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safeName}`;
+      const uploaded = await uploadPresigned(pathname, file, {
         access: "public",
         handleUploadUrl: "/api/gallery/upload",
-        clientPayload: JSON.stringify({ title, description, confirmToken }),
+        clientPayload: JSON.stringify({ confirmToken }),
         onUploadProgress: (p) => setProgress(p.percentage),
+      });
+      // The image is now in Blob storage; persist its metadata to the database.
+      await api.post("/api/gallery", {
+        url: uploaded.url,
+        title,
+        description,
+        confirmToken,
       });
       setConfirmOpen(false);
       resetForm();
