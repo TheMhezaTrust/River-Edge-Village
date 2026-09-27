@@ -11,10 +11,10 @@ export async function DELETE(req, { params }) {
     const row = await prisma.galleryImage.findUnique({ where: { id } });
     if (!row) return bad("Image not found", 404);
     await prisma.galleryImage.delete({ where: { id } });
-    // Best-effort Blob cleanup — never block metadata deletion on it. Uses the
-    // PUBLIC_-prefixed token explicitly since a second store is connected.
+    // Best-effort Blob cleanup — never block metadata deletion on it. Reads
+    // BLOB_READ_WRITE_TOKEN from the environment via the SDK default.
     try {
-      await del(row.url, { token: process.env.PUBLIC_BLOB_READ_WRITE_TOKEN });
+      await del(row.url);
     } catch {
       // ignore
     }
