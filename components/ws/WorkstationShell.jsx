@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { api } from "@/lib/api-client";
-import { can, ROLES } from "@/lib/roles";
+import { can, ROLES, SUPER_ADMIN } from "@/lib/roles";
 import { PermissionsProvider } from "@/components/ws/permissions";
 import { dateTimeFmt } from "@/lib/format";
 
@@ -19,6 +19,7 @@ const NAV = [
   { href: "/workstation/tasks", label: "Tasks", icon: "✅", perm: "tasks:view" },
   { href: "/workstation/communication", label: "Communication", icon: "✉️", perm: "communication:view" },
   { href: "/workstation/reports", label: "Reports", icon: "📈", perm: "reports:view" },
+  { href: "/workstation/analytics", label: "Traffic Analytics", icon: "🌐", perm: null, superAdminOnly: true },
   { href: "/workstation/content", label: "Website Content", icon: "📝", perm: "settings:manage" },
   { href: "/workstation/gallery", label: "Photo Gallery", icon: "🖼️", perm: "settings:manage" },
   { href: "/workstation/settings", label: "Settings", icon: "⚙️", perm: null },
@@ -57,7 +58,11 @@ export default function WorkstationShell({ user, children }) {
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  const visibleNav = NAV.filter((item) => !item.perm || can(user, item.perm));
+  // Traffic Analytics is visible to the Main Administrator only; other
+  // administrators do not see the link (and get a 404 on the route itself).
+  const visibleNav = NAV.filter(
+    (item) => (!item.superAdminOnly || user.role === SUPER_ADMIN) && (!item.perm || can(user, item.perm))
+  );
   const unread = notifications.filter((n) => !n.isRead).length;
   const isActive = (href) => (href === "/workstation" ? pathname === "/workstation" : pathname.startsWith(href));
 

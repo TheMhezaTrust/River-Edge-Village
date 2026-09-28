@@ -76,6 +76,27 @@ Defined in `lib/roles.js`. Every staff role can **view every module**; only writ
 
 All three roles can also manage their own tasks and view the staff directory (Settings → Users) and the audit log. Pages a role cannot edit show a "Read-only view" banner and hide every add/edit/delete control.
 
+### Main Administrator (backend-only)
+
+One staff account is designated the **Main Administrator** (`SUPER_ADMIN_EMAIL`, default `bongani.sifiniza@themhezatrust.local` — see `lib/super-admin.js`). The role is written to the database automatically the first time that account signs in or opens the workstation. There is no UI control for it: no administrator can grant it to someone else, take it away, or deactivate that account from Settings → Users.
+
+It is deliberately invisible — the role label is **"Administrator"**, identical to any other administrator, on both the public website and the workstation. Only two things differ, for this account alone:
+
+- **Traffic Analytics** (`/workstation/analytics`) — public-website traffic: unique visitors and page views for today / this week / this month / this year, a 30-day trend chart and a most-visited-pages breakdown (recharts). The sidebar link renders only for this account; everyone else, including other administrators, gets a 404 on the route.
+- **Security-question password recovery** — below.
+
+### Password recovery (two security questions)
+
+**Forgot password?** on `/workstation/login` leads to `/workstation/recover`: work email → security question 1 → security question 2 → new password. Each correct answer exchanges a short-lived (10 minute) signed stage token for the next step, so no step can be skipped, and the questions are revealed only inside that flow.
+
+The Main Administrator sets both questions and answers in **Settings → Profile → Password Recovery Questions** (current password required). Answers are normalised (case- and spacing-insensitive) and stored as **bcrypt hashes**; the question text is never returned to the settings screen, so changing them means entering all four values again.
+
+Brute-force protection: five wrong answers lock recovery for 30 minutes (the counters live on the `SecurityQuestion` row, so they survive serverless restarts), plus a per-IP limit on every step. Accounts without recovery questions — every other staff account and all members — receive a generic "ask the administrator" response, which also avoids confirming that an email address exists.
+
+### Website traffic tracking
+
+`components/site/PageViewTracker.jsx` (mounted in `app/(site)/layout.jsx`) posts the current path to `/api/track` on every public page view, including client-side navigations. Only the allow-listed public sections in `lib/analytics.js` are accepted; `/workstation`, `/api`, `/portal`, `/login` and the administrator-only `/plots` are never recorded. Visitors are identified by `ipHash` — a salted SHA-256 of the IP address (`ANALYTICS_SALT`, falling back to `JWT_SECRET`) — so unique visitors can be counted without storing raw IPs. The `PageView` table is auto-provisioned on first use.
+
 ## Project structure
 
 ```
@@ -85,15 +106,19 @@ app/
                      # portal (login + register + dashboard)
   workstation/
     login/           # staff sign-in
+    recover/         # security-question password recovery (Main Administrator)
     (app)/           # authenticated shell (sidebar + notifications)
       page.jsx       # dashboard (stats, charts, quick actions)
+      analytics/     # public-website traffic (Main Administrator only)
       members/ plots/ finance/ documents/ departments/
       inquiries/ tasks/ communication/ reports/ settings/
   api/               # route handlers (auth, portal, public, members, plots,
                      # finance, documents, departments, inquiries, tasks,
-                     # communication, admin, dashboard, reports)
+                     # communication, admin, dashboard, reports, track)
 components/          # shared UI: ui.jsx, PlotMap.jsx, InterestForm.jsx, site/, ws/
-lib/                 # prisma.js, auth.js (JWT/RBAC server), roles.js (client-safe),
+lib/                 # prisma.js, provision.js (runtime CREATE TABLE), auth.js
+                     # (JWT/RBAC server), roles.js (client-safe), super-admin.js,
+                     # security-questions.js, rate-limit.js, analytics.js,
                      # api-client.js, contact.js (Trust details), files.js (authenticated
                      # download URLs), format.js, plan-layout.js, uploads.js
 prisma/              # schema.prisma + seed.js
@@ -158,6 +183,8 @@ Verify counts on Neon (`member` 146, `plot` 224, etc.) before deploying. Keep `d
    | `DEEPSEEK_API_KEY` | your DeepSeek key | enables the "Mheza" assistant; leave empty to keep the friendly fallback |
    | `LLM_BASE_URL` | `https://api.deepseek.com/v1` | optional (default) |
    | `LLM_MODEL` | `deepseek-chat` | optional (default) |
+   | `SUPER_ADMIN_EMAIL` | `bongani.sifiniza@themhezatrust.local` | optional — staff account holding the backend-only Main Administrator role (Traffic Analytics + security-question recovery) |
+   | `ANALYTICS_SALT` | any long random string | optional — salt for the hashed visitor IP; falls back to `JWT_SECRET` |
 
 4. **Build command** `next build`, **Output** default. No `prisma generate` postinstall is needed if the
    Prisma client is committed via the standard `prisma generate` in the build; if Vercel reports a missing

@@ -1,6 +1,7 @@
 import Navbar from "@/components/site/Navbar";
 import Footer from "@/components/site/Footer";
 import ChatBot from "@/components/site/ChatBot";
+import PageViewTracker from "@/components/site/PageViewTracker";
 
 export default function SiteLayout({ children }) {
   return (
@@ -9,6 +10,7 @@ export default function SiteLayout({ children }) {
       <main className="flex-1">{children}</main>
       <Footer />
       <ChatBot />
+      <PageViewTracker />
     </div>
   );
 }

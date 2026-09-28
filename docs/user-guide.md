@@ -42,6 +42,7 @@ The **Trust Info** page lists the Trust registration number (IT000099/2024(E)), 
 ### Signing in
 - URL: `/login` and choose **Administrator / Staff** (or go directly to `/workstation`) — authorized personnel only. All actions are recorded in the audit log.
 - Use your work email and password. After 12 hours your session expires.
+- **Forgot password?** below the password field opens the self-service recovery flow. It only works for the staff account that has recovery questions on file; everyone else must ask an Administrator to reset their password in Settings → Users.
 - **Every role can open and read every module.** What differs is what you can *change*: action buttons are hidden automatically when your role cannot edit that area.
 
 ### Who can change what
@@ -89,14 +90,19 @@ Internal messages between staff (inbox/sent/drafts), team announcements (Adminis
 ### Reports
 Sales by month, inquiry conversion funnel, member payment status, expense breakdown, and CSV export.
 
+### Traffic Analytics
+Visible to one designated administrator account only (the link does not appear for anyone else, and the page returns "not found" for every other role). Shows public-website traffic: **unique visitors** and **page views** for today, this week, this month, this year and all time; a **30-day trend chart**; and a **most visited pages** breakdown with a switch between this month and this year. Only public pages are counted — the workstation, the member portal, the sign-in pages and the administrator plot browser are never recorded. Visitors are counted from a hashed IP address, so no personal data is stored.
+
 ### Settings
-Open to every role: the staff directory (read-only unless you are an Administrator), the role permission reference, your own profile and password, and the audit log. **Administrators only** can create, edit, deactivate or reset passwords for staff accounts.
+Open to every role: the staff directory (read-only unless you are an Administrator), the role permission reference, your own profile and password, and the audit log. **Administrators only** can create, edit, deactivate or reset passwords for staff accounts. The Profile tab also holds **Password Recovery Questions** for the designated administrator account: two questions and answers used by the Forgot password? flow. Answers are stored encrypted and are never shown again — write them down, and note that changing them requires your current password plus all four values.
 
 ## Part C: Troubleshooting
 
 | Problem | Solution |
 |---|---|
 | Forgot member portal password | Contact the Trust office — resets are handled manually for security |
+| Forgot workstation password | Use **Forgot password?** on `/workstation/login` if your account has recovery questions on file; otherwise ask an Administrator to reset it in Settings → Users |
+| Recovery says recovery is locked for another X minutes | Five incorrect answers were given — wait out the 30-minute lock, then start again |
 | "We could not verify your details" when signing up | The Trust already holds a record for that email but your ID number and phone do not match it. Call 081 391 7967 or email themhezatrust@gmail.com |
 | "An account already exists for this email address" | Sign in at **Login → Member** instead of signing up |
 | Portal shows no plot or no payments yet | Normal for a new account — a consultant confirms your allocation and records payments after sign-up |

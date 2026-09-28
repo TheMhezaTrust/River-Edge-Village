@@ -75,7 +75,7 @@ async function main() {
   // Everyone can view every module; write access is limited by role (see lib/roles.js).
   const staffPassword = await bcrypt.hash("Mheza@2026", 10);
   const staffDefs = [
-    { handle: "bongani", name: "Bongani Sifiniza", email: "bongani.sifiniza@themhezatrust.local", role: "ADMIN", title: "Full access - all modules" },
+    { handle: "bongani", name: "Bongani Sifiniza", email: "bongani.sifiniza@themhezatrust.local", role: "SUPER_ADMIN", title: "Full access - all modules" },
     { handle: "thandile", name: "Thandile Sifiniza", email: "thandile.sifiniza@themhezatrust.local", role: "FINANCE", title: "Finances & customer records" },
     { handle: "sisanda", name: "Sisanda Toni", email: "sisanda.toni@themhezatrust.local", role: "FINANCE", title: "Finances & customer records" },
     { handle: "nokuthula", name: "Nokuthula Gedle", email: "nokuthula.gedle@themhezatrust.local", role: "FINANCE", title: "Finances & customer records" },

@@ -53,6 +53,9 @@ export default function WorkstationLogin() {
             <Field label="Password" required>
               <input className="input" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
             </Field>
+            <div className="flex justify-end">
+              <Link href="/workstation/recover" className="text-xs text-forest-700 hover:underline">Forgot password?</Link>
+            </div>
             <button type="submit" className="btn-primary w-full" disabled={loading}>
               {loading ? "Signing in…" : "Sign In to Workstation"}
             </button>

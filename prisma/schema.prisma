@@ -21,7 +21,7 @@ model User {
   name         String
   email        String    @unique
   password     String
-  role         String // ADMIN | FINANCE | PLOTS
+  role         String // SUPER_ADMIN (backend-only, displays as Administrator) | ADMIN | FINANCE | PLOTS
   phone        String?
   title        String?
   isActive     Boolean   @default(true)
@@ -301,6 +301,37 @@ model GalleryImage {
   title       String?
   description String?
   createdAt   DateTime @default(now())
+}
+
+// Two-step password recovery for the Main Administrator (SUPER_ADMIN). Answers
+// are stored as bcrypt hashes, never in plain text, and are only ever read back
+// inside the recovery flow. failedAttempts/lockedUntil drive the brute-force
+// lockout. The table is auto-provisioned at runtime (CREATE TABLE IF NOT EXISTS
+// in lib/provision.js) so no manual migration is needed.
+model SecurityQuestion {
+  id             String    @id @default(cuid())
+  userId         Int       @unique
+  question1      String
+  answer1Hash    String
+  question2      String
+  answer2Hash    String
+  failedAttempts Int       @default(0)
+  lockedUntil    DateTime?
+  updatedAt      DateTime  @default(now()) @updatedAt
+}
+
+// Public-website traffic. ipHash is a salted SHA-256 of the visitor IP, so
+// unique visitors can be counted without storing raw IP addresses. Only public
+// pages are recorded (see PUBLIC_PATHS in lib/analytics.js). Auto-provisioned
+// at runtime (lib/provision.js).
+model PageView {
+  id        Int      @id @default(autoincrement())
+  path      String
+  ipHash    String
+  timestamp DateTime @default(now())
+
+  @@index([timestamp])
+  @@index([path])
 }
 
 model AuditLog {

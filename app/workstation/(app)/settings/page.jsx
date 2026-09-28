@@ -7,7 +7,8 @@ import { useFetch, PageHeader, LoadingBlock, ErrorBlock, ConfirmButton } from "@
 import { ReadOnlyNote } from "@/components/ws/permissions";
 import { Modal, Field, StatusPill, Alert } from "@/components/ui";
 import { dateTimeFmt } from "@/lib/format";
-import { ROLES, ROLE_PERMISSIONS, can } from "@/lib/roles";
+import { ROLES, ROLE_PERMISSIONS, ASSIGNABLE_ROLES, SUPER_ADMIN, can } from "@/lib/roles";
+import SecurityQuestionsForm from "@/components/ws/SecurityQuestionsForm";
 
 const TABS = ["users", "roles", "profile", "audit"];
 const EMPTY_USER = { name: "", email: "", role: "PLOTS", title: "", phone: "", password: "" };
@@ -168,7 +169,7 @@ function UsersTab({ canManage }) {
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Role" required>
               <select className="input" required value={form.role} onChange={set("role")}>
-                {Object.entries(ROLES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                {Object.entries(ASSIGNABLE_ROLES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
             </Field>
             <Field label="Job Title"><input className="input" value={form.title} onChange={set("title")} /></Field>
@@ -192,7 +193,7 @@ function UsersTab({ canManage }) {
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Role" required>
               <select className="input" required value={editForm.role} onChange={setEdit("role")}>
-                {Object.entries(ROLES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                {Object.entries(ASSIGNABLE_ROLES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
             </Field>
             <Field label="Job Title"><input className="input" value={editForm.title} onChange={setEdit("title")} /></Field>
@@ -222,7 +223,7 @@ function RolesTab() {
           <tr><th>Role</th><th>Permissions</th></tr>
         </thead>
         <tbody>
-          {Object.entries(ROLE_PERMISSIONS).map(([role, perms]) => (
+          {Object.entries(ROLE_PERMISSIONS).filter(([role]) => role !== SUPER_ADMIN).map(([role, perms]) => (
             <tr key={role}>
               <td className="font-semibold text-forest-700 whitespace-nowrap align-top">{ROLES[role] || role}</td>
               <td>
@@ -300,6 +301,7 @@ function ProfileTab({ me }) {
           </div>
         </form>
       </div>
+      {me.role === SUPER_ADMIN && <SecurityQuestionsForm />}
     </div>
   );
 }

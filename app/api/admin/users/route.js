@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { guard, audit, ROLES } from "@/lib/auth";
+import { guard, audit, ROLES, SUPER_ADMIN } from "@/lib/auth";
+import { ASSIGNABLE_ROLES } from "@/lib/roles";
 import { ok, bad, created } from "@/lib/api";
 
 export async function GET() {
@@ -10,7 +11,14 @@ export async function GET() {
     select: { id: true, name: true, email: true, role: true, title: true, phone: true, isActive: true, lastLoginAt: true, createdAt: true },
     orderBy: { name: "asc" },
   });
-  return ok(users.map((u) => ({ ...u, roleLabel: ROLES[u.role] })));
+  // The Main Administrator designation is backend-only, so it is reported to the
+  // staff directory as a plain administrator role (label and raw value alike).
+  return ok(
+    users.map((u) => {
+      const role = u.role === SUPER_ADMIN ? "ADMIN" : u.role;
+      return { ...u, role, roleLabel: ROLES[role] };
+    })
+  );
 }
 
 export async function POST(req) {
@@ -19,7 +27,7 @@ export async function POST(req) {
   try {
     const b = await req.json();
     if (!b.name || !b.email || !b.role || !b.password) return bad("Name, email, role and password are required");
-    if (!ROLES[b.role]) return bad("Invalid role");
+    if (!ASSIGNABLE_ROLES[b.role]) return bad("Invalid role");
     if (b.password.length < 8) return bad("Password must be at least 8 characters");
     const newUser = await prisma.user.create({
       data: {
