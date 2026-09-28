@@ -194,27 +194,6 @@ export default async function ProjectPage({ params }) {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-16 bg-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionHeading eyebrow="Testimonials" title="What Our Members Say" />
-          <div className="grid gap-6 md:grid-cols-3 max-w-5xl mx-auto">
-            {[
-              ["“I bought Plot 49 for my three children. For the first time, our family will own land with a title — legally, safely. The Trust shows us every approval document they receive.”", "Nokwanda Z.", "Plot holder, Block B"],
-              ["“What convinced me was the status page. I could see the sanitation no-objection and exactly where the BCMM rezoning application stands myself. No other seller offered that kind of proof.”", "Peter A.", "Full-payment buyer"],
-            ].map(([quote, name, role]) => (
-              <figure key={name} className="card p-6">
-                <blockquote className="text-sm text-gray-700 leading-relaxed">{quote}</blockquote>
-                <figcaption className="mt-4">
-                  <p className="font-bold text-forest-900">{name}</p>
-                  <p className="text-xs text-gray-500">{role}</p>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* News */}
       {announcements.length > 0 && (
         <section className="py-12 bg-gray-50 border-t border-gray-200">
