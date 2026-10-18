@@ -62,6 +62,8 @@ The public site has a single sign-in entry point at **`http://localhost:3000/log
 
 The portal is a separate app section (`app/portal/`) with its own layout: it deliberately does **not** inherit the public site chrome (no navbar, footer, chat widget or page-view tracker) and sets `robots: noindex`. Signed-in members land in `app/portal/(shell)/` — a sidebar shell (`components/portal/PortalShell.jsx`) with Dashboard, My Profile, My Beneficiaries, My Plot Details, Payments & Statement, plus a print-ready Statement of Account at `/portal/statement`. Signed-out screens (`/portal`, `/portal/access`, `/portal/password`) share `components/portal/PortalAuthPage.jsx`.
 
+`app/robots.js` serves `/robots.txt` disallowing `/portal` and `/workstation` for every user agent, so crawlers are told not to request the private areas at all rather than relying on the per-page `noindex` tag alone. Note the two mechanisms trade off: a disallowed URL cannot be fetched, so a crawler that finds a link to it elsewhere cannot read its `noindex` tag and may still list the bare URL without a description. Both are kept on purpose — the disallow stops the pages being crawled, the tag stops any that are reached from being indexed.
+
 The 146 imported members are **portal-inactive**: each has a generated placeholder email (`…@placeholder.mheza.invalid`), a placeholder phone where the roster supplied none, and **no password**. Public self-registration has been removed — member accounts are created and managed from the administrator dashboard (`/workstation/members`) only. Imported members have **no payment history** — balances show the full erf price as outstanding until Finance records payments.
 
 ### Portal access lifecycle
@@ -81,7 +83,16 @@ Members are held to a **15-minute inactivity window** (`PORTAL_SESSION_SECONDS` 
 
 Every portal page loads through `loadPortalMember()` (`lib/portal-data.js`) and every portal API through `getActivePortalMember()` (`lib/auth.js`). Both derive the member id **only** from the verified session cookie — no portal route accepts a member id parameter — so no query in the portal can be pointed at somebody else's record. Per-plot payment lists are additionally filtered by `memberId`. Members cannot see other members, the Trust's internal financials (`Income`/`Expense`), the farmer's contract, or anything under `/workstation`. A member may edit their own contact number, addresses and (with their current password) email via `PUT /api/portal/me`; **name and ID number are not editable** — those go to `POST /api/portal/change-request`, which writes a `MemberChangeRequest` and a staff notification, and the office approves or rejects it from the **Portal change requests** panel on `/workstation/members` (approval requires the password-confirm modal because it writes to the member record).
 
-Portal tables (`MemberToken`, `MemberChangeRequest`) and the two new `Member` columns (`mustChangePassword`, `lastLoginAt`) are auto-provisioned at runtime by `ensureMemberAccessTables()` in `lib/provision.js`, like the other additive tables. Because the generated Prisma client selects every `Member` column, `lib/prisma.js` starts that DDL eagerly on first import rather than waiting for a portal request; otherwise the first deploy would break **every** member query in the app until the columns existed.
+Portal tables (`MemberToken`, `MemberChangeRequest`) and the two new `Member` columns (`mustChangePassword`, `lastLoginAt`) are auto-provisioned at runtime by `ensureMemberAccessTables()` in `lib/provision.js`, like the other additive tables. `Plot.certificateIssuedAt` is provisioned the same way by `ensurePlotCertificateColumn()`. Because the generated Prisma client selects every column of a model, `lib/prisma.js` starts **both** eagerly on first import rather than waiting for a portal request; otherwise the first deploy would break every member query *and* every plot query — including the public homepage and project pages — until the columns existed.
+
+### Right of Use Status
+
+`/portal/plot` shows each member a **Right of Use Status** with exactly two possible values, defined once in `RIGHT_OF_USE` (`lib/format.js`) and read through `rightOfUseLabel(plot.certificateIssuedAt)`:
+
+- **Granted (Certificate Pending)** — `certificateIssuedAt` is null. This is the default for every plot, including all 146 imported members, because no Certificate of Land Use has been issued yet.
+- **Active (Certificate Issued)** — the Trust has recorded the certificate as issued.
+
+The status turns on certificate issuance, **not** on whether the plot is paid off; the payment position is shown separately as "Paid on this plot" and "Balance on this plot". Staff set it from `/workstation/plots` → click a plot → **Mark certificate issued** (or **Undo certificate issued**), which `PUT`s `{certificateIssued: true|false}` to `/api/plots/[id]` and stores the current timestamp or null. Issuing a certificate does not yet give the member a file to download — the documents library is Phase 3 — so the portal says the office will send it and that downloads are coming.
 
 ## Roles & permissions
 

@@ -24,6 +24,9 @@ export async function PUT(req, { params }) {
   for (const k of allowed) if (k in b) data[k] = b[k];
   if ("price" in data) data.price = Number(data.price);
   if ("sizeSqm" in data) data.sizeSqm = Number(data.sizeSqm);
+  // The certificate flag arrives as a boolean from the UI but is stored as the
+  // moment it was issued, so the portal can show a date rather than a bare yes.
+  if ("certificateIssued" in b) data.certificateIssuedAt = b.certificateIssued ? new Date() : null;
   // unassign member when moving away from SOLD/RESERVED
   if (data.status === "AVAILABLE") data.memberId = null;
   try {

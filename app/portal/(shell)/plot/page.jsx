@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { loadPortalMember } from "@/lib/portal-data";
 import { memberTotals } from "@/lib/member-totals";
-import { zarFull } from "@/lib/format";
+import { zarFull, dateFmt, rightOfUseLabel } from "@/lib/format";
 import { StatusPill, EmptyState } from "@/components/ui";
 import PageHeading from "@/components/portal/PageHeading";
 import { MapPinIcon } from "@/components/portal/Icons";
@@ -17,6 +17,7 @@ export default async function PortalPlotPage() {
 
   const { price, totalPaid, outstandingBalance } = memberTotals(member);
   const plots = member.plots;
+  const issuedPlots = plots.filter((p) => p.certificateIssuedAt);
 
   return (
     <div className="space-y-6">
@@ -57,6 +58,7 @@ export default async function PortalPlotPage() {
                     ["Plot number", plot.block ? `${plot.number} (Block ${plot.block})` : plot.number],
                     ["Plot size", `${plot.sizeSqm} m²`],
                     ["Purchase price", zarFull(plot.price)],
+                    ["Right of Use Status", rightOfUseLabel(plot.certificateIssuedAt)],
                   ].map(([k, v]) => (
                     <div key={k} className="flex justify-between gap-4 py-2.5">
                       <dt className="text-gray-500">{k}</dt>
@@ -74,13 +76,8 @@ export default async function PortalPlotPage() {
                 </dl>
 
                 <div className="mt-4 rounded-lg bg-earth-50 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-earth-700">Right of Use</p>
-                  <p className="mt-1.5 text-sm text-gray-700">
-                    {plotBalance > 0
-                      ? `Active — instalments in progress. ${zarFull(plotBalance)} is still outstanding on this plot.`
-                      : "Active — this plot is paid in full."}
-                  </p>
-                  <p className="mt-2 text-xs leading-relaxed text-gray-500">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-earth-700">What this means</p>
+                  <p className="mt-1.5 text-xs leading-relaxed text-gray-600">
                     You hold a heritable <strong>Right of Use</strong> of this erf — not a title deed and not land
                     ownership. Ownership stays with The Mheza Trust until transfer to the Community Property
                     Association. See the{" "}
@@ -99,10 +96,32 @@ export default async function PortalPlotPage() {
           Your Certificate of Land Use will be available for download here once it has been issued by the Trust.
           Until then nothing is required from you — the Trust issues certificates itself and will notify you.
         </p>
-        <div className="mt-4 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-5 text-center">
-          <p className="text-sm font-medium text-gray-500">No certificate issued yet</p>
-          <p className="mt-1 text-xs text-gray-400">It will appear in this box as a download.</p>
-        </div>
+        {issuedPlots.length === 0 ? (
+          <div className="mt-4 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-5 text-center">
+            <p className="text-sm font-medium text-gray-500">No certificate issued yet</p>
+            <p className="mt-1 text-xs text-gray-400">It will appear in this box as a download.</p>
+          </div>
+        ) : (
+          <>
+            <ul className="mt-4 divide-y divide-gray-100 rounded-lg border border-gray-200">
+              {issuedPlots.map((plot) => (
+                <li key={plot.id} className="flex items-center justify-between gap-4 px-4 py-3">
+                  <span className="text-sm font-medium text-gray-900">
+                    Plot {plot.number}
+                    {plot.block && <span className="text-gray-500"> · Block {plot.block}</span>}
+                  </span>
+                  <span className="text-sm font-semibold text-forest-700">Issued {dateFmt(plot.certificateIssuedAt)}</span>
+                </li>
+              ))}
+            </ul>
+            {/* The document library is not open to members yet, so an issued
+                certificate is a recorded fact rather than a file they can take. */}
+            <p className="mt-3 text-xs leading-relaxed text-gray-500">
+              The Trust has recorded your certificate as issued. The document itself is not yet available to download
+              from the portal — the office will send it to you, and downloads will be added here shortly.
+            </p>
+          </>
+        )}
       </div>
 
       {plots.length > 1 && (

@@ -8,7 +8,7 @@ import { usePermissions, ReadOnlyNote } from "@/components/ws/permissions";
 import { Modal, Field, StatusPill, Alert, EmptyState } from "@/components/ui";
 import PlotMap from "@/components/PlotMap";
 import { uncertainReadings } from "@/lib/plan-layout";
-import { zar, zarFull, dateTimeFmt } from "@/lib/format";
+import { zar, zarFull, dateTimeFmt, rightOfUseLabel } from "@/lib/format";
 
 const EMPTY_PLOT = { number: "", sizeSqm: "800", price: "", status: "AVAILABLE", block: "", description: "" };
 const STATUSES = ["AVAILABLE", "RESERVED", "SOLD"];
@@ -62,6 +62,20 @@ export default function PlotsPage() {
     setFormError(null);
     try {
       await api.put(`/api/plots/${plot.id}`, { status });
+      setSelected(null);
+      reload();
+    } catch (err) {
+      setFormError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function toggleCertificate(plot) {
+    setSaving(true);
+    setFormError(null);
+    try {
+      await api.put(`/api/plots/${plot.id}`, { certificateIssued: !plot.certificateIssuedAt });
       setSelected(null);
       reload();
     } catch (err) {
@@ -291,6 +305,15 @@ export default function PlotsPage() {
               <div className="flex justify-between"><dt className="text-gray-500">Size</dt><dd className="font-medium">{selected.sizeSqm}m²</dd></div>
               <div className="flex justify-between"><dt className="text-gray-500">Price</dt><dd className="font-medium">{zarFull(selected.price)}</dd></div>
               <div className="flex justify-between items-center"><dt className="text-gray-500">Status</dt><dd><StatusPill status={selected.status} /></dd></div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-gray-500">Right of Use</dt>
+                <dd className="font-medium text-right">
+                  {rightOfUseLabel(selected.certificateIssuedAt)}
+                  {selected.certificateIssuedAt && (
+                    <span className="block text-xs font-normal text-gray-500">Issued {dateTimeFmt(selected.certificateIssuedAt)}</span>
+                  )}
+                </dd>
+              </div>
               <div className="flex justify-between"><dt className="text-gray-500">Updated</dt><dd className="font-medium">{dateTimeFmt(selected.updatedAt)}</dd></div>
               {selected.member && (
                 <div className="flex justify-between">
@@ -307,6 +330,9 @@ export default function PlotsPage() {
                     Mark {s.charAt(0) + s.slice(1).toLowerCase()}
                   </button>
                 ))}
+                <button className="btn-outline btn-sm" disabled={saving} onClick={() => toggleCertificate(selected)}>
+                  {selected.certificateIssuedAt ? "Undo certificate issued" : "Mark certificate issued"}
+                </button>
                 <button className="btn-primary btn-sm ml-auto" disabled={saving} onClick={() => openEdit(selected)}>Edit Plot</button>
               </div>
             )}

@@ -136,6 +136,7 @@ model Plot {
   x           Float // plan-pixel centre on the survey layout (see lib/plan-layout.js)
   y           Float // plan-pixel centre on the survey layout
   block       String? // block/zone label e.g. "A"
+  certificateIssuedAt DateTime? // null = Certificate of Land Use not yet issued
   projectId   Int
   project     Project   @relation(fields: [projectId], references: [id])
   memberId    Int?
