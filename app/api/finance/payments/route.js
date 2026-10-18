@@ -2,11 +2,15 @@ import { prisma } from "@/lib/prisma";
 import { guard } from "@/lib/auth";
 import { ok } from "@/lib/api";
 import { memberPrice } from "@/lib/member-totals";
+import { ensureMemberRecordColumns } from "@/lib/provision";
 
 // Payment tracking: member balances + payment history
 export async function GET() {
   const { error } = await guard("finance:view");
   if (error) return error;
+  // Balances come from Member.purchasePrice and the plot prices, both of which are
+  // selected in full by this query.
+  await ensureMemberRecordColumns();
   const members = await prisma.member.findMany({
     include: { plots: true, payments: { orderBy: { date: "desc" } } },
     orderBy: { fullName: "asc" },

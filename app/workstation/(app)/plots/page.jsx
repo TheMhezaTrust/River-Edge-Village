@@ -94,6 +94,7 @@ export default function PlotsPage() {
       status: plot.status || "AVAILABLE",
       block: plot.block || "",
       description: plot.description || "",
+      purchasedAt: plot.purchasedAt ? new Date(plot.purchasedAt).toISOString().slice(0, 10) : "",
     });
     setFormError(null);
     setEditOpen(true);
@@ -353,6 +354,9 @@ export default function PlotsPage() {
               <select className="input" value={editForm.status} onChange={(e) => setEditForm((f) => ({ ...f, status: e.target.value }))}>
                 {STATUSES.map((s) => <option key={s} value={s}>{s.charAt(0) + s.slice(1).toLowerCase()}</option>)}
               </select>
+            </Field>
+            <Field label="Date of Purchase">
+              <input className="input" type="date" value={editForm.purchasedAt} onChange={(e) => setEditForm((f) => ({ ...f, purchasedAt: e.target.value }))} />
             </Field>
             <Field label="Description" className="sm:col-span-2">
               <textarea className="input" rows={2} value={editForm.description} onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))} />

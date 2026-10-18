@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { guard, audit } from "@/lib/auth";
 import { ok, bad, created } from "@/lib/api";
+import { ensureMemberRecordColumns } from "@/lib/provision";
+import { incomeDescription, INCOME_PROJECT } from "@/lib/payment-income";
 
 // Record a payment for a member
 export async function POST(req, { params }) {
@@ -31,8 +33,11 @@ export async function POST(req, { params }) {
         plotId: plot?.id ?? null,
       },
     });
+    // The link lets a later correction to this payment correct its income row too,
+    // so the cashflow report cannot drift away from the member's statement.
+    await ensureMemberRecordColumns();
     await prisma.income.create({
-      data: { date: payment.date, description: `Payment from ${member.fullName}${plot ? ` (Plot ${plot.number})` : ""}`, project: "River Edge Rural Village", amount, category: "PLOT_SALE", method: payment.method, reference: payment.reference },
+      data: { date: payment.date, description: incomeDescription(member.fullName, plot?.number), project: INCOME_PROJECT, amount, category: "PLOT_SALE", method: payment.method, reference: payment.reference, paymentId: payment.id },
     });
     await prisma.notification.create({ data: { text: `Payment received: R${amount.toLocaleString("en-ZA")} from ${member.fullName}`, type: "PAYMENT" } });
     await audit(user, "PAYMENT_RECORDED", "Payment", payment.id, { memberId: member.id, amount });

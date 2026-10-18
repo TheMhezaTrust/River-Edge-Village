@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { guard } from "@/lib/auth";
 import { ok } from "@/lib/api";
+import { ensureMemberRecordColumns } from "@/lib/provision";
 
 // Cash flow / P&L summary grouped by month for the last 12 months
 export async function GET() {
@@ -11,6 +12,8 @@ export async function GET() {
   since.setDate(1);
   since.setHours(0, 0, 0, 0);
 
+  // Income gained the payment link column, which this query selects.
+  await ensureMemberRecordColumns();
   const [income, expenses] = await Promise.all([
     prisma.income.findMany({ where: { date: { gte: since } } }),
     prisma.expense.findMany({ where: { date: { gte: since } } }),

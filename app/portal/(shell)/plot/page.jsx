@@ -58,6 +58,7 @@ export default async function PortalPlotPage() {
                     ["Plot number", plot.block ? `${plot.number} (Block ${plot.block})` : plot.number],
                     ["Plot size", `${plot.sizeSqm} m²`],
                     ["Purchase price", zarFull(plot.price)],
+                    ["Date of purchase", plot.purchasedAt ? dateFmt(plot.purchasedAt) : "Not recorded"],
                     ["Right of Use Status", rightOfUseLabel(plot.certificateIssuedAt)],
                   ].map(([k, v]) => (
                     <div key={k} className="flex justify-between gap-4 py-2.5">

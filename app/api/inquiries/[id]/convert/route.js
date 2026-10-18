@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { guard, audit } from "@/lib/auth";
 import { ok, bad, created } from "@/lib/api";
+import { ensureMemberRecordColumns } from "@/lib/provision";
 
 // Convert an inquiry into a member
 export async function POST(req, { params }) {
@@ -12,6 +13,7 @@ export async function POST(req, { params }) {
     const inquiry = await prisma.inquiry.findUnique({ where: { id: Number(id) }, include: { plot: true } });
     if (!inquiry) return bad("Inquiry not found", 404);
 
+    await ensureMemberRecordColumns();
     const existing = await prisma.member.findUnique({ where: { email: inquiry.email.toLowerCase() } });
     if (existing) return bad("A member with this email already exists");
 

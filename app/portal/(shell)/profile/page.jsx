@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { loadPortalMember } from "@/lib/portal-data";
 import { ensureMemberAccessTables } from "@/lib/provision";
+import { dateFmt } from "@/lib/format";
 import PageHeading from "@/components/portal/PageHeading";
 import ProfileEditor from "@/components/portal/ProfileEditor";
 import IdentityChangeRequests from "@/components/portal/IdentityChangeRequests";
@@ -49,6 +50,15 @@ export default async function PortalProfilePage() {
         </div>
 
         <div className="space-y-6">
+          <div className="card p-5">
+            <h2 className="font-bold text-forest-900 mb-2">Date joined</h2>
+            <p className="text-sm font-medium text-gray-900">{dateFmt(member.purchaseDate || member.createdAt)}</p>
+            <p className="mt-2 text-xs leading-relaxed text-gray-500">
+              This is the purchase date the Trust holds for you. If it does not match your signed contract, ask
+              the office to correct it — each of your plots also carries its own purchase date under My Plot.
+            </p>
+          </div>
+
           <ChangePortalPassword />
 
           <div className="card p-5">

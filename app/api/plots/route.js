@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { guard, audit } from "@/lib/auth";
 import { ok, bad, created } from "@/lib/api";
 import { PLAN_W, PLAN_H, comparePlotNumbers } from "@/lib/plan-layout";
-import { ensurePlotCertificateColumn } from "@/lib/provision";
+import { ensurePlotCertificateColumn, ensureMemberRecordColumns } from "@/lib/provision";
 
 export async function GET(req) {
   const { error } = await guard("plots:view");
@@ -12,9 +12,9 @@ export async function GET(req) {
   if (sp.get("status")) where.status = sp.get("status");
   if (sp.get("block")) where.block = sp.get("block");
   if (sp.get("q")) where.number = { contains: sp.get("q") };
-  // The client selects certificateIssuedAt, so on a cold start the column has to
-  // exist before this query rather than merely having been asked for.
-  await ensurePlotCertificateColumn();
+  // The client selects certificateIssuedAt and purchasedAt, so on a cold start the
+  // columns have to exist before this query rather than merely having been asked for.
+  await Promise.all([ensurePlotCertificateColumn(), ensureMemberRecordColumns()]);
   const plots = await prisma.plot.findMany({
     where,
     include: { member: { select: { id: true, fullName: true, email: true, phone: true } } },

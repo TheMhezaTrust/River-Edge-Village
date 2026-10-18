@@ -2,11 +2,15 @@ import { prisma } from "@/lib/prisma";
 import { guard } from "@/lib/auth";
 import { ok } from "@/lib/api";
 import { memberPrice } from "@/lib/member-totals";
+import { ensureMemberRecordColumns } from "@/lib/provision";
 
 export async function GET() {
   const { error } = await guard("reports:view");
   if (error) return error;
 
+  // Member, Plot and Income all gained a column, and these queries select every
+  // column of each, so the DDL has to have run before the first one fires.
+  await ensureMemberRecordColumns();
   const [plots, members, inquiries, income, expenses, payments] = await Promise.all([
     prisma.plot.findMany({ include: { payments: true } }),
     prisma.member.findMany({ include: { payments: true, plots: true } }),

@@ -2,10 +2,15 @@ import { prisma } from "@/lib/prisma";
 import { getStaffSession, unauthorized } from "@/lib/auth";
 import { ok } from "@/lib/api";
 import { memberPrice } from "@/lib/member-totals";
+import { ensureMemberRecordColumns } from "@/lib/provision";
 
 export async function GET() {
   const user = await getStaffSession();
   if (!user) return unauthorized();
+
+  // Member and Plot both gained a column, and the balance query below selects every
+  // column of each.
+  await ensureMemberRecordColumns();
 
   const [
     totalPlots, available, reserved, sold,

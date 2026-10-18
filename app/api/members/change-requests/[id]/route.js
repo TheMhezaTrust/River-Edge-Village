@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { guard, audit, verifyConfirmToken } from "@/lib/auth";
 import { ok, bad } from "@/lib/api";
-import { ensureMemberAccessTables } from "@/lib/provision";
+import { ensureMemberAccessTables, ensureMemberRecordColumns } from "@/lib/provision";
 
 const CHANGEABLE_FIELDS = ["fullName", "idNumber"];
 
@@ -21,7 +21,8 @@ export async function PUT(req, { params }) {
   const decision = b.decision === "REJECT" ? "REJECTED" : b.decision === "APPROVE" ? "APPROVED" : null;
   if (!decision) return bad("Choose APPROVE or REJECT.");
 
-  await ensureMemberAccessTables();
+  // Approving writes onto the member record, which the client selects in full.
+  await Promise.all([ensureMemberAccessTables(), ensureMemberRecordColumns()]);
   const request = await prisma.memberChangeRequest.findUnique({ where: { id: Number(id) } });
   if (!request) return bad("Request not found", 404);
   if (request.status !== "PENDING") return bad(`This request was already ${request.status.toLowerCase()}.`);

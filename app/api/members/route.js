@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { guard, audit, verifyConfirmToken } from "@/lib/auth";
 import { ok, bad, created } from "@/lib/api";
 import { memberPrice } from "@/lib/member-totals";
+import { ensureMemberRecordColumns } from "@/lib/provision";
 
 function normalizeBeneficiaries(input) {
   if (Array.isArray(input)) return input;
@@ -34,6 +35,8 @@ export async function GET(req) {
   const where = q
     ? { OR: [{ fullName: { contains: q } }, { email: { contains: q } }, { phone: { contains: q } }, { idNumber: { contains: q } }] }
     : {};
+  // Both models gained a column, and the client selects every column of each.
+  await ensureMemberRecordColumns();
   const members = await prisma.member.findMany({
     where,
     include: { plots: true, payments: true },
@@ -51,6 +54,7 @@ export async function POST(req) {
       return bad("Password confirmation required or expired. Please try again.", 401);
     }
     if (!b.fullName || !b.email || !b.phone) return bad("Full name, email and phone are required");
+    await ensureMemberRecordColumns();
     const member = await prisma.member.create({
       data: {
         fullName: b.fullName,

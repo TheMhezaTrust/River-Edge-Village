@@ -21,6 +21,9 @@ export default async function PortalStatementPage() {
   const payments = [...member.payments].sort((a, b) => new Date(a.date) - new Date(b.date));
   const generatedAt = dateTimeFmt(new Date());
   const statementNo = `RE-${String(member.id).padStart(5, "0")}-${new Date().getFullYear()}`;
+  // The contract date the office recorded, falling back to when the record was
+  // opened for members whose paperwork predates this system.
+  const purchasedOn = member.purchaseDate || member.createdAt;
 
   let running = 0;
 
@@ -70,6 +73,7 @@ export default async function PortalStatementPage() {
             <p className="text-gray-600">{member.email}</p>
             <p className="text-gray-600">{member.phone}</p>
             {member.physicalAddress && <p className="text-gray-600">{member.physicalAddress}</p>}
+            <p className="text-gray-600">Date of purchase {dateFmt(purchasedOn)}</p>
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Plot held</p>
@@ -80,6 +84,7 @@ export default async function PortalStatementPage() {
                 {member.plots.map((p) => (
                   <li key={p.id}>
                     Plot {p.number}{p.block ? ` (Block ${p.block})` : ""}, {p.sizeSqm} m² — {p.project?.name || "River Edge Rural Village"}
+                    {p.purchasedAt && <span className="text-gray-500"> · purchased {dateFmt(p.purchasedAt)}</span>}
                   </li>
                 ))}
               </ul>
@@ -103,7 +108,7 @@ export default async function PortalStatementPage() {
             </thead>
             <tbody>
               <tr className="border-b border-gray-100">
-                <td className="py-2 text-gray-600">{dateFmt(member.createdAt)}</td>
+                <td className="py-2 text-gray-600">{dateFmt(purchasedOn)}</td>
                 <td className="py-2 text-gray-600">Purchase price</td>
                 <td className="py-2 text-gray-600">—</td>
                 <td className="py-2 text-right text-gray-600">({zarFull(price)})</td>

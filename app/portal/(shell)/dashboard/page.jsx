@@ -28,7 +28,7 @@ export default async function PortalDashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-extrabold text-forest-900">Welcome, {member.fullName.split(" ")[0]}</h1>
-        <p className="mt-1 text-sm text-gray-500">Member since {dateFmt(member.createdAt)} · {member.email}</p>
+        <p className="mt-1 text-sm text-gray-500">Member since {dateFmt(member.purchaseDate || member.createdAt)} · {member.email}</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">

@@ -52,6 +52,7 @@ model Member {
   email              String                @unique
   password           String? // portal login (bcrypt hash); null = portal not yet activated
   purchasePrice      Float?
+  purchaseDate       DateTime? // date joined / date of purchase for the member as a whole
   paymentPlan        String? // FULL | PLAN_6 | PLAN_12 | PLAN_24
   beneficiaries      String? // JSON string
   notes              String?
@@ -136,6 +137,7 @@ model Plot {
   x           Float // plan-pixel centre on the survey layout (see lib/plan-layout.js)
   y           Float // plan-pixel centre on the survey layout
   block       String? // block/zone label e.g. "A"
+  purchasedAt DateTime? // when this erf was bought; a member's plots may have different dates
   certificateIssuedAt DateTime? // null = Certificate of Land Use not yet issued
   projectId   Int
   project     Project   @relation(fields: [projectId], references: [id])
@@ -200,6 +202,7 @@ model Payment {
   member    Member   @relation(fields: [memberId], references: [id])
   plotId    Int?
   plot      Plot?    @relation(fields: [plotId], references: [id])
+  income    Income?
 }
 
 // ---------- Finance ----------
@@ -213,6 +216,13 @@ model Income {
   category    String // PLOT_SALE | FEE | DONATION | OTHER
   method      String?
   reference   String?
+  // Set when the row was created automatically from a member payment, so
+  // correcting that payment can correct its income entry too. Null for income
+  // Finance captured by hand. SET NULL rather than CASCADE: if a payment row is
+  // ever removed by another path the income record survives instead of vanishing
+  // silently out of the financial history.
+  paymentId   Int?     @unique
+  payment     Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
 }
 
 model Expense {

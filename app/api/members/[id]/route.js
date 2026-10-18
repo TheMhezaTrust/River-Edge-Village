@@ -2,11 +2,15 @@ import { prisma } from "@/lib/prisma";
 import { guard, audit } from "@/lib/auth";
 import { ok, bad } from "@/lib/api";
 import { memberTotals } from "@/lib/member-totals";
+import { ensureMemberRecordColumns } from "@/lib/provision";
 
 export async function GET(req, { params }) {
   const { error } = await guard("members:view");
   if (error) return error;
   const { id } = await params;
+  // The client selects Member.purchaseDate and Plot.purchasedAt, so on a cold start
+  // the columns have to exist before this query rather than merely having been asked for.
+  await ensureMemberRecordColumns();
   const member = await prisma.member.findUnique({
     where: { id: Number(id) },
     include: { plots: { include: { project: true } }, payments: { orderBy: { date: "desc" } } },
@@ -28,7 +32,28 @@ export async function PUT(req, { params }) {
   const data = {};
   for (const k of allowed) if (k in b) data[k] = b[k];
   if ("beneficiaries" in b) data.beneficiaries = typeof b.beneficiaries === "string" ? b.beneficiaries : JSON.stringify(b.beneficiaries);
-  if (data.purchasePrice != null) data.purchasePrice = Number(data.purchasePrice);
+  // An empty field means "no override, fall back to the sum of the plot prices" —
+  // not R0, which would wipe the member's balance from every screen.
+  if ("purchasePrice" in b) {
+    const raw = b.purchasePrice;
+    if (raw === "" || raw == null) data.purchasePrice = null;
+    else {
+      const n = Number(raw);
+      if (Number.isNaN(n) || n < 0) return bad("Purchase price must be zero or more.");
+      data.purchasePrice = n;
+    }
+  }
+  // Handled separately from `allowed`: it arrives as "YYYY-MM-DD" from a date
+  // input and has to become a Date, or null when the contract date is unknown.
+  if ("purchaseDate" in b) {
+    if (!b.purchaseDate) data.purchaseDate = null;
+    else {
+      const d = new Date(b.purchaseDate);
+      if (Number.isNaN(d.getTime())) return bad("Date of purchase is not a valid date.");
+      data.purchaseDate = d;
+    }
+  }
+  await ensureMemberRecordColumns();
   try {
     const member = await prisma.member.update({ where: { id: Number(id) }, data });
     await audit(user, "MEMBER_UPDATED", "Member", member.id, member.fullName);
