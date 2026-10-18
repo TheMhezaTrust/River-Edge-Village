@@ -7,6 +7,7 @@ import { api } from "@/lib/api-client";
 import { useFetch, PageHeader, LoadingBlock, ErrorBlock } from "@/components/ws/common";
 import { usePermissions, ReadOnlyNote } from "@/components/ws/permissions";
 import { Modal, Field, StatusPill, Alert } from "@/components/ui";
+import PortalAccessPanel from "@/components/ws/PortalAccessPanel";
 import { zar, zarFull, dateFmt } from "@/lib/format";
 
 export default function MemberDetailPage() {
@@ -162,6 +163,8 @@ export default function MemberDetailPage() {
               </ul>
             )}
           </div>
+
+          <PortalAccessPanel member={member} canManage={canEditMember} reload={reload} />
         </div>
 
         {/* Payments + documents + notes */}

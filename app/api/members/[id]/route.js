@@ -14,7 +14,9 @@ export async function GET(req, { params }) {
   if (!member) return bad("Member not found", 404);
   const { password, ...safe } = member;
   const { price, totalPaid, outstandingBalance } = memberTotals(member);
-  return ok({ ...safe, price, totalPaid, outstandingBalance });
+  // Staff need to know whether a member can sign in yet, but the hash itself never
+  // leaves the server.
+  return ok({ ...safe, price, totalPaid, outstandingBalance, hasPortalPassword: Boolean(password) });
 }
 
 export async function PUT(req, { params }) {
@@ -30,7 +32,8 @@ export async function PUT(req, { params }) {
   try {
     const member = await prisma.member.update({ where: { id: Number(id) }, data });
     await audit(user, "MEMBER_UPDATED", "Member", member.id, member.fullName);
-    return ok(member);
+    const { password: _password, ...safe } = member;
+    return ok(safe);
   } catch (e) {
     return bad(e.message);
   }

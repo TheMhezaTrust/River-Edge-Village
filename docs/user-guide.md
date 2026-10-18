@@ -17,19 +17,22 @@
 The public **Status** page shows the project timeline and public announcements filterable by category. Detailed government department engagement records (contact officials, direct numbers, internal notes and follow-up dates) are confidential and only visible to staff inside the Workstation.
 
 ### Member portal (your account is created for you, then you log in)
-1. **Your account is created by the Trust office.** There is no public sign-up form. To get portal access, contact the Trust by phone (**081 391 7967**) or email (**themhezatrust@gmail.com**); staff verify your identity, set up your member record and issue your portal login credentials.
-2. **Log in** at **Login → Member** (`/login`) or `/portal` using the email and password the Trust office gave you. Change your password after your first sign-in.
-3. A consultant confirms your plot allocation and records your payments; your balance and documents appear once that is done.
-4. **You must be logged in to see any of your financial or personal information.** Nothing about your payments, balance or documents is visible to the public or to other members. In the portal you can:
-   - See your plot details and a **payment progress bar** (paid vs outstanding balance)
-   - Review your full **payment history**
-   - **Upload documents**: certified ID copy, beneficiary nomination form, building plans
-   - Download documents you have uploaded (each file is only reachable through your own signed-in session)
-   - Download your **Certificate of Land Use** when it becomes available
-   - Update your contact details and change your password
-   - Track project progress, read member announcements and review the **Terms and Conditions of Sale** that govern your Right of Use
-5. Payments are made by EFT to the project's official Absa account — **River Edge SA Primary Co-operative Ltd**, acc **4121013447**, branch **632005** (shown in the portal and on **Trust Info**). Always use the mandatory reference format `Plot Number – Buyer Name` (for example `12 – Your Full Name`), as set out in clause 6.4 of the Terms and Conditions of Sale — payments without it cannot be allocated.
-6. Sessions expire automatically after 12 hours of inactivity; simply log in again.
+1. **Your account is created by the Trust office.** There is no public sign-up form. To get portal access, contact the Trust by phone (**081 391 7967**) or email (**themhezatrust@gmail.com**); staff verify your identity and set up your member record.
+2. **Getting a password.** The office does one of two things:
+   - **Emails you an access link** — a single-use link, valid for **30 minutes**, that opens a page where you choose your own password. If the link has expired, ask the office to send another, or use **Forgot password?** on the sign-in page.
+   - **Gives you a temporary password** (by phone or in person) — the portal will make you replace it before anything else opens.
+3. **Log in** at **Member Login** (top right of every public page, `/portal`) using your registered email address and password.
+4. **Forgot your password?** Use **Forgot password?** on the sign-in page. The Trust emails a reset link to the address on your member record; it works once and expires after 30 minutes. For security the page always says a link is on its way, whether or not the address is on the register — if nothing arrives in a few minutes, the address is probably not the one the office holds, so call them.
+5. **You are signed out automatically after 15 minutes of inactivity.** A minute before it happens a notice appears at the bottom of the screen with a **Stay signed in** button. Simply sign in again afterwards — nothing is lost.
+6. **You must be logged in to see any of your information.** Nothing about your payments or balance is visible to the public or to any other member. In the portal you can:
+   - **Dashboard** — what you have paid, what is outstanding, your plot, latest Trust announcements, and the EFT details with your mandatory payment reference
+   - **My Profile** — see everything the Trust holds about you (name, ID number, date of birth, gender, marital status, both addresses, contact number, email). You can change your **contact number, physical address, postal address and email** yourself; changing your email asks for your current password, because your email is how you sign in. **Your name and ID number cannot be edited** — use the *Request a name or ID correction* form and a member of the Trust office approves it (you may be asked for a certified ID copy). Your password is changed here too.
+   - **My Beneficiaries** — the nominations the Trust currently holds. A nomination has to be signed, so it cannot be edited in the portal: get a **Beneficiary Nomination Form** from the office, sign it and hand it in. Downloading the blank form and uploading a signed copy from the portal is being added next.
+   - **My Plot Details** — project name, plot number, block, size, purchase price, what you have paid on that plot, your Right of Use position, and where your **Certificate of Land Use** will appear once the Trust issues it.
+   - **Payments & Statement** — every payment the office has recorded (date, amount, reference, method, plot, status), your **total paid** and **outstanding balance**, and a **Download PDF Statement** button.
+7. **Your statement.** *Download PDF Statement* opens a formal statement of account on Trust letterhead — statement number, your details, your plot, a running schedule of payments with the balance after each one, totals, and the banking details if you still owe something. Use your browser's **Print → Save as PDF** in the dialog that opens; the page is already laid out for A4 and the sidebar and buttons drop out of the printed copy. Keep it, or hand it to your bank or attorney.
+8. Payments are made by EFT to the project's official Absa account — **River Edge SA Primary Co-operative Ltd**, acc **4121013447**, branch **632005** (shown in the portal and on **Trust Info**). Always use the mandatory reference format `Plot Number – Buyer Name` (for example `12 – Your Full Name`), as set out in clause 6.4 of the Terms and Conditions of Sale — payments without it cannot be allocated.
+9. **Something wrong on your record?** If a payment you made is not showing, email your proof of payment to **themhezatrust@gmail.com** and quote your plot number. Uploading proof of payment straight into the portal is being added next; until then the office captures it for you.
 
 ### Terms and Conditions of Sale
 The full 21-clause **Terms and Conditions of Sale** are published at `/terms` (also linked from the footer, the nav bar, Trust Info and every plot page). They cover the Right of Use, pricing and the non-payment ladder, the Right of Use Certificate and transfer fee, beneficiary nomination, the Community Constitution, building setbacks and deadlines, infrastructure requirements, annual levies, privacy, dispute resolution and termination. Read them before paying a deposit.
@@ -61,6 +64,11 @@ Shows quick stats (plots by status, members, outstanding balances, monthly reven
 ### Members
 - **Members** — search/filter all members; export CSV; add a member with full personal, plot and payment-plan details; open a member for their complete record.
 - On a member's page: record payments (auto-creates an income entry and notifies the team), edit details, view uploaded documents, beneficiaries and notes.
+- **Member Portal Access** (on the member's page, needs member-management rights and your password re-entered):
+  - **Email an access link** — sends the member a single-use link, valid 30 minutes, to choose their own password. Use this whenever the member has a working email address; it means nobody has to read a password out over the phone. On a member who already has a password the button reads **Email a reset link**. If outbound email is not configured the panel says so — use the next option instead.
+  - **Set temporary password** — generates a 12-character password shown **once**, with a copy button. Hand it over privately. The member cannot see anything in the portal until they replace it, so it is safe if it is written down briefly.
+  - The panel also shows whether the member can sign in yet and when they last did.
+- **Portal change requests** — a member cannot change their own name or ID number, so those arrive as requests. A panel at the top of **Members** lists everything waiting. **Approve** writes the corrected value straight onto the member record; **Reject** leaves it as it is. Both ask for your password first, and every decision is written to the audit log. The member sees the new status the next time they open **My Profile**.
 
 ### Plots
 - Map and table views of all 216 plots, numbered per the official survey layout plan (including subdivided erven such as 1A, 145A/145B, 165A, 186A and 203A). Click a plot to change status (Available / Reserved / Sold), edit size, price or details.
@@ -105,16 +113,21 @@ Open to every role: the staff directory (read-only unless you are an Administrat
 
 | Problem | Solution |
 |---|---|
-| Forgot member portal password | Contact the Trust office — resets are handled manually for security |
+| Forgot member portal password | Use **Forgot password?** on `/portal` — a reset link goes to the address the Trust holds. Nothing arrived? The address on the record is probably different, so call the office on 081 391 7967 and they will email a new link or give you a temporary password |
+| Member portal access link "is no longer valid" | The link works once and expires after 30 minutes. Ask for a new one from **Forgot password?**, or have the office issue a fresh link from the member's page |
+| Member signs in and is taken straight to a "choose a new password" page | Normal after a temporary password — the portal will not open until it is replaced |
 | Forgot workstation password | Use **Forgot password?** on `/workstation/login` if your account has recovery questions on file; otherwise ask an Administrator to reset it in Settings → Users |
 | Recovery says recovery is locked for another X minutes | Five incorrect answers were given — wait out the 30-minute lock, then start again |
 | Reply to Customer says outbound email is not configured | The Resend API key is missing from the hosting environment. Ask whoever manages Vercel to set `RESEND_API_KEY`, then try again — nothing was sent and nothing was logged as sent |
+| Email an access link says outbound email is not configured | Same cause. Use **Set temporary password** on the member's page instead and hand it over privately |
 | A reply is listed as **Failed** in Communication History | The email did not reach the customer; the reason is shown under the message. Check the address, then send again |
 | A website inquiry is in the list but no notification email arrived | The inquiry itself is safe — it is saved before the email is attempted. Ask whoever manages Vercel to check the function logs for `office notification for #… failed`; the usual cause is a missing `RESEND_API_KEY` or an unverified sending domain |
-| "We could not verify your details" when signing up | The Trust already holds a record for that email but your ID number and phone do not match it. Call 081 391 7967 or email themhezatrust@gmail.com |
-| "An account already exists for this email address" | Sign in at **Login → Member** instead of signing up |
-| Portal shows no plot or no payments yet | Normal for a new account — a consultant confirms your allocation and records payments after sign-up |
+| "Invalid email or password" at the portal | Either the password is wrong, or the office has not issued one for that address yet. Use **Forgot password?**, or call 081 391 7967 — member accounts are created by the Trust office, there is no public sign-up |
+| "Too many sign-in attempts" at the portal | Eight wrong attempts in five minutes. Wait five minutes, then use **Forgot password?** rather than guessing again |
+| "This member account is inactive" | The office has deactivated the record. Call them |
+| Portal shows no plot or no payments yet | Normal for a new account — a consultant confirms your allocation and records payments |
 | Payment not showing in portal | Check your EFT reference format; email proof of payment to themhezatrust@gmail.com |
+| Name or ID number is wrong in the portal and cannot be edited | Use **Request a name or ID correction** on **My Profile** — the Trust office approves it. Keep an eye on the status shown under the form |
 | "You do not have permission" in workstation | Your role can view that module but not change it — ask Bongani Sifiniza (Administrator) |
-| Session expired | Normal after 12 hours; sign in again |
+| Signed out of the member portal | Normal after **15 minutes** of inactivity; sign in again. Staff sessions run 12 hours |
 | Document upload fails | Max file size is 10 MB; use PDF/JPG/PNG where possible |

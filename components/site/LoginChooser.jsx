@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api-client";
 import { Alert, Field } from "@/components/ui";
@@ -36,8 +37,8 @@ export default function LoginChooser({ initialTab = "member" }) {
         await api.post("/api/auth/login", { email, password });
         router.push("/workstation");
       } else {
-        await api.post("/api/portal/login", { email, password });
-        router.push("/portal/dashboard");
+        const res = await api.post("/api/portal/login", { email, password });
+        router.push(res.mustChangePassword ? "/portal/password" : "/portal/dashboard");
       }
       router.refresh();
     } catch (err) {
@@ -113,8 +114,8 @@ export default function LoginChooser({ initialTab = "member" }) {
           </p>
           <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-xs text-blue-800">
             Your payment details, balance and documents are only visible after you sign in — never to the public and never to another member.
-            Forgot your password? Resets are handled by the Trust office for security: call {TRUST.primaryPhone} or email{" "}
-            <a href={`mailto:${TRUST.email}`} className="underline font-semibold">{TRUST.email}</a>.
+            Forgot your password? Use “Forgot password?” on the{" "}
+            <Link href="/portal" className="underline font-semibold">Member Login</Link> page to get a reset link by email.
           </div>
         </div>
       )}

@@ -60,11 +60,28 @@ The public site has a single sign-in entry point at **`http://localhost:3000/log
 
 **Member portal** — `http://localhost:3000/portal`
 
-The 146 imported members are **portal-inactive**: each has a generated placeholder email (`…@placeholder.mheza.invalid`), a placeholder phone where the roster supplied none, and **no password**. Public self-registration has been removed — member accounts are created and managed from the administrator dashboard (`/workstation/members`) only. Because members have no password until one is set for them, a member cannot sign in until staff issue portal credentials. Imported members have **no payment history** — balances show the full erf price as outstanding until Finance records payments.
+The portal is a separate app section (`app/portal/`) with its own layout: it deliberately does **not** inherit the public site chrome (no navbar, footer, chat widget or page-view tracker) and sets `robots: noindex`. Signed-in members land in `app/portal/(shell)/` — a sidebar shell (`components/portal/PortalShell.jsx`) with Dashboard, My Profile, My Beneficiaries, My Plot Details, Payments & Statement, plus a print-ready Statement of Account at `/portal/statement`. Signed-out screens (`/portal`, `/portal/access`, `/portal/password`) share `components/portal/PortalAuthPage.jsx`.
 
-Members sign in at `/portal` (or via `/login`) using the credentials the Trust office sets for them. There is no public sign-up form and no `/portal/register` route.
+The 146 imported members are **portal-inactive**: each has a generated placeholder email (`…@placeholder.mheza.invalid`), a placeholder phone where the roster supplied none, and **no password**. Public self-registration has been removed — member accounts are created and managed from the administrator dashboard (`/workstation/members`) only. Imported members have **no payment history** — balances show the full erf price as outstanding until Finance records payments.
 
-Payment details, balances and documents are only reachable with a portal session: `/portal/dashboard` redirects to `/portal` when signed out, and every `/api/portal/*` handler calls `getPortalSession()` first.
+### Portal access lifecycle
+
+A member cannot sign in until the office issues credentials. From a member's record in the workstation (`/workstation/members/[id]` → **Member Portal Access**, `components/ws/PortalAccessPanel.jsx`) staff with `members:manage` can do either, both gated by the password-confirm modal:
+
+1. **Email an access link** — `POST /api/members/[id]/portal-access` mints a single-use 32-byte token, stores only its SHA-256 hash (`MemberToken`), emails the link via Resend and never returns the token to the caller. It expires after 30 minutes (`TOKEN_TTL_MINUTES` in `lib/member-access.js`) and is consumed on use. `purpose` is `ACTIVATE` for a first invitation and `RESET` when the office answers a forgotten-password call. Requires `RESEND_API_KEY`; without it the panel's error tells staff to use option 2.
+2. **Set a temporary password** — `POST /api/members/[id]/portal-password` generates an unambiguous 12-character password (shown once, with a copy button) and sets `Member.mustChangePassword`. The shell layout bounces such a member to `/portal/password` before any portal page renders, so the flag is enforced server-side.
+
+The member sets or changes their own password at `/portal/access?token=…` (link) or `/portal/password` (forced change). Both post to `/api/portal/access` / `/api/portal/change-password`. Members can also self-serve a reset from the **Forgot password?** form on `/portal` → `POST /api/portal/forgot-password`, which is rate-limited per IP *and* per address but always returns the same generic message, so it cannot be used to discover which addresses belong to members.
+
+### Portal session timeout
+
+Members are held to a **15-minute inactivity window** (`PORTAL_SESSION_SECONDS` / `PORTAL_SESSION_TTL` in `lib/auth.js`); staff keep the 12-hour session. `startPortalSession(member)` signs a short-lived JWT into the `mheza_portal` cookie, and `PortalShell` re-issues it via `POST /api/portal/heartbeat` every 4 minutes — but only while the tab is visible *and* the member has actually been active, so a background tab cannot defeat the timeout. A client-side idle timer shows a 60-second warning with a "Stay signed in" action, then logs out and returns to `/portal?reason=timeout`.
+
+### Portal data privacy (POPIA)
+
+Every portal page loads through `loadPortalMember()` (`lib/portal-data.js`) and every portal API through `getActivePortalMember()` (`lib/auth.js`). Both derive the member id **only** from the verified session cookie — no portal route accepts a member id parameter — so no query in the portal can be pointed at somebody else's record. Per-plot payment lists are additionally filtered by `memberId`. Members cannot see other members, the Trust's internal financials (`Income`/`Expense`), the farmer's contract, or anything under `/workstation`. A member may edit their own contact number, addresses and (with their current password) email via `PUT /api/portal/me`; **name and ID number are not editable** — those go to `POST /api/portal/change-request`, which writes a `MemberChangeRequest` and a staff notification, and the office approves or rejects it from the **Portal change requests** panel on `/workstation/members` (approval requires the password-confirm modal because it writes to the member record).
+
+Portal tables (`MemberToken`, `MemberChangeRequest`) and the two new `Member` columns (`mustChangePassword`, `lastLoginAt`) are auto-provisioned at runtime by `ensureMemberAccessTables()` in `lib/provision.js`, like the other additive tables. Because the generated Prisma client selects every `Member` column, `lib/prisma.js` starts that DDL eagerly on first import rather than waiting for a portal request; otherwise the first deploy would break **every** member query in the app until the columns existed.
 
 ## Roles & permissions
 
@@ -112,8 +129,13 @@ Every attempt is written to `InquiryReply` — the inquiry's communication histo
 ```
 app/
   (site)/            # public website: home, about, projects, plots, status,
-                     # trust-info, terms, contact, login (staff + member chooser),
-                     # portal (login + register + dashboard)
+                     # trust-info, terms, contact, login (staff + member chooser)
+  portal/            # member portal — own layout, no public site chrome
+    page.jsx         # sign-in (+ forgot password)
+    access/          # set a password from an emailed single-use link
+    password/        # forced change of an office-issued temporary password
+    (shell)/         # authenticated sidebar shell
+      dashboard/ profile/ beneficiaries/ plot/ payments/ statement/
   workstation/
     login/           # staff sign-in
     recover/         # security-question password recovery (Main Administrator)
@@ -125,7 +147,8 @@ app/
   api/               # route handlers (auth, portal, public, members, plots,
                      # finance, documents, departments, inquiries, tasks,
                      # communication, admin, dashboard, reports, track)
-components/          # shared UI: ui.jsx, PlotMap.jsx, InterestForm.jsx, site/, ws/
+components/          # shared UI: ui.jsx, PlotMap.jsx, InterestForm.jsx, site/, ws/,
+                     # portal/ (shell, icons, profile + statement widgets)
 lib/                 # prisma.js, provision.js (runtime CREATE TABLE), auth.js
                      # (JWT/RBAC server), roles.js (client-safe), super-admin.js,
                      # security-questions.js, rate-limit.js, analytics.js,
@@ -251,7 +274,7 @@ updates, and monitoring/alerting on Vercel + Neon.
 - River Edge Rural Village: Portion 2 of Farm 970, Cove Ridge East, Buffalo City Metropolitan Municipality — 31.9 ha, 216 plots × 800 m², 165 families.
 - Erf numbering follows the official survey layout plan (`lib/plan-layout.js` holds the digitised bands, block zones and map coordinates, including subdivided erven 1A, 145A/145B, 165A, 186A, 203A).
 - All The Mheza Trust projects are administered by **River Edge Primary Co-Op**.
-- Official banking details (per Absa confirmation letter dated 15/08/2026): **Absa**, account name **River Edge SA Primary Co-operative Ltd**, registration **202500243224**, account number **4121013447**, branch code **632005**, account type **Current**. These are hardcoded in `components/site/Footer.jsx`, `app/(site)/trust-info/page.jsx` and the member portal dashboard (`app/(site)/portal/dashboard/page.jsx`) — the account is held by the Co-Op, not the Trust, so label it accordingly.
+- Official banking details (per Absa confirmation letter dated 15/08/2026): **Absa**, account name **River Edge SA Primary Co-operative Ltd**, registration **202500243224**, account number **4121013447**, branch code **632005**, account type **Current**. These are hardcoded in `components/site/Footer.jsx`, `app/(site)/trust-info/page.jsx` and `components/portal/BankingDetails.jsx` (used on the member portal dashboard, payments page and statement) — the account is held by the Co-Op, not the Trust, so label it accordingly.
 - The Mheza Trust registration number **IT000099/2024(E)**; original seller **Mr Albert Shaw**; Trust attorney **Mr Webb**. Contact: **081 391 7967 / 081 708 2669 / 081 488 5448**, themhezatrust@gmail.com. These live in `lib/contact.js` (`TRUST`) and are the single source of truth for every page. The **seller and attorney names are gated**: on the public site they are replaced with a neutral fallback for visitors who are not logged in, and only shown in full once a member has a portal session. The gating helpers `sellerName(isMember, fallback)` / `attorneyName(isMember, fallback)` live in `lib/contact.js` and are used by the homepage, `/trust-info`, `/status` and `/terms`.
 - Registered domain: **themhezatrust.co.za** (`https://themhezatrust.co.za`). Held in `lib/contact.js` as `TRUST.website` / `TRUST.siteUrl`, shown in the footer, `/contact` and `/trust-info`, and used for SEO `metadataBase` / `og:url` in `app/layout.jsx` (override per-environment with `NEXT_PUBLIC_SITE_URL` in `.env`).
 - Pricing: **R75,000 promotional** (full payment) until **30 November 2026**, then **R90,000** standard with payment plans.

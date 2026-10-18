@@ -84,7 +84,8 @@ export default function Navbar() {
           </nav>
 
           <div className="hidden lg:flex items-center gap-2">
-            <Link href="/login" className="btn-outline btn-sm">Login</Link>
+            <Link href="/login?to=staff" className="btn-ghost btn-sm">Staff Login</Link>
+            <Link href="/portal" className="btn-primary btn-sm">Member Login</Link>
           </div>
 
           <button
@@ -130,7 +131,8 @@ export default function Navbar() {
             </div>
           ))}
           <div className="pt-2 flex flex-col gap-2 border-t border-gray-100 mt-2">
-            <Link href="/login" onClick={() => setOpen(false)} className="btn-primary btn-sm">Login</Link>
+            <Link href="/portal" onClick={() => setOpen(false)} className="btn-primary btn-sm">Member Login</Link>
+            <Link href="/login?to=staff" onClick={() => setOpen(false)} className="btn-outline btn-sm">Staff Login</Link>
           </div>
         </nav>
       )}

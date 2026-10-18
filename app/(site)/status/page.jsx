@@ -233,10 +233,9 @@ export default async function StatusPage() {
               <h3 className="font-bold text-forest-900 mb-2">👥 For Existing Buyers</h3>
               <p className="text-sm text-gray-600 leading-relaxed">
                 Plot holders can log in to the <strong>Member Portal</strong> to view their plot information, full payment history,
-                outstanding balance, upload required documents (ID copies, beneficiary nomination forms, building plans), and download
-                the Certificate of Land Use once issued.
+                outstanding balance, and print a statement of account for their plot.
               </p>
-              <Link href="/login" className="btn-primary btn-sm mt-4">Member Login</Link>
+              <Link href="/portal" className="btn-primary btn-sm mt-4">Member Login</Link>
             </div>
             <div className="card p-6">
               <h3 className="font-bold text-forest-900 mb-3">📞 Contact Us</h3>

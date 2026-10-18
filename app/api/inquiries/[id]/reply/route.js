@@ -1,10 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { guard, audit } from "@/lib/auth";
 import { bad, created } from "@/lib/api";
-import { emailConfigured, sendMail } from "@/lib/email";
+import { emailConfigured, sendMail, EMAIL_RE } from "@/lib/email";
 import { ensureInquiryReplyTable } from "@/lib/provision";
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_BODY = 5000;
 
 export async function POST(req, { params }) {

@@ -8,6 +8,7 @@ import { useFetch, PageHeader, LoadingBlock, ErrorBlock, ConfirmButton } from "@
 import { usePermissions, ReadOnlyNote } from "@/components/ws/permissions";
 import { Modal, Field, StatusPill, Alert } from "@/components/ui";
 import PasswordConfirmModal from "@/components/ws/PasswordConfirmModal";
+import MemberChangeRequests from "@/components/ws/MemberChangeRequests";
 import { zar, dateFmt } from "@/lib/format";
 
 const EMPTY = { fullName: "", idNumber: "", dateOfBirth: "", gender: "", maritalStatus: "", physicalAddress: "", postalAddress: "", phone: "", email: "", plotNumber: "", purchasePrice: "", paymentPlan: "", beneficiaries: "" };
@@ -100,6 +101,8 @@ function MembersInner() {
       />
 
       {!canManage && <div className="mb-4"><ReadOnlyNote label="member records" /></div>}
+
+      <MemberChangeRequests canManage={canManage} />
 
       <div className="card p-4 mb-4 flex flex-wrap gap-3 items-center">
         <input className="input max-w-xs" placeholder="Search name, email, phone, ID or plot…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search members" />

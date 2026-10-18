@@ -10,7 +10,7 @@ const QUICK_LINKS = [
   ["/trust-info", "Trust Information"],
   ["/terms", "Terms & Conditions of Sale"],
   ["/contact", "Contact Us"],
-  ["/login", "Login (Staff or Member)"],
+  ["/portal", "Member Login"],
 ];
 
 export default function Footer() {

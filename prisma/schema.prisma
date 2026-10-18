@@ -17,55 +17,100 @@ datasource db {
 // ---------- Identity & access ----------
 
 model User {
-  id           Int       @id @default(autoincrement())
-  name         String
-  email        String    @unique
-  password     String
-  role         String // SUPER_ADMIN (backend-only, displays as Administrator) | ADMIN | FINANCE | PLOTS
-  phone        String?
-  title        String?
-  isActive     Boolean   @default(true)
-  lastLoginAt  DateTime?
-  createdAt    DateTime  @default(now())
-  messagesSent Message[] @relation("messagesFrom")
-  messagesGot  Message[] @relation("messagesTo")
-  auditLogs    AuditLog[]
-  notifications Notification[]
-  inquiries    Inquiry[]
-  inquiryReplies InquiryReply[]
-  documents    Document[]
-  tasks        Task[]
+  id                   Int                   @id @default(autoincrement())
+  name                 String
+  email                String                @unique
+  password             String
+  role                 String // SUPER_ADMIN (backend-only, displays as Administrator) | ADMIN | FINANCE | PLOTS
+  phone                String?
+  title                String?
+  isActive             Boolean               @default(true)
+  lastLoginAt          DateTime?
+  createdAt            DateTime              @default(now())
+  messagesSent         Message[]             @relation("messagesFrom")
+  messagesGot          Message[]             @relation("messagesTo")
+  auditLogs            AuditLog[]
+  notifications        Notification[]
+  inquiries            Inquiry[]
+  inquiryReplies       InquiryReply[]
+  documents            Document[]
+  tasks                Task[]
+  memberTokens         MemberToken[]
+  memberChangeRequests MemberChangeRequest[]
 }
 
 model Member {
-  id             Int       @id @default(autoincrement())
-  fullName       String
-  idNumber       String?
-  dateOfBirth    String?
-  gender         String?
-  maritalStatus  String?
-  physicalAddress String?
-  postalAddress  String?
-  phone          String
-  email          String    @unique
-  password       String? // portal login (bcrypt hash); null = portal not yet activated
-  purchasePrice  Float?
-  paymentPlan    String? // FULL | PLAN_6 | PLAN_12 | PLAN_24
-  beneficiaries  String? // JSON string
-  notes          String?
-  isActive       Boolean   @default(true)
-  createdAt      DateTime  @default(now())
-  plots          Plot[]
-  payments       Payment[]
-  documents      MemberDocument[]
+  id                 Int                   @id @default(autoincrement())
+  fullName           String
+  idNumber           String?
+  dateOfBirth        String?
+  gender             String?
+  maritalStatus      String?
+  physicalAddress    String?
+  postalAddress      String?
+  phone              String
+  email              String                @unique
+  password           String? // portal login (bcrypt hash); null = portal not yet activated
+  purchasePrice      Float?
+  paymentPlan        String? // FULL | PLAN_6 | PLAN_12 | PLAN_24
+  beneficiaries      String? // JSON string
+  notes              String?
+  isActive           Boolean               @default(true)
+  mustChangePassword Boolean               @default(false) // set when the office issued a temporary password
+  lastLoginAt        DateTime?
+  createdAt          DateTime              @default(now())
+  plots              Plot[]
+  payments           Payment[]
+  documents          MemberDocument[]
+  tokens             MemberToken[]
+  changeRequests     MemberChangeRequest[]
+}
+
+// Single-use links that let a member set their own portal password. Only the
+// SHA-256 hash is stored, so reading the table cannot be turned into a login.
+// ACTIVATE is the office's first-time invitation, RESET is a forgotten password;
+// both expire and are consumed on use.
+model MemberToken {
+  id          String    @id @default(cuid())
+  memberId    Int
+  member      Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  tokenHash   String    @unique
+  purpose     String    @default("ACTIVATE") // ACTIVATE | RESET
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdById Int?
+  createdBy   User?     @relation(fields: [createdById], references: [id])
+  createdAt   DateTime  @default(now())
+
+  @@index([memberId])
+}
+
+// A member cannot edit their own name or ID number — those identify the plot
+// holder on the Trust's records — so a change is a request the office decides on.
+model MemberChangeRequest {
+  id            Int       @id @default(autoincrement())
+  memberId      Int
+  member        Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  field         String // fullName | idNumber
+  currentValue  String?
+  proposedValue String
+  reason        String?
+  status        String    @default("PENDING") // PENDING | APPROVED | REJECTED
+  decidedById   Int?
+  decidedBy     User?     @relation(fields: [decidedById], references: [id])
+  decidedAt     DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([memberId])
+  @@index([status])
 }
 
 // ---------- Projects & plots ----------
 
 model Project {
-  id            Int      @id @default(autoincrement())
+  id            Int     @id @default(autoincrement())
   name          String
-  slug          String   @unique
+  slug          String  @unique
   description   String
   location      String
   address       String?
@@ -82,19 +127,19 @@ model Project {
 }
 
 model Plot {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   number      String
-  sizeSqm     Int      @default(800)
+  sizeSqm     Int       @default(800)
   price       Float
-  status      String   @default("AVAILABLE") // AVAILABLE | RESERVED | SOLD
+  status      String    @default("AVAILABLE") // AVAILABLE | RESERVED | SOLD
   description String?
   x           Float // plan-pixel centre on the survey layout (see lib/plan-layout.js)
   y           Float // plan-pixel centre on the survey layout
   block       String? // block/zone label e.g. "A"
   projectId   Int
-  project     Project  @relation(fields: [projectId], references: [id])
+  project     Project   @relation(fields: [projectId], references: [id])
   memberId    Int?
-  member      Member?  @relation(fields: [memberId], references: [id])
+  member      Member?   @relation(fields: [memberId], references: [id])
   payments    Payment[]
   inquiries   Inquiry[]
 
@@ -104,22 +149,22 @@ model Plot {
 // ---------- Sales pipeline ----------
 
 model Inquiry {
-  id         Int      @id @default(autoincrement())
-  name       String
-  email      String
-  phone      String
-  idNumber   String?
-  plotId     Int?
-  plot       Plot?    @relation(fields: [plotId], references: [id])
-  message    String?
-  source     String   @default("WEBSITE") // WEBSITE | PHONE | EMAIL | WALK_IN
-  status     String   @default("NEW") // NEW | CONTACTED | CONVERTED | CLOSED
-  assignedTo Int?
-  assignee   User?    @relation(fields: [assignedTo], references: [id])
+  id           Int            @id @default(autoincrement())
+  name         String
+  email        String
+  phone        String
+  idNumber     String?
+  plotId       Int?
+  plot         Plot?          @relation(fields: [plotId], references: [id])
+  message      String?
+  source       String         @default("WEBSITE") // WEBSITE | PHONE | EMAIL | WALK_IN
+  status       String         @default("NEW") // NEW | CONTACTED | CONVERTED | CLOSED
+  assignedTo   Int?
+  assignee     User?          @relation(fields: [assignedTo], references: [id])
   followUpDate String?
-  notes      String?
-  createdAt  DateTime @default(now())
-  replies    InquiryReply[]
+  notes        String?
+  createdAt    DateTime       @default(now())
+  replies      InquiryReply[]
 }
 
 // Customer-facing replies sent from an inquiry's detail screen. This is the
@@ -180,34 +225,34 @@ model Expense {
 }
 
 model Employee {
-  id         Int     @id @default(autoincrement())
-  name       String
-  jobTitle   String
-  salary     Float // monthly gross
-  paye       Float   @default(0)
-  uif        Float   @default(0)
-  sdl        Float   @default(0)
-  startDate  String?
-  isActive   Boolean @default(true)
+  id        Int     @id @default(autoincrement())
+  name      String
+  jobTitle  String
+  salary    Float // monthly gross
+  paye      Float   @default(0)
+  uif       Float   @default(0)
+  sdl       Float   @default(0)
+  startDate String?
+  isActive  Boolean @default(true)
 }
 
 // ---------- Documents ----------
 
 model Document {
-  id          Int      @id @default(autoincrement())
-  title       String
-  folder      String // TRUST | PROJECT | LEGAL | FINANCIAL | MEMBER | DEPARTMENT | MINUTES
-  tags        String?
-  description String?
-  filePath    String
-  fileName    String
-  mimeType    String?
-  sizeKb      Int?
-  permissions String? // comma-separated roles; null = all internal roles
+  id           Int      @id @default(autoincrement())
+  title        String
+  folder       String // TRUST | PROJECT | LEGAL | FINANCIAL | MEMBER | DEPARTMENT | MINUTES
+  tags         String?
+  description  String?
+  filePath     String
+  fileName     String
+  mimeType     String?
+  sizeKb       Int?
+  permissions  String? // comma-separated roles; null = all internal roles
   uploadedById Int?
-  uploadedBy  User?    @relation(fields: [uploadedById], references: [id])
-  version     Int      @default(1)
-  createdAt   DateTime @default(now())
+  uploadedBy   User?    @relation(fields: [uploadedById], references: [id])
+  version      Int      @default(1)
+  createdAt    DateTime @default(now())
 }
 
 model MemberDocument {
@@ -224,22 +269,22 @@ model MemberDocument {
 // ---------- Department engagement ----------
 
 model Department {
-  id               Int      @id @default(autoincrement())
-  name             String
-  contactPerson    String?
-  phone            String?
-  email            String?
-  status           String   @default("PENDING") // PENDING | IN_PROGRESS | APPROVED | NO_OBJECTION | REJECTED
-  notes            String?
-  followUpDate     String?
+  id                 Int             @id @default(autoincrement())
+  name               String
+  contactPerson      String?
+  phone              String?
+  email              String?
+  status             String          @default("PENDING") // PENDING | IN_PROGRESS | APPROVED | NO_OBJECTION | REJECTED
+  notes              String?
+  followUpDate       String?
   documentsSubmitted String? // JSON string list
   responsesReceived  String? // JSON string list
-  logs             DepartmentLog[]
+  logs               DepartmentLog[]
 }
 
 model DepartmentLog {
-  id           Int      @id @default(autoincrement())
-  date         DateTime @default(now())
+  id           Int        @id @default(autoincrement())
+  date         DateTime   @default(now())
   method       String // EMAIL | PHONE | MEETING | LETTER
   summary      String
   nextSteps    String?
