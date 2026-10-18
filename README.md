@@ -150,13 +150,29 @@ Brute-force protection: five wrong answers lock recovery for 30 minutes (the cou
 
 ### Email (Resend)
 
-`lib/email.js` sends through the Resend REST API (`RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_REPLY_TO`) — a plain `fetch`, no SDK. Two things use it: the **new-inquiry notification** that `app/api/public/inquiries/route.js` sends to the Trust inbox (`TRUST.email` in `lib/contact.js`) every time a visitor submits a website form, and **Reply to Customer** in an inquiry's detail view under `/workstation/inquiries` (any role holding `inquiries:manage` — Administrator, Finance & Member Records).
+`lib/email.js` sends through the Resend REST API (`RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_REPLY_TO`) — a plain `fetch`, no SDK. Four paths use it: the **new-inquiry notification** that `app/api/public/inquiries/route.js` sends to the Trust inbox (`TRUST.email` in `lib/contact.js`) every time a visitor submits a website form; **Reply to Customer** in an inquiry's detail view under `/workstation/inquiries` (any role holding `inquiries:manage` — Administrator, Finance & Member Records); the **portal access link** that `lib/member-access.js` emails when staff activate or reset a member's sign-in (see "Portal access lifecycle"); and **member forgot-password**, which asks for the same link from `/portal`.
 
 The notification is best-effort: it is sent after the inquiry row and the in-app staff notifications are written, inside its own `try/catch`, so a Resend outage never costs the Trust a submission and the visitor still sees the success message. Failures are logged to the server console. It deliberately omits the ID/passport a visitor may have entered — that stays on the inquiry record, but an identity number is not copied into a shared mailbox — and writes no `InquiryReply` row, because that history is for emails to the customer.
 
 `POST /api/inquiries/[id]/reply` sends first and only then writes, so the history never claims an email went out that the provider rejected; a failure is still stored with the provider's message so staff can see the customer was not reached. A successful send moves the inquiry `NEW → CONTACTED`. Deliberately it does **not** touch an inquiry that is already `CONVERTED` or `CLOSED`, which would otherwise corrupt the conversion-rate figure on that page.
 
 Every attempt is written to `InquiryReply` — the inquiry's communication history, the equivalent of `DepartmentLog` for government engagements — and to the audit log as `INQUIRY_REPLY_SENT` / `INQUIRY_REPLY_FAILED`. The table is auto-provisioned on first use, like the other additive tables. The body is sent as plain text and the customer's answer is routed to `EMAIL_REPLY_TO`.
+
+### Verifying the sending domain (SPF/DKIM) — ⚠ needs you
+
+Resend will not deliver from `themhezatrust.co.za` until the domain shows **Verified** in its dashboard, and until then it only allows sending to the address on your own Resend account — so an early test failing is expected rather than a bug. No code change is involved in any of this; the sending address is already environment-driven.
+
+- **The zone is not on Vercel.** `themhezatrust.co.za` is served by domains.co.za nameservers (`ns1.anycast-ns.com`, `ns2.anycast-ns.net`, `ns3.anycast-ns.com`, `ns4.anycast-ns.net`), so the TXT and MX records Resend hands you go into the **domains.co.za DNS manager**, not Vercel's domain settings. The zone TTL is 2 hours.
+- **Nothing collides.** Checked 2026-10-18: the root domain has no MX record, no TXT/SPF record and no `_dmarc`, and neither `resend._domainkey` nor `send.` exists — Resend's records slot in without having to merge into an existing SPF. Re-check with `nslookup -type=TXT themhezatrust.co.za` before editing if you are reading this later: should an SPF record have appeared in the meantime, **merge** `include:amazonses.com` into it instead of adding a second TXT, because two SPF records break deliverability for everything on the domain.
+- **Root domain or subdomain.** Verifying the root `themhezatrust.co.za` needs nothing further, since `EMAIL_FROM` already defaults to `The Mheza Trust <inquiries@themhezatrust.co.za>`. If you follow Resend's recommendation and verify a subdomain instead — say `mail.themhezatrust.co.za` — set `EMAIL_FROM` in Vercel to `The Mheza Trust <inquiries@mail.themhezatrust.co.za>`. That is an environment change only.
+- **The domain cannot receive mail.** With no MX record, a reply to `inquiries@themhezatrust.co.za` bounces. That is precisely why `EMAIL_REPLY_TO` defaults to `themhezatrust@gmail.com` (`lib/email.js`): a customer who presses Reply reaches a mailbox somebody reads. Do not point `EMAIL_REPLY_TO` at a `@themhezatrust.co.za` address until a real mailbox is provisioned there.
+
+**Testing it.** Do not use the website contact form — its notification is best-effort and a failure surfaces only in the Vercel function logs. These two put Resend's own error message on screen:
+
+- **Reply to Customer** on an existing inquiry (`/workstation/inquiries`). A rejection comes back as a 502, is stored on the `InquiryReply` row as `FAILED`, and is audited as `INQUIRY_REPLY_FAILED`.
+- **Email an access link** from the Member Portal Access panel, sent to an address you control. The panel shows the error, and `lib/member-access.js` deletes the minted token first, so a valid link never sits in the database unmailed.
+
+Once a send succeeds, work through the delivery step in the post-deploy checklist below — and check the spam folder, since a newly verified domain starts with no sending reputation.
 
 ## Project structure
 
@@ -289,8 +305,10 @@ Verify counts on Neon (`member` 146, `plot` 224, etc.) before deploying. Keep `d
 - Verify the Trust-level library is still off: `/api/documents*` and `/api/members/documents*` return **410**.
 - If `DEEPSEEK_API_KEY` is set, exercise the Mheza widget and confirm it never leaks member/staff data.
 - Submit one test inquiry through the live contact form and confirm the notification reaches
-  `themhezatrust@gmail.com` — this also proves the Resend domain (SPF/DKIM) is verified, without which
-  sends fail and are only visible in the Vercel function logs (see "Email (Resend)").
+  `themhezatrust@gmail.com`. This proves the Resend domain (SPF/DKIM) is verified — but it is the worst
+  place to diagnose a failure, because the notification is best-effort and its error only reaches the
+  Vercel function logs. Use the two paths that surface Resend's own message instead; see
+  "Verifying the sending domain (SPF/DKIM)".
 - Enable Neon **point-in-time / scheduled backups** and Vercel deployment protection for Preview URLs.
 
 ### 6. Re-enabling the Trust-level document library later
