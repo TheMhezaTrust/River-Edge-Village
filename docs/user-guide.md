@@ -68,6 +68,7 @@ Shows quick stats (plots by status, members, outstanding balances, monthly reven
 
 ### Inquiries
 - All website and phone inquiries land here. Assign to a team member, change status (New → Contacted → Converted/Closed), set follow-up dates, and **convert to member** (pre-fills the member record and reserves the plot).
+- When a visitor submits a website form, the inquiry appears here and an email is sent to themhezatrust@gmail.com with the name, contact details, plot of interest and message, plus a link straight to this page. The ID/passport a visitor enters is kept on the inquiry record only — it is never copied into the mailbox.
 - **Reply to Customer** — open an inquiry with **View**, then **Reply to Customer**, type the message and press **Send**. The email goes out from the Trust's mailing address and the customer's answer arrives in themhezatrust@gmail.com.
 - Every send is listed under **Communication History** on that inquiry: who sent it, when, the subject, the full message, and whether it was **Sent** or **Failed** (a failed attempt shows the reason, so you know the customer was never reached).
 - A successful send moves a **New** inquiry to **Contacted** automatically. An inquiry already **Converted** or **Closed** keeps its status, so the conversion rate on this page stays correct.
@@ -109,6 +110,7 @@ Open to every role: the staff directory (read-only unless you are an Administrat
 | Recovery says recovery is locked for another X minutes | Five incorrect answers were given — wait out the 30-minute lock, then start again |
 | Reply to Customer says outbound email is not configured | The Resend API key is missing from the hosting environment. Ask whoever manages Vercel to set `RESEND_API_KEY`, then try again — nothing was sent and nothing was logged as sent |
 | A reply is listed as **Failed** in Communication History | The email did not reach the customer; the reason is shown under the message. Check the address, then send again |
+| A website inquiry is in the list but no notification email arrived | The inquiry itself is safe — it is saved before the email is attempted. Ask whoever manages Vercel to check the function logs for `office notification for #… failed`; the usual cause is a missing `RESEND_API_KEY` or an unverified sending domain |
 | "We could not verify your details" when signing up | The Trust already holds a record for that email but your ID number and phone do not match it. Call 081 391 7967 or email themhezatrust@gmail.com |
 | "An account already exists for this email address" | Sign in at **Login → Member** instead of signing up |
 | Portal shows no plot or no payments yet | Normal for a new account — a consultant confirms your allocation and records payments after sign-up |

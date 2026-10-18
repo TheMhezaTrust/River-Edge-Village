@@ -97,15 +97,15 @@ Brute-force protection: five wrong answers lock recovery for 30 minutes (the cou
 
 `components/site/PageViewTracker.jsx` (mounted in `app/(site)/layout.jsx`) posts the current path to `/api/track` on every public page view, including client-side navigations. Only the allow-listed public sections in `lib/analytics.js` are accepted; `/workstation`, `/api`, `/portal`, `/login` and the administrator-only `/plots` are never recorded. Visitors are identified by `ipHash` — a salted SHA-256 of the IP address (`ANALYTICS_SALT`, falling back to `JWT_SECRET`) — so unique visitors can be counted without storing raw IPs. The `PageView` table is auto-provisioned on first use.
 
-### Email to customers (Resend)
+### Email (Resend)
 
-`lib/email.js` sends through the Resend REST API (`RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_REPLY_TO`) — a plain `fetch`, no SDK. It is currently used by one action: **Reply to Customer** in an inquiry's detail view under `/workstation/inquiries`, available to any role holding `inquiries:manage` (Administrator, Finance & Member Records).
+`lib/email.js` sends through the Resend REST API (`RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_REPLY_TO`) — a plain `fetch`, no SDK. Two things use it: the **new-inquiry notification** that `app/api/public/inquiries/route.js` sends to the Trust inbox (`TRUST.email` in `lib/contact.js`) every time a visitor submits a website form, and **Reply to Customer** in an inquiry's detail view under `/workstation/inquiries` (any role holding `inquiries:manage` — Administrator, Finance & Member Records).
+
+The notification is best-effort: it is sent after the inquiry row and the in-app staff notifications are written, inside its own `try/catch`, so a Resend outage never costs the Trust a submission and the visitor still sees the success message. Failures are logged to the server console. It deliberately omits the ID/passport a visitor may have entered — that stays on the inquiry record, but an identity number is not copied into a shared mailbox — and writes no `InquiryReply` row, because that history is for emails to the customer.
 
 `POST /api/inquiries/[id]/reply` sends first and only then writes, so the history never claims an email went out that the provider rejected; a failure is still stored with the provider's message so staff can see the customer was not reached. A successful send moves the inquiry `NEW → CONTACTED`. Deliberately it does **not** touch an inquiry that is already `CONVERTED` or `CLOSED`, which would otherwise corrupt the conversion-rate figure on that page.
 
 Every attempt is written to `InquiryReply` — the inquiry's communication history, the equivalent of `DepartmentLog` for government engagements — and to the audit log as `INQUIRY_REPLY_SENT` / `INQUIRY_REPLY_FAILED`. The table is auto-provisioned on first use, like the other additive tables. The body is sent as plain text and the customer's answer is routed to `EMAIL_REPLY_TO`.
-
-Nothing else in the app sends email yet: `app/api/public/inquiries/route.js` still only records website submissions and logs them to the server console.
 
 ## Project structure
 
@@ -227,10 +227,9 @@ Verify counts on Neon (`member` 146, `plot` 224, etc.) before deploying. Keep `d
 - Verify member isolation: a portal session sees only its own payments/balance, never another member's.
 - Verify `/api/**/documents*` return **410** and no upload UI is reachable.
 - If `DEEPSEEK_API_KEY` is set, exercise the Mheza widget and confirm it never leaks member/staff data.
-- Wire `app/api/public/inquiries/route.js` to `lib/email.js` so a new website submission also emails the
-  Trust inbox — it currently only creates the database row and a workstation notification. The Resend
-  transport and its environment variables already exist (see "Email to customers"); the integration point
-  is marked in the file.
+- Submit one test inquiry through the live contact form and confirm the notification reaches
+  `themhezatrust@gmail.com` — this also proves the Resend domain (SPF/DKIM) is verified, without which
+  sends fail and are only visible in the Vercel function logs (see "Email (Resend)").
 - Enable Neon **point-in-time / scheduled backups** and Vercel deployment protection for Preview URLs.
 
 ### 6. Re-enabling documents later
