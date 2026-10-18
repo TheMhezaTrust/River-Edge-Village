@@ -1,14 +1,25 @@
 import { prisma } from "@/lib/prisma";
 import { guard, audit } from "@/lib/auth";
 import { ok, bad } from "@/lib/api";
+import { ensureInquiryReplyTable } from "@/lib/provision";
 
 export async function GET(req, { params }) {
   const { error } = await guard("inquiries:view");
   if (error) return error;
   const { id } = await params;
+  // The reply history table is provisioned on first use, so opening an inquiry
+  // must not depend on someone having sent a reply first.
+  await ensureInquiryReplyTable();
   const inquiry = await prisma.inquiry.findUnique({
     where: { id: Number(id) },
-    include: { plot: true, assignee: { select: { id: true, name: true, email: true } } },
+    include: {
+      plot: true,
+      assignee: { select: { id: true, name: true, email: true } },
+      replies: {
+        orderBy: { createdAt: "desc" },
+        include: { sentBy: { select: { id: true, name: true } } },
+      },
+    },
   });
   if (!inquiry) return bad("Inquiry not found", 404);
   return ok(inquiry);

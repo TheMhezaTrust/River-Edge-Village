@@ -32,6 +32,7 @@ model User {
   auditLogs    AuditLog[]
   notifications Notification[]
   inquiries    Inquiry[]
+  inquiryReplies InquiryReply[]
   documents    Document[]
   tasks        Task[]
 }
@@ -118,6 +119,28 @@ model Inquiry {
   followUpDate String?
   notes      String?
   createdAt  DateTime @default(now())
+  replies    InquiryReply[]
+}
+
+// Customer-facing replies sent from an inquiry's detail screen. This is the
+// inquiry's communication history (the equivalent of DepartmentLog for
+// government engagements). Failed sends are kept too, with the provider's
+// error, so staff can see that a customer was never actually reached.
+model InquiryReply {
+  id         Int      @id @default(autoincrement())
+  inquiryId  Int
+  inquiry    Inquiry  @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  toEmail    String
+  subject    String
+  body       String
+  status     String   @default("SENT") // SENT | FAILED
+  providerId String? // Resend message id
+  error      String?
+  sentById   Int?
+  sentBy     User?    @relation(fields: [sentById], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@index([inquiryId])
 }
 
 model Payment {

@@ -97,6 +97,16 @@ Brute-force protection: five wrong answers lock recovery for 30 minutes (the cou
 
 `components/site/PageViewTracker.jsx` (mounted in `app/(site)/layout.jsx`) posts the current path to `/api/track` on every public page view, including client-side navigations. Only the allow-listed public sections in `lib/analytics.js` are accepted; `/workstation`, `/api`, `/portal`, `/login` and the administrator-only `/plots` are never recorded. Visitors are identified by `ipHash` — a salted SHA-256 of the IP address (`ANALYTICS_SALT`, falling back to `JWT_SECRET`) — so unique visitors can be counted without storing raw IPs. The `PageView` table is auto-provisioned on first use.
 
+### Email to customers (Resend)
+
+`lib/email.js` sends through the Resend REST API (`RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_REPLY_TO`) — a plain `fetch`, no SDK. It is currently used by one action: **Reply to Customer** in an inquiry's detail view under `/workstation/inquiries`, available to any role holding `inquiries:manage` (Administrator, Finance & Member Records).
+
+`POST /api/inquiries/[id]/reply` sends first and only then writes, so the history never claims an email went out that the provider rejected; a failure is still stored with the provider's message so staff can see the customer was not reached. A successful send moves the inquiry `NEW → CONTACTED`. Deliberately it does **not** touch an inquiry that is already `CONVERTED` or `CLOSED`, which would otherwise corrupt the conversion-rate figure on that page.
+
+Every attempt is written to `InquiryReply` — the inquiry's communication history, the equivalent of `DepartmentLog` for government engagements — and to the audit log as `INQUIRY_REPLY_SENT` / `INQUIRY_REPLY_FAILED`. The table is auto-provisioned on first use, like the other additive tables. The body is sent as plain text and the customer's answer is routed to `EMAIL_REPLY_TO`.
+
+Nothing else in the app sends email yet: `app/api/public/inquiries/route.js` still only records website submissions and logs them to the server console.
+
 ## Project structure
 
 ```
@@ -119,7 +129,8 @@ components/          # shared UI: ui.jsx, PlotMap.jsx, InterestForm.jsx, site/, 
 lib/                 # prisma.js, provision.js (runtime CREATE TABLE), auth.js
                      # (JWT/RBAC server), roles.js (client-safe), super-admin.js,
                      # security-questions.js, rate-limit.js, analytics.js,
-                     # api-client.js, contact.js (Trust details), files.js (authenticated
+                     # email.js (Resend transport), api-client.js, contact.js
+                     # (Trust details), files.js (authenticated
                      # download URLs), format.js, plan-layout.js, uploads.js
 prisma/              # schema.prisma + seed.js
 storage/uploads/     # uploaded files — never inside public/, so not statically served
@@ -185,6 +196,9 @@ Verify counts on Neon (`member` 146, `plot` 224, etc.) before deploying. Keep `d
    | `LLM_MODEL` | `deepseek-chat` | optional (default) |
    | `SUPER_ADMIN_EMAIL` | `bongani.sifiniza@themhezatrust.local` | optional — staff account holding the backend-only Main Administrator role (Traffic Analytics + security-question recovery) |
    | `ANALYTICS_SALT` | any long random string | optional — salt for the hashed visitor IP; falls back to `JWT_SECRET` |
+   | `RESEND_API_KEY` | `re_…` from resend.com | enables outbound email (inquiry replies). Without it the Reply to Customer button reports that email is not configured |
+   | `EMAIL_FROM` | `The Mheza Trust <inquiries@themhezatrust.co.za>` | must be an address on the domain verified in Resend |
+   | `EMAIL_REPLY_TO` | `themhezatrust@gmail.com` | optional — where a customer's answer lands |
 
 4. **Build command** `next build`, **Output** default. No `prisma generate` postinstall is needed if the
    Prisma client is committed via the standard `prisma generate` in the build; if Vercel reports a missing
@@ -213,8 +227,10 @@ Verify counts on Neon (`member` 146, `plot` 224, etc.) before deploying. Keep `d
 - Verify member isolation: a portal session sees only its own payments/balance, never another member's.
 - Verify `/api/**/documents*` return **410** and no upload UI is reachable.
 - If `DEEPSEEK_API_KEY` is set, exercise the Mheza widget and confirm it never leaks member/staff data.
-- Wire `app/api/public/inquiries/route.js` to a real mail provider (SendGrid/Mailgun) — it currently logs
-  and creates a workstation notification only. The integration point is marked in the file.
+- Wire `app/api/public/inquiries/route.js` to `lib/email.js` so a new website submission also emails the
+  Trust inbox — it currently only creates the database row and a workstation notification. The Resend
+  transport and its environment variables already exist (see "Email to customers"); the integration point
+  is marked in the file.
 - Enable Neon **point-in-time / scheduled backups** and Vercel deployment protection for Preview URLs.
 
 ### 6. Re-enabling documents later

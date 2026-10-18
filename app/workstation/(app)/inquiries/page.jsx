@@ -12,6 +12,8 @@ import { zar, dateFmt, dateTimeFmt } from "@/lib/format";
 const STATUSES = ["NEW", "CONTACTED", "CONVERTED", "CLOSED"];
 const EMPTY = { name: "", email: "", phone: "", message: "", source: "PHONE", plotId: "" };
 const EMPTY_CONVERT = { fullName: "", idNumber: "", phone: "", purchasePrice: "", paymentPlan: "", status: "RESERVED" };
+const DEFAULT_SUBJECT = "Re: your inquiry to The Mheza Trust";
+const HISTORY_ERROR = "Communication history could not be loaded.";
 
 export default function InquiriesPage() {
   return (
@@ -41,6 +43,16 @@ function InquiriesInner() {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState(null);
 
+  // Detail modal: the full inquiry (including its communication history) is
+  // fetched separately, because the list endpoint does not carry reply bodies.
+  const [detail, setDetail] = useState(null);
+  const [historyError, setHistoryError] = useState(null);
+  const [replyOpen, setReplyOpen] = useState(false);
+  const [replyForm, setReplyForm] = useState({ subject: DEFAULT_SUBJECT, message: "" });
+  const [sending, setSending] = useState(false);
+  const [replyNotice, setReplyNotice] = useState(null);
+  const [replyError, setReplyError] = useState(null);
+
   useEffect(() => {
     if (!canManage) return;
     api.get("/api/admin/users").then(setUsers).catch(() => setUsers(null));
@@ -69,6 +81,81 @@ function InquiriesInner() {
   const total = inquiries?.length || 0;
   const conversionRate = total ? Math.round((counts.CONVERTED / total) * 100) : 0;
   const contactedRate = total ? Math.round(((counts.CONTACTED + counts.CONVERTED) / total) * 100) : 0;
+
+  // Read the open inquiry back out of the reloaded list so the modal reflects a
+  // status change (e.g. New → Contacted after a reply) without closing it.
+  const current = viewing ? inquiries?.find((i) => i.id === viewing.id) || viewing : null;
+  const viewingId = viewing?.id;
+
+  useEffect(() => {
+    if (!viewingId) {
+      setDetail(null);
+      return;
+    }
+    let alive = true;
+    setHistoryError(null);
+    api
+      .get(`/api/inquiries/${viewingId}`)
+      .then((d) => { if (alive) setDetail(d); })
+      .catch(() => { if (alive) { setDetail(null); setHistoryError(HISTORY_ERROR); } });
+    return () => { alive = false; };
+  }, [viewingId]);
+
+  async function loadDetail(id) {
+    setHistoryError(null);
+    try {
+      setDetail(await api.get(`/api/inquiries/${id}`));
+    } catch {
+      setDetail(null);
+      setHistoryError(HISTORY_ERROR);
+    }
+  }
+
+  function closeView() {
+    setViewing(null);
+    setReplyOpen(false);
+    setReplyNotice(null);
+    setReplyError(null);
+  }
+
+  function openView(i) {
+    setFormError(null);
+    setReplyOpen(false);
+    setReplyNotice(null);
+    setReplyError(null);
+    setViewing(i);
+  }
+
+  function openReply() {
+    setReplyForm({ subject: DEFAULT_SUBJECT, message: "" });
+    setReplyNotice(null);
+    setReplyError(null);
+    setReplyOpen(true);
+  }
+
+  async function submitReply(e) {
+    e.preventDefault();
+    setSending(true);
+    setReplyError(null);
+    setReplyNotice(null);
+    try {
+      const res = await api.post(`/api/inquiries/${current.id}/reply`, replyForm);
+      setReplyOpen(false);
+      setReplyNotice(
+        res.status === "CONTACTED"
+          ? `Email sent to ${res.to}. Status set to Contacted.`
+          : `Email sent to ${res.to}.`
+      );
+      await Promise.all([loadDetail(current.id), reload()]);
+    } catch (err) {
+      setReplyError(err.message);
+      // A failed send is recorded in the history too, so refresh it and let the
+      // member of staff see what the provider reported.
+      await loadDetail(current.id);
+    } finally {
+      setSending(false);
+    }
+  }
 
   async function putInquiry(id, patch) {
     try {
@@ -195,7 +282,7 @@ function InquiriesInner() {
                 </td>
                 <td className="text-xs whitespace-nowrap">{dateFmt(i.createdAt)}</td>
                 <td className="whitespace-nowrap">
-                  <button className="btn-ghost btn-sm" onClick={() => { setViewing(i); setFormError(null); }}>View</button>
+                  <button className="btn-ghost btn-sm" onClick={() => openView(i)}>View</button>
                   {canConvert && i.status !== "CONVERTED" && i.status !== "CLOSED" && (
                     <button className="btn-ghost btn-sm text-forest-700" onClick={() => openConvert(i)}>Convert</button>
                   )}
@@ -266,25 +353,28 @@ function InquiriesInner() {
       </Modal>
 
       {/* View modal */}
-      <Modal open={!!viewing} onClose={() => setViewing(null)} title={`Inquiry · ${viewing?.name || ""}`} wide>
-        {viewing && (
+      <Modal open={!!current} onClose={closeView} title={`Inquiry · ${current?.name || ""}`} wide>
+        {current && (
           <div className="space-y-4">
+            {replyNotice && <Alert type="success" onClose={() => setReplyNotice(null)}>{replyNotice}</Alert>}
+            {replyError && <Alert type="error" onClose={() => setReplyError(null)}>{replyError}</Alert>}
+
             <div className="flex items-center gap-2">
-              <StatusPill status={viewing.status} />
-              <span className="text-xs text-gray-500">Received {dateTimeFmt(viewing.createdAt)}</span>
+              <StatusPill status={current.status} />
+              <span className="text-xs text-gray-500">Received {dateTimeFmt(current.createdAt)}</span>
             </div>
             <div className="grid gap-3 sm:grid-cols-2 text-sm">
-              <p><span className="font-semibold text-gray-700">Email:</span> {viewing.email || "-"}</p>
-              <p><span className="font-semibold text-gray-700">Phone:</span> {viewing.phone || "-"}</p>
-              <p><span className="font-semibold text-gray-700">Plot:</span> {viewing.plot ? `Plot ${viewing.plot.number}` : "-"}</p>
-              <p><span className="font-semibold text-gray-700">Source:</span> {viewing.source}</p>
-              <p><span className="font-semibold text-gray-700">Assignee:</span> {viewing.assignee?.name || "Unassigned"}</p>
-              <p><span className="font-semibold text-gray-700">Follow-up:</span> {dateFmt(viewing.followUpDate)}</p>
+              <p><span className="font-semibold text-gray-700">Email:</span> {current.email || "-"}</p>
+              <p><span className="font-semibold text-gray-700">Phone:</span> {current.phone || "-"}</p>
+              <p><span className="font-semibold text-gray-700">Plot:</span> {current.plot ? `Plot ${current.plot.number}` : "-"}</p>
+              <p><span className="font-semibold text-gray-700">Source:</span> {current.source}</p>
+              <p><span className="font-semibold text-gray-700">Assignee:</span> {current.assignee?.name || "Unassigned"}</p>
+              <p><span className="font-semibold text-gray-700">Follow-up:</span> {dateFmt(current.followUpDate)}</p>
             </div>
-            {viewing.message && (
+            {current.message && (
               <div>
                 <p className="label">Message</p>
-                <p className="text-sm text-gray-700 rounded-lg bg-gray-50 border border-gray-200 p-3">{viewing.message}</p>
+                <p className="text-sm text-gray-700 rounded-lg bg-gray-50 border border-gray-200 p-3">{current.message}</p>
               </div>
             )}
             <div>
@@ -292,11 +382,11 @@ function InquiriesInner() {
               <textarea
                 className="input"
                 rows={3}
-                defaultValue={viewing.notes || ""}
+                defaultValue={current.notes || ""}
                 placeholder={canManage ? "Add notes visible to staff only…" : "No notes."}
                 readOnly={!canManage}
                 onBlur={(e) => {
-                  if (canManage && e.target.value !== (viewing.notes || "")) putInquiry(viewing.id, { notes: e.target.value });
+                  if (canManage && e.target.value !== (current.notes || "")) putInquiry(current.id, { notes: e.target.value });
                 }}
               />
             </div>
@@ -306,14 +396,90 @@ function InquiriesInner() {
                   <input
                     className="input"
                     type="date"
-                    defaultValue={viewing.followUpDate ? String(viewing.followUpDate).slice(0, 10) : ""}
-                    onChange={(e) => putInquiry(viewing.id, { followUpDate: e.target.value || null })}
+                    defaultValue={current.followUpDate ? String(current.followUpDate).slice(0, 10) : ""}
+                    onChange={(e) => putInquiry(current.id, { followUpDate: e.target.value || null })}
                   />
                 </Field>
               </div>
             )}
-            <div className="flex justify-end">
-              <button className="btn-outline" onClick={() => setViewing(null)}>Close</button>
+
+            <div>
+              <p className="label">Communication History</p>
+              {historyError ? (
+                <p className="text-xs text-red-600">{historyError}</p>
+              ) : !detail ? (
+                <p className="text-xs text-gray-500">Loading history…</p>
+              ) : detail.replies?.length ? (
+                <ul className="space-y-2">
+                  {detail.replies.map((r) => (
+                    <li key={r.id} className="rounded-lg border border-gray-200 p-3">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
+                        <StatusPill status={r.status} />
+                        <span className="font-semibold text-gray-700">{r.subject}</span>
+                        <span>to {r.toEmail}</span>
+                        <span>· {dateTimeFmt(r.createdAt)}</span>
+                        {r.sentBy?.name && <span>· sent by {r.sentBy.name}</span>}
+                      </div>
+                      <p className="mt-2 text-sm text-gray-700 whitespace-pre-wrap">{r.body}</p>
+                      {r.error && <p className="mt-2 text-xs text-red-600">{r.error}</p>}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-gray-500">No emails have been sent to this customer yet.</p>
+              )}
+            </div>
+
+            {canManage && replyOpen && (
+              <form onSubmit={submitReply} className="grid gap-3 rounded-lg border border-forest-200 bg-forest-50 p-4">
+                <p className="text-xs text-gray-600">
+                  Replying to <span className="font-semibold">{current.name}</span> at {current.email}.
+                  A successful send moves this inquiry to Contacted.
+                </p>
+                <Field label="Subject">
+                  <input
+                    className="input"
+                    value={replyForm.subject}
+                    maxLength={200}
+                    onChange={(e) => setReplyForm((f) => ({ ...f, subject: e.target.value }))}
+                  />
+                </Field>
+                <Field label="Message" required>
+                  <textarea
+                    className="input"
+                    rows={6}
+                    required
+                    maxLength={5000}
+                    value={replyForm.message}
+                    placeholder={`Dear ${current.name}, …`}
+                    onChange={(e) => setReplyForm((f) => ({ ...f, message: e.target.value }))}
+                  />
+                </Field>
+                <p className="text-xs text-gray-500">
+                  The customer&apos;s reply is routed to the Trust inbox. Every send — including a failed one — is recorded in the history above.
+                </p>
+                <div className="flex justify-end gap-2">
+                  <button type="button" className="btn-ghost" onClick={() => setReplyOpen(false)} disabled={sending}>Cancel</button>
+                  <button type="submit" className="btn-primary" disabled={sending || !replyForm.message.trim()}>
+                    {sending ? "Sending…" : "Send"}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              {canManage ? (
+                current.email ? (
+                  <button className="btn-primary btn-sm" onClick={() => (replyOpen ? setReplyOpen(false) : openReply())}>
+                    {replyOpen ? "Hide reply box" : "Reply to Customer"}
+                  </button>
+                ) : (
+                  <span className="text-xs text-gray-500">This inquiry has no email address, so a reply cannot be sent.</span>
+                )
+              ) : (
+                <span />
+              )}
+              <button className="btn-outline" onClick={closeView}>Close</button>
             </div>
           </div>
         )}
