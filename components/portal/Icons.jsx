@@ -33,6 +33,10 @@ export const ReceiptIcon = (p) => (
   <svg {...base} {...p}><path d="M5.5 3.5h13v17l-2.2-1.5-2.2 1.5-2.1-1.5-2.2 1.5-2.1-1.5-2.2 1.5Z" /><path d="M9 8.5h6M9 12.5h6" /></svg>
 );
 
+export const DocumentIcon = (p) => (
+  <svg {...base} {...p}><path d="M6.5 3.5h7l4 4v13h-11Z" /><path d="M13.5 3.5v4h4" /><path d="M9.5 12.5h5M9.5 16h5" /></svg>
+);
+
 export const PrinterIcon = (p) => (
   <svg {...base} {...p}><path d="M7 9V3.5h10V9" /><rect x="3.5" y="9" width="17" height="7" rx="1.5" /><path d="M7 14h10v6.5H7Z" /></svg>
 );

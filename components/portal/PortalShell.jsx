@@ -10,6 +10,7 @@ import {
   UsersIcon,
   MapPinIcon,
   ReceiptIcon,
+  DocumentIcon,
   LogOutIcon,
   MenuIcon,
 } from "./Icons";
@@ -20,6 +21,7 @@ const NAV = [
   { href: "/portal/beneficiaries", label: "My Beneficiaries", Icon: UsersIcon },
   { href: "/portal/plot", label: "My Plot Details", Icon: MapPinIcon },
   { href: "/portal/payments", label: "Payments & Statement", Icon: ReceiptIcon },
+  { href: "/portal/documents", label: "My Documents", Icon: DocumentIcon },
 ];
 
 const IDLE_LIMIT_MS = 15 * 60_000;

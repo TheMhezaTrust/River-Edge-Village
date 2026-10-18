@@ -34,6 +34,7 @@ model User {
   inquiries            Inquiry[]
   inquiryReplies       InquiryReply[]
   documents            Document[]
+  memberDocuments      MemberDocument[]
   tasks                Task[]
   memberTokens         MemberToken[]
   memberChangeRequests MemberChangeRequest[]
@@ -266,15 +267,26 @@ model Document {
   createdAt    DateTime @default(now())
 }
 
+// A member's own vault: the signed and stamped paperwork the Trust issues to them
+// (the Acknowledgement of Payment and Plot Allocation, a Certificate of Land Use).
+// The file itself lives in Vercel Blob and filePath holds that URL. The URL is
+// never sent to a browser — a Blob link is permanent and public, and these are
+// signed legal documents carrying ID numbers — so every download goes through a
+// route that first proves who is asking. Auto-provisioned (lib/provision.js).
 model MemberDocument {
-  id        Int      @id @default(autoincrement())
-  title     String
-  category  String // ID_COPY | BENEFICIARY_FORM | BUILDING_PLAN | CERTIFICATE | OTHER
-  filePath  String
-  fileName  String
-  memberId  Int
-  member    Member   @relation(fields: [memberId], references: [id])
-  createdAt DateTime @default(now())
+  id           Int      @id @default(autoincrement())
+  title        String
+  category     String // ALLOCATION | CONTRACT | CERTIFICATE | ID_COPY | BENEFICIARY_FORM | BUILDING_PLAN | OTHER
+  filePath     String
+  fileName     String
+  sizeKb       Int?
+  memberId     Int
+  member       Member   @relation(fields: [memberId], references: [id])
+  uploadedById Int?
+  uploadedBy   User?    @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime @default(now())
+
+  @@index([memberId])
 }
 
 // ---------- Department engagement ----------

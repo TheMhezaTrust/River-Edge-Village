@@ -17,7 +17,7 @@ Both share one database, one design language (earth-tone Tailwind theme), and on
 | Auth       | JWT (jose) in httpOnly cookies, bcrypt password hashing       |
 | Access     | Role-based permissions (`lib/roles.js`) enforced in every API route |
 | Charts     | recharts                                                      |
-| Uploads    | Document upload/download **disabled for launch** (no object storage); all `/api/**/documents*` routes return 410. `lib/uploads.js` + `lib/files.js` retained for re-enable |
+| Uploads    | Vercel Blob (presigned browser uploads) for the photo gallery and each member's document vault. The Trust-level document library is still **disabled** — `/api/documents*` and `/api/members/documents*` return 410, with `lib/uploads.js` + `lib/files.js` retained for re-enable |
 | AI assistant | "Mheza" public chat bot — OpenAI-compatible LLM (DeepSeek by default) via `app/api/chat` |
 
 ## Mheza — public AI assistant
@@ -83,7 +83,7 @@ Members are held to a **15-minute inactivity window** (`PORTAL_SESSION_SECONDS` 
 
 Every portal page loads through `loadPortalMember()` (`lib/portal-data.js`) and every portal API through `getActivePortalMember()` (`lib/auth.js`). Both derive the member id **only** from the verified session cookie — no portal route accepts a member id parameter — so no query in the portal can be pointed at somebody else's record. Per-plot payment lists are additionally filtered by `memberId`. Members cannot see other members, the Trust's internal financials (`Income`/`Expense`), the farmer's contract, or anything under `/workstation`. A member may edit their own contact number, addresses and (with their current password) email via `PUT /api/portal/me`; **name and ID number are not editable** — those go to `POST /api/portal/change-request`, which writes a `MemberChangeRequest` and a staff notification, and the office approves or rejects it from the **Portal change requests** panel on `/workstation/members` (approval requires the password-confirm modal because it writes to the member record).
 
-Portal tables (`MemberToken`, `MemberChangeRequest`) and the two new `Member` columns (`mustChangePassword`, `lastLoginAt`) are auto-provisioned at runtime by `ensureMemberAccessTables()` in `lib/provision.js`, like the other additive tables. `Plot.certificateIssuedAt` is provisioned the same way by `ensurePlotCertificateColumn()`, and `Member.purchaseDate` / `Plot.purchasedAt` / `Income.paymentId` by `ensureMemberRecordColumns()`. Because the generated Prisma client selects every column of a model, `lib/prisma.js` starts **all three** eagerly on first import rather than waiting for a portal request; otherwise the first deploy would break **every** member, plot and income query in the app until the columns existed. (The public pages and the public inquiry API use explicit `select`s, so they are not exposed.) The eager call is deliberately not awaited so a cold start is not blocked, which means the routes that actually read a new column `await` the same cached promise themselves before querying — `loadPortalMember()`, the member/plot/finance/report/dashboard APIs and the payment-correction route.
+Portal tables (`MemberToken`, `MemberChangeRequest`) and the two new `Member` columns (`mustChangePassword`, `lastLoginAt`) are auto-provisioned at runtime by `ensureMemberAccessTables()` in `lib/provision.js`, like the other additive tables. `Plot.certificateIssuedAt` is provisioned the same way by `ensurePlotCertificateColumn()`, `Member.purchaseDate` / `Plot.purchasedAt` / `Income.paymentId` by `ensureMemberRecordColumns()`, and `MemberDocument.sizeKb` / `uploadedById` by `ensureMemberDocumentColumns()`. Because the generated Prisma client selects every column of a model, `lib/prisma.js` starts **all four** eagerly on first import rather than waiting for a portal request; otherwise the first deploy would break **every** member, plot and income query in the app until the columns existed. (The public pages and the public inquiry API use explicit `select`s, so they are not exposed.) The eager call is deliberately not awaited so a cold start is not blocked, which means the routes that actually read a new column `await` the same cached promise themselves before querying — `loadPortalMember()`, the member/plot/finance/report/dashboard APIs, the payment-correction route and the member-document routes.
 
 ### Right of Use Status
 
@@ -92,7 +92,7 @@ Portal tables (`MemberToken`, `MemberChangeRequest`) and the two new `Member` co
 - **Granted (Certificate Pending)** — `certificateIssuedAt` is null. This is the default for every plot, including all 146 imported members, because no Certificate of Land Use has been issued yet.
 - **Active (Certificate Issued)** — the Trust has recorded the certificate as issued.
 
-The status turns on certificate issuance, **not** on whether the plot is paid off; the payment position is shown separately as "Paid on this plot" and "Balance on this plot". Staff set it from `/workstation/plots` → click a plot → **Mark certificate issued** (or **Undo certificate issued**), which `PUT`s `{certificateIssued: true|false}` to `/api/plots/[id]` and stores the current timestamp or null. Issuing a certificate does not yet give the member a file to download — the documents library is Phase 3 — so the portal says the office will send it and that downloads are coming.
+The status turns on certificate issuance, **not** on whether the plot is paid off; the payment position is shown separately as "Paid on this plot" and "Balance on this plot". Staff set it from `/workstation/plots` → click a plot → **Mark certificate issued** (or **Undo certificate issued**), which `PUT`s `{certificateIssued: true|false}` to `/api/plots/[id]` and stores the current timestamp or null. Marking it issued does not by itself put a file in the member's hands — upload the scanned certificate to that member's vault (below) with the category **Certificate of Land Use** and it appears in their portal immediately.
 
 ### Correcting a member's record against the signed contract
 
@@ -103,6 +103,17 @@ Purchase prices, plot sizes and payment histories are **not** uniform: members b
 - **Past payments** — `PUT`/`DELETE /api/payments/[id]`, held behind the `payments:correct` permission (**Administrator only**; Finance & Member Records can still *add* payments via `POST /api/members/[id]/payments`) and a fresh password confirmation, since this rewrites money already recorded as received.
 
 Each payment also writes an `Income` row, and Finance reports on `Income` while the member's statement reports on `Payment`. `Income.paymentId` (unique, `ON DELETE SET NULL`) links the two, so a correction updates or deletes its income row in the same transaction and the cashflow report cannot drift from the statement; `DELETE /api/finance/income` refuses to remove a linked row and points at the member's record instead. Rows captured **before** the link existed cannot be matched reliably, so they are left untouched and the response carries `incomeSynced: false`, which the UI turns into an instruction to correct that income row by hand. Every correction is audited with before/after values.
+
+### Member document vault (signed contracts)
+
+Every member has a vault holding the paperwork the Trust issued them — the signed and stamped **Acknowledgement of Payment and Plot Allocation**, a Certificate of Land Use, a signed contract. Staff manage it from **Member Contracts** on `/workstation/members/[id]`; the member reads it at `/portal/documents` (**My Documents**), where each file can be viewed or downloaded.
+
+- **Upload** — PDF only, up to 25 MB, sent from the browser straight into Vercel Blob by the presigned flow (`uploadPresigned` → `POST /api/member-documents/upload` → `issueSignedToken`), so a large scan never passes through a serverless function. The signed token is `put`-scoped to one exact pathname under `member-documents/<memberId>/`, is issued only to a session holding `documents:manage` **with a fresh password confirmation**, and enforces the content type and size limit server-side as well as in the browser. The row that makes the file appear in the vault is written by `POST /api/members/[id]/documents`.
+- **Download** — always through a proxy (`GET /api/member-documents/[id]/file` for staff, `GET /api/portal/documents/[id]/file` for the member), which streams the object back rather than redirecting to it. **The Blob URL is never sent to a browser**: it is a permanent public link and these are signed legal documents carrying ID numbers, so `safeDocument()` strips `filePath` from every JSON response, and `isBlobUrl()` (`lib/member-documents.js`) stops a stored path from pointing the proxy anywhere else. File names are sanitised before they go into `Content-Disposition`. The member route takes its id from the verified session and puts it *in the lookup*, so somebody else's document is a 404 rather than a 403 — it does not exist as far as that route is concerned.
+- **Delete** — `DELETE /api/members/[id]/documents/[docId]`, scoped by member id *and* document id, behind `documents:manage` plus a password confirmation; the Blob object is removed best-effort afterwards, since the member's access ends the moment the row goes.
+- **Who** — `documents:manage` is held by Administrators *and* by Finance & Member Records, who capture the payments these acknowledgements confirm. `documents:view` is every role, so a Plot Administrator can read a member's contracts but cannot add to or remove from the vault.
+
+Uploads and deletions are audited as `MEMBER_DOCUMENT_UPLOADED` / `MEMBER_DOCUMENT_DELETED`. The vault is separate from the Trust-level document library, which is still disabled — see *Re-enabling documents later*.
 
 ## Roles & permissions
 
@@ -188,8 +199,9 @@ docs/                # user guide & training material
 The app is a **Next.js SSR** application (server components + API route handlers), so it must run on a
 platform that executes Node at request time. The chosen target is **Vercel** (Next-native) with a
 **Neon** serverless Postgres database. Vercel's filesystem is ephemeral, which is why SQLite and
-local-disk uploads cannot be used in production — hence the Postgres migration and the launch-time
-disabling of document upload/download (no object storage is provisioned yet).
+local-disk uploads cannot be used in production — hence the Postgres migration, and hence object storage
+(**Vercel Blob**) for the photo gallery and for each member's document vault. The Trust-level document
+library was disabled at launch and has not been ported to Blob; it still returns 410.
 
 Everything below after step 0 is done once. Steps marked **⚠ needs you** require an account/action only
 the Trust admin can perform (provisioning services, secrets, DNS).
@@ -271,20 +283,24 @@ Verify counts on Neon (`member` 146, `plot` 224, etc.) before deploying. Keep `d
 
 - Confirm all staff accounts and change the seeded `Mheza@2026` password on first login (**Settings → Profile**).
 - Verify member isolation: a portal session sees only its own payments/balance, never another member's.
-- Verify `/api/**/documents*` return **410** and no upload UI is reachable.
+- Verify the vault is isolated too: upload a PDF from **Member Contracts**, confirm it appears under
+  **My Documents** for that member, and confirm a *different* member's session gets **404** from
+  `/api/portal/documents/<id>/file` for it.
+- Verify the Trust-level library is still off: `/api/documents*` and `/api/members/documents*` return **410**.
 - If `DEEPSEEK_API_KEY` is set, exercise the Mheza widget and confirm it never leaks member/staff data.
 - Submit one test inquiry through the live contact form and confirm the notification reaches
   `themhezatrust@gmail.com` — this also proves the Resend domain (SPF/DKIM) is verified, without which
   sends fail and are only visible in the Vercel function logs (see "Email (Resend)").
 - Enable Neon **point-in-time / scheduled backups** and Vercel deployment protection for Preview URLs.
 
-### 6. Re-enabling documents later
+### 6. Re-enabling the Trust-level document library later
 
-Documents are disabled only because no object storage exists yet. To restore: provision an S3-compatible
-bucket (or Vercel Blob), reimplement the read/write in `lib/uploads.js` against it, revert the five
-`/api/**/documents*` route handlers to their original guarded implementations, and re-add the nav item,
-quick action, member-detail card and portal "My Documents" upload widget. `lib/files.js` and the
-`UploadDocument` component were intentionally kept to make this straightforward.
+Object storage now exists — the Vercel Blob store the gallery and the member vault both use — so the
+library is disabled only because nobody has ported it. The member vault is the reference implementation:
+copy the presigned upload (`app/api/member-documents/upload/route.js`), the metadata routes
+(`app/api/members/[id]/documents/`), and the streaming download proxy (`lib/member-documents.js`), then
+restore `/workstation/documents`, its nav item and the quick action. `lib/uploads.js` and `lib/files.js`
+are the abandoned on-disk implementation and nothing imports them; delete them when the port is done.
 
 ### Hardening (ongoing)
 

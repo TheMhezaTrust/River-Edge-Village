@@ -4,10 +4,14 @@ import { getActivePortalSession, unauthorized, audit } from "@/lib/auth";
 import { ok, bad } from "@/lib/api";
 import { EMAIL_RE } from "@/lib/email";
 import { memberTotals } from "@/lib/member-totals";
+import { ensureMemberDocumentColumns } from "@/lib/provision";
+import { safeDocument } from "@/lib/member-documents";
 
 export async function GET() {
   const session = await getActivePortalSession();
   if (!session) return unauthorized();
+  // Awaited because the include below selects the vault columns on MemberDocument.
+  await ensureMemberDocumentColumns();
   const member = await prisma.member.findUnique({
     where: { id: session.id },
     include: {
@@ -17,9 +21,17 @@ export async function GET() {
     },
   });
   if (!member) return unauthorized();
-  const { password, ...safe } = member;
+  const { password, documents, ...safe } = member;
   const { totalPaid, outstandingBalance } = memberTotals(member);
-  return ok({ ...safe, totalPaid, outstandingBalance });
+  // Each document's stored file location is left out: it is a permanent public link
+  // to a signed legal document, so downloads go through /api/portal/documents/:id/file,
+  // which checks the document belongs to the member who is signed in.
+  return ok({
+    ...safe,
+    documents: documents.map(safeDocument),
+    totalPaid,
+    outstandingBalance,
+  });
 }
 
 export async function PUT(req) {

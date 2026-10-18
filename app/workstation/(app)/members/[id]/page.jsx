@@ -8,6 +8,7 @@ import { useFetch, PageHeader, LoadingBlock, ErrorBlock, ConfirmButton } from "@
 import { usePermissions, ReadOnlyNote } from "@/components/ws/permissions";
 import { Modal, Field, StatusPill, Alert } from "@/components/ui";
 import PortalAccessPanel from "@/components/ws/PortalAccessPanel";
+import MemberContracts from "@/components/ws/MemberContracts";
 import PasswordConfirmModal from "@/components/ws/PasswordConfirmModal";
 import { zarFull, dateFmt, METHOD_LABELS } from "@/lib/format";
 
@@ -27,6 +28,7 @@ export default function MemberDetailPage() {
   const canRecordPayment = can("finance:manage");
   const canEditPlots = can("plots:manage");
   const canCorrectPayments = can("payments:correct");
+  const canManageDocuments = can("documents:manage");
   const { data: member, loading, error, reload } = useFetch(`/api/members/${id}`);
   const [payOpen, setPayOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -389,6 +391,8 @@ export default function MemberDetailPage() {
               </p>
             )}
           </div>
+
+          <MemberContracts memberId={member.id} memberName={member.fullName} canManage={canManageDocuments} />
 
           <div className="card p-6">
             <h2 className="font-bold text-gray-900 mb-2">Notes</h2>
