@@ -2,16 +2,23 @@
 
 ## Part A: Public Website Users
 
-### Finding a plot
-1. Open the home page and click **View Available Plots**, or use **Projects → River Edge Rural Village**.
-2. On the project page, the **interactive farm map** shows all 216 plots, with erf numbers matching the official survey layout plan: green = available, yellow = reserved, red = sold. Scroll to zoom, drag to pan, click any plot for details and pricing. An **Official Site Plan** toggle shows the surveyor's drawing itself.
-3. The **Plots** page offers a searchable, filterable list (grid or table view).
-4. Click **View Details** on any plot for its full page: size, road frontage, pricing and payment options.
+### Finding out what is available
+1. **Individual plots are not published on the public website.** There is no plot list, no interactive farm map, no availability colours and no per-erf pricing outside the Workstation: erf numbers, sizes and prices belong to each member's signed contract, so they are staff-only and `/plots` returns *404 Not found* for anyone not signed in. The public site also does not state how many plots are left.
+2. What the public site **does** tell you, from the navigation bar:
+   - **Projects → River Edge Rural Village** — the development itself: 31.9 hectares of erven of about 800 m² for 165 families, the subdivision and infrastructure progress, the approach to pricing, and the **Express Interest or Buy a Plot** form at the foot of the page.
+   - **Gallery** — photographs of the site.
+   - **Status** — the project timeline and public announcements.
+   - **Trust Info** — the Trust's registration, governance and banking details.
+   - **Terms** — the full Terms and Conditions of Sale, including the Right of Use, the payment ladder and the mandatory payment reference.
+   - **About Us** (with **How Our Projects Work**) and **Contact**.
+3. To find out which erven are still available and what one would cost, **contact the office** — phone **081 391 7967**, email **themhezatrust@gmail.com**, or one of the forms below. Availability and price are quoted per erf, because size, position and the date of purchase all differ.
 
 ### Expressing interest / buying
-- Click **Express Interest** or **Buy This Plot** and complete the form (name, ID/passport, email, phone). Your preferred plot is pre-filled.
-- After submitting you receive an on-screen confirmation; a consultant contacts you within 24–48 hours. Your inquiry is logged in the Trust's workstation for follow-up.
-- To visit the farm, use **Contact Us → Schedule a Site Viewing** and pick a date and number of attendees.
+- **On the project page** (`/projects/river-edge` → *Express Interest or Buy a Plot*): full name and surname, ID or passport number, email, phone and a message. No plot is attached to this form — say in the message what you are looking for and the office will come back to you with what is available.
+- **On Contact Us**, three separate forms: **Send Us a Message** (adds a subject line), **Register Your Interest** (news about promotions, price changes and new projects, plus a general plot preference such as a corner plot or any available plot) and **Schedule a Site Viewing** (preferred date and number of attendees — viewings are by appointment during office hours, Mon–Fri).
+- After submitting you see a confirmation on screen. The inquiry is logged in the Trust's Workstation and an email notification goes to themhezatrust@gmail.com; a consultant contacts you within 24–48 hours. Staff can reply to you from the inquiry itself, and every reply is kept in that inquiry's communication history.
+- The ID or passport number you enter is kept on the inquiry record only — it is never copied into the mailbox.
+- The purchase itself is completed with the office: they confirm an available erf with you, capture your details against the signed contract (price, payment plan and purchase date), and then issue your portal access so you can see your own plot, payments and statement.
 
 ### Checking project status
 The public **Status** page shows the project timeline and public announcements filterable by category. Detailed government department engagement records (contact officials, direct numbers, internal notes and follow-up dates) are confidential and only visible to staff inside the Workstation.
