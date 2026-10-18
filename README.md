@@ -160,12 +160,35 @@ Every attempt is written to `InquiryReply` — the inquiry's communication histo
 
 ### Verifying the sending domain (SPF/DKIM) — ⚠ needs you
 
-Resend will not deliver from `themhezatrust.co.za` until the domain shows **Verified** in its dashboard, and until then it only allows sending to the address on your own Resend account — so an early test failing is expected rather than a bug. No code change is involved in any of this; the sending address is already environment-driven.
+Resend will not deliver until the sending domain shows **Verified** in its dashboard, and until then it only allows sending to the address on your own Resend account — so an early test failing is expected rather than a bug. No code change is involved in any of this; the sending address is already environment-driven.
 
-- **The zone is not on Vercel.** `themhezatrust.co.za` is served by domains.co.za nameservers (`ns1.anycast-ns.com`, `ns2.anycast-ns.net`, `ns3.anycast-ns.com`, `ns4.anycast-ns.net`), so the TXT and MX records Resend hands you go into the **domains.co.za DNS manager**, not Vercel's domain settings. The zone TTL is 2 hours.
-- **Nothing collides.** Checked 2026-10-18: the root domain has no MX record, no TXT/SPF record and no `_dmarc`, and neither `resend._domainkey` nor `send.` exists — Resend's records slot in without having to merge into an existing SPF. Re-check with `nslookup -type=TXT themhezatrust.co.za` before editing if you are reading this later: should an SPF record have appeared in the meantime, **merge** `include:amazonses.com` into it instead of adding a second TXT, because two SPF records break deliverability for everything on the domain.
-- **Root domain or subdomain.** Verifying the root `themhezatrust.co.za` needs nothing further, since `EMAIL_FROM` already defaults to `The Mheza Trust <inquiries@themhezatrust.co.za>`. If you follow Resend's recommendation and verify a subdomain instead — say `mail.themhezatrust.co.za` — set `EMAIL_FROM` in Vercel to `The Mheza Trust <inquiries@mail.themhezatrust.co.za>`. That is an environment change only.
-- **The domain cannot receive mail.** With no MX record, a reply to `inquiries@themhezatrust.co.za` bounces. That is precisely why `EMAIL_REPLY_TO` defaults to `themhezatrust@gmail.com` (`lib/email.js`): a customer who presses Reply reaches a mailbox somebody reads. Do not point `EMAIL_REPLY_TO` at a `@themhezatrust.co.za` address until a real mailbox is provisioned there.
+**Decision: send from the subdomain `mail.themhezatrust.co.za`.** The root domain is left untouched so that Microsoft 365 can own its MX and SPF there later without anyone having to merge records around Resend's. Two facts worth knowing, both checked 2026-10-18 against Cloudflare (1.1.1.1) and Google (8.8.8.8) resolvers:
+
+- The root `themhezatrust.co.za` currently has **no MX record at all**, and no TXT/SPF or `_dmarc`. So the Microsoft 365 mailbox the Trust uses today is *not* on this domain — there is no root MX being protected right now. The subdomain is still the right call, but as future-proofing rather than as a workaround for an existing record.
+- `mail.themhezatrust.co.za` did not exist (NXDOMAIN), and neither did `send.` or `resend._domainkey`. Nothing collides.
+
+**Add the records at domains.co.za, not in Vercel.** This is the easy mistake to make. `themhezatrust.co.za` is delegated to domains.co.za nameservers (`ns1.anycast-ns.com`, `ns2.anycast-ns.net`, `ns3.anycast-ns.com`, `ns4.anycast-ns.net`); Vercel is only where the app runs. The proof is in the zone itself — the apex `A` record (`216.198.79.1`) and the `www` CNAME (`07a128bb1f46aeca.vercel-dns-017.com`) that make the site resolve were both entered at domains.co.za. Records typed into the Vercel dashboard are never served for a domain whose nameservers point elsewhere, so they would silently do nothing. Zone TTL is 2 hours.
+
+Resend lists these for the domain `mail.themhezatrust.co.za`. **Copy the values verbatim from the dashboard** — the DKIM key is unique to your account and the SES region varies, so neither can be written down here:
+
+| Type | Host (what Resend displays) | Host field if your panel wants a prefix | Value |
+|---|---|---|---|
+| TXT | `resend._domainkey.mail.themhezatrust.co.za` | `resend._domainkey.mail` | `p=…` — the long DKIM key |
+| MX | `send.mail.themhezatrust.co.za` | `send.mail` | `feedback-smtp.<region>.amazonses.com`, priority 10 |
+| TXT | `send.mail.themhezatrust.co.za` | `send.mail` | `v=spf1 include:amazonses.com ~all` |
+| TXT | `_dmarc.mail.themhezatrust.co.za` | `_dmarc.mail` | only if Resend lists it — typically `v=DMARC1; p=none;` |
+
+Two records share the host `send.mail` — one MX and one TXT. That is intended, not a duplicate, so do not delete one to "fix" it. Check afterwards with `nslookup -type=TXT resend._domainkey.mail.themhezatrust.co.za 1.1.1.1`; if an SPF record ever appears on a name you are about to write to, **merge** `include:amazonses.com` into it rather than adding a second TXT, because two SPF records break deliverability for everything under that name.
+
+**Then set `EMAIL_FROM` in Vercel** (Project → Settings → Environment Variables, Production) to:
+
+```
+The Mheza Trust <inquiries@mail.themhezatrust.co.za>
+```
+
+and redeploy — Vercel bakes environment values into a deployment, so the change does not apply to the running one. No mailbox needs to exist at that address: Resend authenticates the *domain*, not the mailbox.
+
+**Neither the root nor the subdomain can receive mail.** Resend's MX record on `send.mail.` carries bounce feedback to SES; it does not accept mail addressed to `@mail.themhezatrust.co.za`. A customer who presses Reply therefore bounces unless `EMAIL_REPLY_TO` is set — which is exactly why `lib/email.js` defaults it to `themhezatrust@gmail.com` (`TRUST.email` in `lib/contact.js`), a mailbox somebody reads. Leave it there until a real mailbox is provisioned on the domain.
 
 **Testing it.** Do not use the website contact form — its notification is best-effort and a failure surfaces only in the Vercel function logs. These two put Resend's own error message on screen:
 
@@ -271,8 +294,8 @@ Verify counts on Neon (`member` 146, `plot` 224, etc.) before deploying. Keep `d
    | `SUPER_ADMIN_EMAIL` | `bongani.sifiniza@themhezatrust.local` | optional — staff account holding the backend-only Main Administrator role (Traffic Analytics + security-question recovery) |
    | `ANALYTICS_SALT` | any long random string | optional — salt for the hashed visitor IP; falls back to `JWT_SECRET` |
    | `RESEND_API_KEY` | `re_…` from resend.com | enables outbound email (inquiry replies). Without it the Reply to Customer button reports that email is not configured |
-   | `EMAIL_FROM` | `The Mheza Trust <inquiries@themhezatrust.co.za>` | must be an address on the domain verified in Resend |
-   | `EMAIL_REPLY_TO` | `themhezatrust@gmail.com` | optional — where a customer's answer lands |
+   | `EMAIL_FROM` | `The Mheza Trust <inquiries@mail.themhezatrust.co.za>` | must be an address on the domain verified in Resend — see "Verifying the sending domain (SPF/DKIM)". The fallback baked into `lib/email.js` is still the root domain, so this variable has to be set |
+   | `EMAIL_REPLY_TO` | `themhezatrust@gmail.com` | optional — where a customer's answer lands. Must stay off the sending domain: neither it nor the `mail.` subdomain has an inbound MX |
 
 4. **Build command** `next build`, **Output** default. No `prisma generate` postinstall is needed if the
    Prisma client is committed via the standard `prisma generate` in the build; if Vercel reports a missing
