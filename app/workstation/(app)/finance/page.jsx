@@ -10,6 +10,7 @@ import { usePermissions, ReadOnlyNote } from "@/components/ws/permissions";
 import { Modal, Field, Alert, StatCard } from "@/components/ui";
 import { zar, zarFull, dateFmt } from "@/lib/format";
 import BudgetTab from "@/components/ws/finance/BudgetTab";
+import ControlsTab from "@/components/ws/finance/ControlsTab";
 
 const TABS = [
   ["income", "Income"],
@@ -18,6 +19,7 @@ const TABS = [
   ["payments", "Payments"],
   ["cashflow", "Cash Flow"],
   ["payroll", "Payroll"],
+  ["controls", "Periods & Audit"],
 ];
 
 const INCOME_CATEGORIES = ["PLOT_SALE", "FEE", "DONATION", "OTHER"];
@@ -75,6 +77,7 @@ function FinanceInner() {
       {tab === "payments" && <PaymentsTab canManage={canFinance} />}
       {tab === "cashflow" && <CashFlowTab />}
       {tab === "payroll" && <PayrollTab canManage={canPayroll} />}
+      {tab === "controls" && <ControlsTab />}
     </div>
   );
 }

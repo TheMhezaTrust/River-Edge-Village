@@ -4,7 +4,22 @@ import { ok, bad } from "@/lib/api";
 import { ensureMemberRecordColumns } from "@/lib/provision";
 import { incomeDescription } from "@/lib/payment-income";
 import { METHOD_LABELS } from "@/lib/format";
-import { resyncIncomeTransaction, deleteSourceTransaction } from "@/lib/ledger";
+import { resyncIncomeTransaction, deleteSourceTransaction, assertPeriodOpen } from "@/lib/ledger";
+
+// A locked accounting period cannot be edited, so both handlers check the lock and
+// turn it into a 409 rather than letting the write through.
+async function periodGuard(...dates) {
+  for (const d of dates) {
+    if (!d) continue;
+    try {
+      await assertPeriodOpen(d);
+    } catch (e) {
+      if (e.code === "PERIOD_LOCKED") return bad(e.message, 409);
+      throw e;
+    }
+  }
+  return null;
+}
 
 // Correcting a payment that has already been captured rewrites the Trust's recorded
 // income, so it is held behind payments:correct (administrators only) *and* a fresh
@@ -48,6 +63,10 @@ export async function PUT(req, { params }) {
     if (!b.date || Number.isNaN(d.getTime())) return bad("Payment date is not a valid date.");
     data.date = d;
   }
+  // The original period must be open to correct it at all, and a changed date must
+  // not land in a closed period either.
+  const locked = await periodGuard(payment.date, data.date);
+  if (locked) return locked;
   if ("method" in b) {
     if (!(b.method in METHOD_LABELS)) return bad("That payment method is not recognised.");
     data.method = b.method;
@@ -118,6 +137,9 @@ export async function PUT(req, { params }) {
 export async function DELETE(req, { params }) {
   const { user, payment, error } = await authorize(req, params);
   if (error) return error;
+
+  const locked = await periodGuard(payment.date);
+  if (locked) return locked;
 
   await prisma.$transaction(async (tx) => {
     // Deleted explicitly rather than left to the ON DELETE SET NULL on the link: an

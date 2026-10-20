@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { guard, audit } from "@/lib/auth";
 import { ok, bad, created } from "@/lib/api";
-import { ledgerReady, postExpense, assertJarHasFunds } from "@/lib/ledger";
+import { ledgerReady, postExpense, assertJarHasFunds, assertPeriodOpen } from "@/lib/ledger";
 
 // Reading the expense list stays open to every administrator; logging or removing an
 // expense moves money in the formal books and draws down a budget jar, so it is held
@@ -31,6 +31,7 @@ export async function POST(req) {
 
     const accountIds = await ledgerReady();
     const date = b.date ? new Date(b.date) : new Date();
+    await assertPeriodOpen(date);
 
     const record = await prisma.$transaction(async (tx) => {
       // Draw-down check runs inside the transaction so the balance reflects any
@@ -56,6 +57,7 @@ export async function POST(req) {
     return created(record);
   } catch (e) {
     if (e.code === "INSUFFICIENT_FUNDS") return bad("Insufficient funds in this category.");
+    if (e.code === "PERIOD_LOCKED") return bad(e.message, 409);
     return bad(e.message);
   }
 }
@@ -67,6 +69,13 @@ export async function DELETE(req) {
   if (!id) return bad("id is required");
   const expense = await prisma.expense.findUnique({ where: { id: Number(id) } });
   if (!expense) return bad("Expense not found", 404);
+
+  try {
+    await assertPeriodOpen(expense.date);
+  } catch (e) {
+    if (e.code === "PERIOD_LOCKED") return bad(e.message, 409);
+    throw e;
+  }
 
   await prisma.$transaction(async (tx) => {
     // Remove the ledger posting with it, so the expense stops drawing down its jar

@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { guard, audit } from "@/lib/auth";
 import { ok, bad, created } from "@/lib/api";
 import { ensureMemberRecordColumns } from "@/lib/provision";
-import { ledgerReady, postIncome, splitIntoJars } from "@/lib/ledger";
+import { ledgerReady, postIncome, splitIntoJars, assertPeriodOpen } from "@/lib/ledger";
 
 export async function GET(req) {
   const { error } = await guard("finance:view");
@@ -23,12 +23,14 @@ export async function POST(req) {
   try {
     const b = await req.json();
     if (!b.description || !b.amount) return bad("Description and amount are required");
+    const date = b.date ? new Date(b.date) : new Date();
+    await assertPeriodOpen(date);
     await ensureMemberRecordColumns();
     const accountIds = await ledgerReady();
     const record = await prisma.$transaction(async (tx) => {
       const inc = await tx.income.create({
         data: {
-          date: b.date ? new Date(b.date) : new Date(),
+          date,
           description: b.description,
           project: b.project || "River Edge Rural Village",
           amount: Number(b.amount),
@@ -44,6 +46,7 @@ export async function POST(req) {
     await audit(user, "INCOME_CREATED", "Income", record.id, record);
     return created(record);
   } catch (e) {
+    if (e.code === "PERIOD_LOCKED") return bad(e.message, 409);
     return bad(e.message);
   }
 }
@@ -61,6 +64,12 @@ export async function DELETE(req) {
   // it has to be corrected on the member's record, where both sides move together.
   if (record.paymentId != null) {
     return bad("This income record came from a member payment. Correct or delete the payment on the member's record instead, so the statement and the books stay in step.");
+  }
+  try {
+    await assertPeriodOpen(record.date);
+  } catch (e) {
+    if (e.code === "PERIOD_LOCKED") return bad(e.message, 409);
+    throw e;
   }
   await prisma.$transaction(async (tx) => {
     // The ledger posting and its jar allocations go with it, or the reports would

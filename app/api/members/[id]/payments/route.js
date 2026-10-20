@@ -3,7 +3,7 @@ import { guard, audit } from "@/lib/auth";
 import { ok, bad, created } from "@/lib/api";
 import { ensureMemberRecordColumns } from "@/lib/provision";
 import { incomeDescription, INCOME_PROJECT } from "@/lib/payment-income";
-import { ledgerReady, postIncome, splitIntoJars } from "@/lib/ledger";
+import { ledgerReady, postIncome, splitIntoJars, assertPeriodOpen } from "@/lib/ledger";
 
 // Record a payment for a member
 export async function POST(req, { params }) {
@@ -16,6 +16,8 @@ export async function POST(req, { params }) {
     if (!amount || amount <= 0) return bad("A positive amount is required");
     const member = await prisma.member.findUnique({ where: { id: Number(id) }, include: { plots: true } });
     if (!member) return bad("Member not found", 404);
+    const payDate = b.date ? new Date(b.date) : new Date();
+    await assertPeriodOpen(payDate);
     // A payment applies to a specific plot when the member owns several; default
     // to their only plot when unambiguous, otherwise leave it unallocated.
     const plot = b.plotId
@@ -26,7 +28,7 @@ export async function POST(req, { params }) {
     const payment = await prisma.payment.create({
       data: {
         amount,
-        date: b.date ? new Date(b.date) : new Date(),
+        date: payDate,
         method: b.method || "EFT",
         reference: b.reference || null,
         note: b.note || null,
@@ -55,6 +57,7 @@ export async function POST(req, { params }) {
     await audit(user, "PAYMENT_RECORDED", "Payment", payment.id, { memberId: member.id, amount });
     return created({ ...payment, incomeId: income.id });
   } catch (e) {
+    if (e.code === "PERIOD_LOCKED") return bad(e.message, 409);
     return bad(e.message);
   }
 }
