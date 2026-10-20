@@ -236,6 +236,151 @@ model Expense {
   project     String?
 }
 
+// ---------- Formal accounting: chart of accounts and double-entry ledger ----------
+//
+// Income and Expense above are the operational records staff capture day to day.
+// Everything below is the formal bookkeeping those records post into, so that a
+// General Ledger, Trial Balance, P&L and Balance Sheet can be produced for SARS and
+// for an auditor without re-keying anything. All of it is auto-provisioned at
+// runtime (lib/provision.js) because the production database cannot be reached from
+// a development machine.
+
+model Account {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique
+  name      String
+  type      String // ASSET | LIABILITY | EQUITY | REVENUE | EXPENSE
+  // Seeded with the chart of accounts. A system account can be renamed or
+  // deactivated but not deleted, because historical journal lines point at it.
+  isSystem  Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  lines     JournalLine[]
+}
+
+// One formal transaction. txnNo is the unique Transaction ID that appears on every
+// report and export; amount is signed-positive and the direction lives in the lines.
+model Transaction {
+  id          Int      @id @default(autoincrement())
+  txnNo       String   @unique
+  type        String // INCOME | EXPENSE | ADJUSTMENT | OPENING | DISTRIBUTION
+  date        DateTime
+  description String
+  amount      Float
+  periodKey   String // "YYYY-MM" the date falls in — what period locking keys on
+  // Where the row came from, so a correction to a member's payment can be followed
+  // through to the ledger entry it produced. Null for entries made directly here.
+  sourceType  String? // INCOME | EXPENSE | DISTRIBUTION | OPENING
+  sourceId    Int?
+  // Present but unused until the Trust's VAT registration is confirmed: a vendor
+  // number is not yet on file, so nothing may imply VAT is being charged.
+  vatApplicable Boolean @default(false)
+  vatRate       Float   @default(0)
+  vatAmount     Float   @default(0)
+  // A locked period cannot be edited, so a correction posts a new entry that points
+  // back at the one it fixes. Both rows stay, which is what an auditor expects.
+  reversesId    Int?
+  createdById   Int?
+  createdAt     DateTime @default(now())
+  lines         JournalLine[]
+
+  @@index([periodKey])
+  @@index([date])
+  @@index([type])
+}
+
+model JournalLine {
+  id            Int    @id @default(autoincrement())
+  transactionId Int
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  accountId     Int
+  account       Account   @relation(fields: [accountId], references: [id])
+  debit         Float  @default(0)
+  credit        Float  @default(0)
+  memo          String?
+  // Set on the expense side of a transaction to say which jar paid for it, which is
+  // what reduces that jar's available balance.
+  budgetCategoryId Int?
+
+  @@index([transactionId])
+  @@index([accountId])
+}
+
+// ---------- Fund accounting: the jars ----------
+
+model BudgetCategory {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique
+  // Share of every incoming payment routed to this jar. The active categories must
+  // always total 100. Changing it affects future payments only — each Allocation
+  // snapshots the percentage that was in force when the money arrived.
+  percentage Float
+  isSystem   Boolean  @default(false)
+  sortOrder  Int      @default(0)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  allocations Allocation[]
+}
+
+model Allocation {
+  id               Int  @id @default(autoincrement())
+  transactionId    Int
+  budgetCategoryId Int
+  budgetCategory   BudgetCategory @relation(fields: [budgetCategoryId], references: [id])
+  percentage       Float
+  amount           Float
+  createdAt        DateTime @default(now())
+
+  @@index([transactionId])
+  @@index([budgetCategoryId])
+}
+
+model FinancialPeriod {
+  id         Int       @id @default(autoincrement())
+  periodKey  String    @unique // "2026-10" for a month, "2026" for a year
+  kind       String // MONTH | YEAR
+  status     String    @default("OPEN") // OPEN | CLOSED
+  closedById Int?
+  closedAt   DateTime?
+  createdAt  DateTime  @default(now())
+}
+
+model OpeningBalance {
+  id            Int      @id @default(autoincrement())
+  accountId     Int
+  asAt          DateTime
+  debit         Float    @default(0)
+  credit        Float    @default(0)
+  note          String?
+  // The OPENING transaction these figures were posted as, so the Balance Sheet can
+  // be built purely from journal lines.
+  transactionId Int?     @unique
+  createdById   Int?
+  createdAt     DateTime @default(now())
+
+  @@unique([accountId, asAt])
+}
+
+// Money the Trust pays OUT to a beneficiary. Members normally pay the Trust for an
+// erf rather than the other way round, so this stays empty until a distribution is
+// actually made — and an empty IT3(t) report is the truthful answer, not a gap.
+model Distribution {
+  id                Int      @id @default(autoincrement())
+  date              DateTime
+  recipientName     String
+  recipientIdNumber String?
+  memberId          Int?
+  amount            Float
+  nature            String // INCOME_DISTRIBUTION | CAPITAL_RETURN
+  note              String?
+  transactionId     Int?     @unique
+  createdById       Int?
+  createdAt         DateTime @default(now())
+
+  @@index([date])
+}
+
 model Employee {
   id        Int     @id @default(autoincrement())
   name      String
@@ -433,5 +578,15 @@ model AuditLog {
   entity    String?
   entityId  String?
   details   String?
+  // What a change replaced, kept in their own columns so an auditor can read the log
+  // without parsing the details blob. Null where the action is not a correction.
+  oldValue  String?
+  newValue  String?
+  // Tamper evidence. Each row carries a hash of its own contents chained to the row
+  // before it, so altering, reordering or silently inserting an entry breaks the
+  // chain and shows up when the log is verified. It cannot stop someone with
+  // database-level access deleting rows outright — only an offsite copy can.
+  entryHash String?
+  prevHash  String?
   createdAt DateTime @default(now())
 }
