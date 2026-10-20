@@ -11,6 +11,7 @@ import { Modal, Field, Alert, StatCard } from "@/components/ui";
 import { zar, zarFull, dateFmt } from "@/lib/format";
 import BudgetTab from "@/components/ws/finance/BudgetTab";
 import ControlsTab from "@/components/ws/finance/ControlsTab";
+import DistributionsTab from "@/components/ws/finance/DistributionsTab";
 
 const TABS = [
   ["income", "Income"],
@@ -19,6 +20,7 @@ const TABS = [
   ["payments", "Payments"],
   ["cashflow", "Cash Flow"],
   ["payroll", "Payroll"],
+  ["distributions", "Distributions"],
   ["controls", "Periods & Audit"],
 ];
 
@@ -77,6 +79,7 @@ function FinanceInner() {
       {tab === "payments" && <PaymentsTab canManage={canFinance} />}
       {tab === "cashflow" && <CashFlowTab />}
       {tab === "payroll" && <PayrollTab canManage={canPayroll} />}
+      {tab === "distributions" && <DistributionsTab />}
       {tab === "controls" && <ControlsTab />}
     </div>
   );
