@@ -12,6 +12,7 @@ import { zar, zarFull, dateFmt } from "@/lib/format";
 import BudgetTab from "@/components/ws/finance/BudgetTab";
 import ControlsTab from "@/components/ws/finance/ControlsTab";
 import DistributionsTab from "@/components/ws/finance/DistributionsTab";
+import ReportsTab from "@/components/ws/finance/ReportsTab";
 
 const TABS = [
   ["income", "Income"],
@@ -21,6 +22,7 @@ const TABS = [
   ["cashflow", "Cash Flow"],
   ["payroll", "Payroll"],
   ["distributions", "Distributions"],
+  ["reports", "Reports"],
   ["controls", "Periods & Audit"],
 ];
 
@@ -80,6 +82,7 @@ function FinanceInner() {
       {tab === "cashflow" && <CashFlowTab />}
       {tab === "payroll" && <PayrollTab canManage={canPayroll} />}
       {tab === "distributions" && <DistributionsTab />}
+      {tab === "reports" && <ReportsTab />}
       {tab === "controls" && <ControlsTab />}
     </div>
   );
