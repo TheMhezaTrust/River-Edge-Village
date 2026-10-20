@@ -4,6 +4,7 @@ import { ok, bad } from "@/lib/api";
 import { ensureMemberRecordColumns } from "@/lib/provision";
 import { incomeDescription } from "@/lib/payment-income";
 import { METHOD_LABELS } from "@/lib/format";
+import { resyncIncomeTransaction, deleteSourceTransaction } from "@/lib/ledger";
 
 // Correcting a payment that has already been captured rewrites the Trust's recorded
 // income, so it is held behind payments:correct (administrators only) *and* a fresh
@@ -81,6 +82,7 @@ export async function PUT(req, { params }) {
     // The income row this payment generated has to follow it, or the cashflow report
     // and the member's statement would disagree about money the Trust received.
     if (payment.income) {
+      const description = incomeDescription(member.fullName, nextPlot?.number);
       await tx.income.update({
         where: { id: payment.income.id },
         data: {
@@ -88,8 +90,15 @@ export async function PUT(req, { params }) {
           amount: p.amount,
           method: p.method,
           reference: p.reference,
-          description: incomeDescription(member.fullName, nextPlot?.number),
+          description,
         },
+      });
+      // And the formal ledger posting behind that income row follows too, rescaling
+      // its journal lines and jar allocations by the snapshotted percentages.
+      await resyncIncomeTransaction(tx, payment.income.id, {
+        amount: p.amount,
+        date: p.date,
+        description,
       });
     }
     return p;
@@ -113,7 +122,12 @@ export async function DELETE(req, { params }) {
   await prisma.$transaction(async (tx) => {
     // Deleted explicitly rather than left to the ON DELETE SET NULL on the link: an
     // income row with no payment would keep counting money the Trust never received.
-    if (payment.income) await tx.income.delete({ where: { id: payment.income.id } });
+    if (payment.income) {
+      // Its ledger posting and jar allocations go with it, so the books and the jar
+      // balances stop counting the reversed payment.
+      await deleteSourceTransaction(tx, "INCOME", payment.income.id);
+      await tx.income.delete({ where: { id: payment.income.id } });
+    }
     await tx.payment.delete({ where: { id: payment.id } });
   });
 

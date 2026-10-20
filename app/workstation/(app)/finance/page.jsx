@@ -9,10 +9,12 @@ import { useFetch, PageHeader, LoadingBlock, ErrorBlock, ConfirmButton } from "@
 import { usePermissions, ReadOnlyNote } from "@/components/ws/permissions";
 import { Modal, Field, Alert, StatCard } from "@/components/ui";
 import { zar, zarFull, dateFmt } from "@/lib/format";
+import BudgetTab from "@/components/ws/finance/BudgetTab";
 
 const TABS = [
   ["income", "Income"],
   ["expenses", "Expenses"],
+  ["budget", "Budget"],
   ["payments", "Payments"],
   ["cashflow", "Cash Flow"],
   ["payroll", "Payroll"],
@@ -39,6 +41,7 @@ function FinanceInner() {
   const pathname = usePathname();
   const { can } = usePermissions();
   const canFinance = can("finance:manage");
+  const canFinanceAdmin = can("finance:admin");
   const canPayroll = can("payroll:manage");
   const tab = TABS.some(([k]) => k === searchParams.get("tab")) ? searchParams.get("tab") : "income";
 
@@ -67,7 +70,8 @@ function FinanceInner() {
       </div>
 
       {tab === "income" && <IncomeTab canManage={canFinance} />}
-      {tab === "expenses" && <ExpensesTab canManage={canFinance} />}
+      {tab === "expenses" && <ExpensesTab canManage={canFinanceAdmin} />}
+      {tab === "budget" && <BudgetTab />}
       {tab === "payments" && <PaymentsTab canManage={canFinance} />}
       {tab === "cashflow" && <CashFlowTab />}
       {tab === "payroll" && <PayrollTab canManage={canPayroll} />}
@@ -179,11 +183,13 @@ function IncomeTab({ canManage }) {
 
 function ExpensesTab({ canManage }) {
   const { data: expenses, loading, error, reload } = useFetch("/api/finance/expenses");
+  const { data: budgetData } = useFetch("/api/finance/budget-categories");
   const [addOpen, setAddOpen] = useState(false);
-  const [form, setForm] = useState({ date: today(), description: "", category: "SUPPLIES", amount: "", vendor: "", project: "River Edge Rural Village" });
+  const [form, setForm] = useState({ date: today(), description: "", category: "SUPPLIES", amount: "", vendor: "", project: "River Edge Rural Village", budgetCategoryId: "" });
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState(null);
 
+  const jars = (budgetData?.categories || []).filter((c) => c.isActive);
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
   const total = (expenses || []).reduce((s, r) => s + r.amount, 0);
 
@@ -192,9 +198,9 @@ function ExpensesTab({ canManage }) {
     setSaving(true);
     setFormError(null);
     try {
-      await api.post("/api/finance/expenses", form);
+      await api.post("/api/finance/expenses", { ...form, budgetCategoryId: Number(form.budgetCategoryId) });
       setAddOpen(false);
-      setForm({ date: today(), description: "", category: "SUPPLIES", amount: "", vendor: "", project: "River Edge Rural Village" });
+      setForm({ date: today(), description: "", category: "SUPPLIES", amount: "", vendor: "", project: "River Edge Rural Village", budgetCategoryId: "" });
       reload();
     } catch (err) {
       setFormError(err.message);
@@ -259,6 +265,12 @@ function ExpensesTab({ canManage }) {
           <Field label="Category">
             <select className="input" value={form.category} onChange={set("category")}>
               {EXPENSE_CATEGORIES.map((c) => <option key={c} value={c}>{catLabel(c)}</option>)}
+            </select>
+          </Field>
+          <Field label="Paid from (budget category)" required>
+            <select className="input" required value={form.budgetCategoryId} onChange={set("budgetCategoryId")}>
+              <option value="">Select a category…</option>
+              {jars.map((c) => <option key={c.id} value={c.id}>{c.name} — {zarFull(c.available)} available</option>)}
             </select>
           </Field>
           <Field label="Vendor"><input className="input" value={form.vendor} onChange={set("vendor")} /></Field>

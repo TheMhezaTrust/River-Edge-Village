@@ -66,6 +66,7 @@ export function Alert({ type = "error", children, onClose }) {
     error: "bg-red-50 border-red-200 text-red-800",
     success: "bg-forest-50 border-forest-200 text-forest-800",
     info: "bg-blue-50 border-blue-200 text-blue-800",
+    warning: "bg-amber-50 border-amber-200 text-amber-800",
   };
   return (
     <div className={`flex items-start justify-between gap-3 rounded-lg border px-4 py-3 text-sm ${styles[type]}`} role={type === "error" ? "alert" : "status"}>

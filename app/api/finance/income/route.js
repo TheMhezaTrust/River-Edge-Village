@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { guard, audit } from "@/lib/auth";
 import { ok, bad, created } from "@/lib/api";
 import { ensureMemberRecordColumns } from "@/lib/provision";
+import { ledgerReady, postIncome, splitIntoJars } from "@/lib/ledger";
 
 export async function GET(req) {
   const { error } = await guard("finance:view");
@@ -23,16 +24,22 @@ export async function POST(req) {
     const b = await req.json();
     if (!b.description || !b.amount) return bad("Description and amount are required");
     await ensureMemberRecordColumns();
-    const record = await prisma.income.create({
-      data: {
-        date: b.date ? new Date(b.date) : new Date(),
-        description: b.description,
-        project: b.project || "River Edge Rural Village",
-        amount: Number(b.amount),
-        category: b.category || "OTHER",
-        method: b.method || null,
-        reference: b.reference || null,
-      },
+    const accountIds = await ledgerReady();
+    const record = await prisma.$transaction(async (tx) => {
+      const inc = await tx.income.create({
+        data: {
+          date: b.date ? new Date(b.date) : new Date(),
+          description: b.description,
+          project: b.project || "River Edge Rural Village",
+          amount: Number(b.amount),
+          category: b.category || "OTHER",
+          method: b.method || null,
+          reference: b.reference || null,
+        },
+      });
+      const txn = await postIncome(tx, inc, accountIds, user.id);
+      await splitIntoJars(tx, txn.id, inc.amount);
+      return inc;
     });
     await audit(user, "INCOME_CREATED", "Income", record.id, record);
     return created(record);
@@ -55,7 +62,13 @@ export async function DELETE(req) {
   if (record.paymentId != null) {
     return bad("This income record came from a member payment. Correct or delete the payment on the member's record instead, so the statement and the books stay in step.");
   }
-  await prisma.income.delete({ where: { id: record.id } });
-  await audit(user, "INCOME_DELETED", "Income", id);
+  await prisma.$transaction(async (tx) => {
+    // The ledger posting and its jar allocations go with it, or the reports would
+    // still count income the Trust's books no longer hold. Allocations cascade from
+    // the transaction, so deleting the transaction is enough.
+    await tx.transaction.deleteMany({ where: { sourceType: "INCOME", sourceId: record.id } });
+    await tx.income.delete({ where: { id: record.id } });
+  });
+  await audit(user, "INCOME_DELETED", "Income", id, null, record, null);
   return ok({ ok: true });
 }
