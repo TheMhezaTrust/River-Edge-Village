@@ -32,10 +32,13 @@ export async function GET(req) {
   if (error) return error;
   const sp = req.nextUrl.searchParams;
   const q = (sp.get("q") || "").trim();
-  const where = q
-    ? { OR: [{ fullName: { contains: q } }, { email: { contains: q } }, { phone: { contains: q } }, { idNumber: { contains: q } }] }
-    : {};
-  // Both models gained a column, and the client selects every column of each.
+  // The active list hides archived members; ?archived=true returns only those.
+  const archived = sp.get("archived") === "true";
+  const where = { isArchived: archived };
+  if (q) where.OR = [{ fullName: { contains: q } }, { email: { contains: q } }, { phone: { contains: q } }, { idNumber: { contains: q } }];
+  // The client selects every Member column (purchaseDate, isArchived) and Plot.purchasedAt,
+  // so on a cold start the columns have to exist before this query rather than merely
+  // having been asked for.
   await ensureMemberRecordColumns();
   const members = await prisma.member.findMany({
     where,

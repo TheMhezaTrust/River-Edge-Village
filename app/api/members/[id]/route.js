@@ -28,9 +28,10 @@ export async function PUT(req, { params }) {
   if (error) return error;
   const { id } = await params;
   const b = await req.json();
-  const allowed = ["fullName", "idNumber", "dateOfBirth", "gender", "maritalStatus", "physicalAddress", "postalAddress", "phone", "email", "purchasePrice", "paymentPlan", "notes", "isActive"];
+  const allowed = ["fullName", "idNumber", "dateOfBirth", "gender", "maritalStatus", "physicalAddress", "postalAddress", "phone", "email", "purchasePrice", "paymentPlan", "notes", "isActive", "isArchived"];
   const data = {};
   for (const k of allowed) if (k in b) data[k] = b[k];
+  if ("isArchived" in b) data.isArchived = Boolean(b.isArchived);
   if ("beneficiaries" in b) data.beneficiaries = typeof b.beneficiaries === "string" ? b.beneficiaries : JSON.stringify(b.beneficiaries);
   // An empty field means "no override, fall back to the sum of the plot prices" —
   // not R0, which would wipe the member's balance from every screen.
@@ -56,7 +57,8 @@ export async function PUT(req, { params }) {
   await ensureMemberRecordColumns();
   try {
     const member = await prisma.member.update({ where: { id: Number(id) }, data });
-    await audit(user, "MEMBER_UPDATED", "Member", member.id, member.fullName);
+    const action = "isArchived" in data ? (data.isArchived ? "MEMBER_ARCHIVED" : "MEMBER_RESTORED") : "MEMBER_UPDATED";
+    await audit(user, action, "Member", member.id, member.fullName);
     const { password: _password, ...safe } = member;
     return ok(safe);
   } catch (e) {

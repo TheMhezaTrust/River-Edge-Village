@@ -58,6 +58,7 @@ model Member {
   beneficiaries      String? // JSON string
   notes              String?
   isActive           Boolean               @default(true)
+  isArchived         Boolean               @default(false) // hidden from the active member list; restored, never deleted
   mustChangePassword Boolean               @default(false) // set when the office issued a temporary password
   lastLoginAt        DateTime?
   createdAt          DateTime              @default(now())

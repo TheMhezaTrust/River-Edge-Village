@@ -26,7 +26,9 @@ function MembersInner() {
   const { can } = usePermissions();
   const canManage = can("members:manage");
   const { data: members, loading, error, reload } = useFetch("/api/members");
+  const { data: archivedMembers, loading: archLoading, reload: reloadArchived } = useFetch("/api/members?archived=true");
   const { data: plots } = useFetch("/api/plots");
+  const [view, setView] = useState("active");
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [addOpen, setAddOpen] = useState(canManage && searchParams.get("new") === "1");
@@ -37,16 +39,26 @@ function MembersInner() {
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
+  const matchesQuery = (m) => {
+    if (!q.trim()) return true;
+    const s = q.trim().toLowerCase();
+    return [m.fullName, m.email, m.phone, m.idNumber, (m.plots || []).map((p) => p.number).join(" ")].some((v) => (v || "").toLowerCase().includes(s));
+  };
+
   const filtered = useMemo(() => {
     if (!members) return [];
-    let list = members;
-    if (q.trim()) {
-      const s = q.trim().toLowerCase();
-      list = list.filter((m) => [m.fullName, m.email, m.phone, m.idNumber, (m.plots || []).map((p) => p.number).join(" ")].some((v) => (v || "").toLowerCase().includes(s)));
-    }
+    let list = members.filter(matchesQuery);
     if (statusFilter !== "ALL") list = list.filter((m) => m.paymentStatus === statusFilter);
     return list;
   }, [members, q, statusFilter]);
+
+  const archivedFiltered = useMemo(() => (archivedMembers ? archivedMembers.filter(matchesQuery) : []), [archivedMembers, q]);
+
+  async function setArchived(id, value) {
+    await api.put(`/api/members/${id}`, { isArchived: value });
+    reload();
+    reloadArchived();
+  }
 
   function submit(e) {
     e.preventDefault();
@@ -72,14 +84,15 @@ function MembersInner() {
   }
 
   function exportCsv() {
-    if (!filtered.length) return;
+    const source = view === "archived" ? archivedFiltered : filtered;
+    if (!source.length) return;
     const headers = ["Name", "ID Number", "Email", "Phone", "Plot", "Price", "Paid", "Balance", "Status"];
-    const rows = filtered.map((m) => [m.fullName, m.idNumber || "", m.email, m.phone, (m.plots || []).map((p) => p.number).join("; "), m.price ?? "", m.totalPaid, m.outstandingBalance, m.paymentStatus]);
+    const rows = source.map((m) => [m.fullName, m.idNumber || "", m.email, m.phone, (m.plots || []).map((p) => p.number).join("; "), m.price ?? "", m.totalPaid, m.outstandingBalance, m.paymentStatus]);
     const csv = [headers, ...rows].map((r) => r.map((c) => `"${String(c).replaceAll('"', '""')}"`).join(",")).join("\n");
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = `mheza-members-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `mheza-members${view === "archived" ? "-archived" : ""}-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -91,11 +104,13 @@ function MembersInner() {
     <div>
       <PageHeader
         title="Member Management"
-        subtitle={`${members.length} members · search, filter, add, and manage plot holders`}
+        subtitle={view === "archived"
+          ? `${archivedMembers?.length ?? 0} archived members · restore or review plot holders no longer active`
+          : `${members.length} active members · search, filter, add, and manage plot holders`}
         actions={
           <>
             <button className="btn-outline btn-sm" onClick={exportCsv}>Export CSV</button>
-            {canManage && <button className="btn-primary btn-sm" onClick={() => setAddOpen(true)}>+ Add Member</button>}
+            {canManage && view === "active" && <button className="btn-primary btn-sm" onClick={() => setAddOpen(true)}>+ Add Member</button>}
           </>
         }
       />
@@ -104,14 +119,31 @@ function MembersInner() {
 
       <MemberChangeRequests canManage={canManage} />
 
-      <div className="card p-4 mb-4 flex flex-wrap gap-3 items-center">
-        <input className="input max-w-xs" placeholder="Search name, email, phone, ID or plot…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search members" />
-        <select className="input max-w-52" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} aria-label="Filter by payment status">
-          {["ALL", "PAID", "PARTIAL", "OUTSTANDING", "NONE"].map((s) => <option key={s} value={s}>{s === "ALL" ? "All payment statuses" : s.charAt(0) + s.slice(1).toLowerCase()}</option>)}
-        </select>
-        <span className="text-sm text-gray-500 ml-auto">{filtered.length} result(s)</span>
+      <div className="mb-4 flex gap-1 border-b border-gray-200">
+        {[["active", "Active"], ["archived", `Archived${archivedMembers?.length ? ` (${archivedMembers.length})` : ""}`]].map(([k, label]) => (
+          <button
+            key={k}
+            onClick={() => setView(k)}
+            className={`px-4 py-2 text-sm font-semibold cursor-pointer border-b-2 -mb-px ${
+              view === k ? "border-forest-700 text-forest-800" : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
+      <div className="card p-4 mb-4 flex flex-wrap gap-3 items-center">
+        <input className="input max-w-xs" placeholder="Search name, email, phone, ID or plot…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search members" />
+        {view === "active" && (
+          <select className="input max-w-52" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} aria-label="Filter by payment status">
+            {["ALL", "PAID", "PARTIAL", "OUTSTANDING", "NONE"].map((s) => <option key={s} value={s}>{s === "ALL" ? "All payment statuses" : s.charAt(0) + s.slice(1).toLowerCase()}</option>)}
+          </select>
+        )}
+        <span className="text-sm text-gray-500 ml-auto">{(view === "archived" ? archivedFiltered : filtered).length} result(s)</span>
+      </div>
+
+      {view === "active" && (
       <div className="card overflow-x-auto">
         <table className="table-base">
           <thead>
@@ -134,6 +166,14 @@ function MembersInner() {
                   <Link href={`/workstation/members/${m.id}`} className="btn-ghost btn-sm">View</Link>
                   {canManage && (
                     <ConfirmButton
+                      label="Archive"
+                      className="btn-ghost btn-sm text-amber-600"
+                      confirmText={`Archive ${m.fullName}? They will be hidden from the active list and moved to Archived Members. Nothing is deleted.`}
+                      onConfirm={() => setArchived(m.id, true)}
+                    />
+                  )}
+                  {canManage && (
+                    <ConfirmButton
                       label="Delete"
                       className="btn-ghost btn-sm text-red-600"
                       confirmText={`Delete member ${m.fullName}? Their payments and document records will also be removed.`}
@@ -149,6 +189,47 @@ function MembersInner() {
           </tbody>
         </table>
       </div>
+      )}
+
+      {view === "archived" && (
+      <div className="card overflow-x-auto">
+        {archLoading && !archivedMembers ? <LoadingBlock label="Loading archived members…" /> : (
+        <table className="table-base">
+          <thead>
+            <tr>
+              <th>Name</th><th>ID Number</th><th>Plot</th><th>Contact</th><th>Balance</th><th>Status</th><th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {archivedFiltered.map((m) => (
+              <tr key={m.id}>
+                <td><Link href={`/workstation/members/${m.id}`} className="font-semibold text-forest-700 hover:underline">{m.fullName}</Link></td>
+                <td className="font-mono text-xs text-gray-500">{m.idNumber || "-"}</td>
+                <td>{m.plots?.length ? m.plots.map((p) => p.number).join(", ") : "-"}</td>
+                <td className="text-xs text-gray-600">{m.phone}<br />{m.email}</td>
+                <td className={`whitespace-nowrap font-semibold ${m.outstandingBalance > 0 ? "text-red-600" : "text-gray-400"}`}>{zar(m.outstandingBalance)}</td>
+                <td><StatusPill status={m.paymentStatus} /></td>
+                <td className="whitespace-nowrap">
+                  <Link href={`/workstation/members/${m.id}`} className="btn-ghost btn-sm">View</Link>
+                  {canManage && (
+                    <ConfirmButton
+                      label="Restore"
+                      className="btn-ghost btn-sm text-forest-700"
+                      confirmText={`Restore ${m.fullName} to the active member list?`}
+                      onConfirm={() => setArchived(m.id, false)}
+                    />
+                  )}
+                </td>
+              </tr>
+            ))}
+            {archivedFiltered.length === 0 && (
+              <tr><td colSpan={7} className="text-center text-gray-500 py-10">No archived members.</td></tr>
+            )}
+          </tbody>
+        </table>
+        )}
+      </div>
+      )}
 
       {/* Add member modal */}
       <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Add New Member" wide>
