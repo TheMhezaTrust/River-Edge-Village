@@ -57,6 +57,11 @@ model Member {
   paymentPlan        String? // FULL | PLAN_6 | PLAN_12 | PLAN_24
   beneficiaries      String? // JSON string
   notes              String?
+  // Profile photo. The file itself lives in Vercel Blob; this holds that URL, which
+  // is never sent to a browser — the picture is streamed through /api/portal/photo
+  // (the member's own) or /api/members/:id/photo (staff), both of which check who is
+  // asking first. Null until the member uploads one. Additive column, auto-provisioned.
+  photoUrl           String?
   isActive           Boolean               @default(true)
   isArchived         Boolean               @default(false) // hidden from the active member list; restored, never deleted
   mustChangePassword Boolean               @default(false) // set when the office issued a temporary password
@@ -94,7 +99,7 @@ model MemberChangeRequest {
   id            Int       @id @default(autoincrement())
   memberId      Int
   member        Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  field         String // fullName | idNumber
+  field         String // fullName | idNumber | beneficiaries
   currentValue  String?
   proposedValue String
   reason        String?

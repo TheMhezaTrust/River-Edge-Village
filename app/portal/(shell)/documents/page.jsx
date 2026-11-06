@@ -10,7 +10,7 @@ import { DocumentIcon } from "@/components/portal/Icons";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "My Documents · Member Portal" };
+export const metadata = { title: "My Certificate · Member Portal" };
 
 export default async function PortalDocumentsPage() {
   const member = await loadPortalMember();
@@ -27,15 +27,15 @@ export default async function PortalDocumentsPage() {
   return (
     <div className="space-y-6">
       <PageHeading
-        title="My Documents"
-        subtitle="The signed paperwork the Trust holds for you. Keep a copy on your own device as well — this is what proves your plot allocation and the payments you have made."
+        title="My Certificate"
+        subtitle="Your Certificate of Land Use and the signed paperwork the Trust holds for you. Keep a copy on your own device as well — this is what proves your plot allocation and the payments you have made."
       />
 
       {documents.length === 0 ? (
         <div className="card p-6">
           <EmptyState
-            title="No documents yet"
-            message="Once the Trust office issues your signed Acknowledgement of Payment and Plot Allocation it will appear here. If you have already signed one and cannot see it, please contact the office."
+            title="No certificate yet"
+            message="Once the Trust office issues your Certificate of Land Use it will appear here. If it has already been issued and you cannot see it, please contact the office."
           />
           <p className="mt-4 text-center text-sm text-gray-600">
             Call{" "}

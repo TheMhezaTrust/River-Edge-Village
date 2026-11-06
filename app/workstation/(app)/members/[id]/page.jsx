@@ -8,7 +8,7 @@ import { useFetch, PageHeader, LoadingBlock, ErrorBlock, ConfirmButton } from "@
 import { usePermissions, ReadOnlyNote } from "@/components/ws/permissions";
 import { Modal, Field, StatusPill, Alert } from "@/components/ui";
 import PortalAccessPanel from "@/components/ws/PortalAccessPanel";
-import MemberContracts from "@/components/ws/MemberContracts";
+import CertificateVault from "@/components/ws/CertificateVault";
 import PaymentAuditLog from "@/components/ws/PaymentAuditLog";
 import PasswordConfirmModal from "@/components/ws/PasswordConfirmModal";
 import { zarFull, dateFmt, METHOD_LABELS } from "@/lib/format";
@@ -243,6 +243,14 @@ export default function MemberDetailPage() {
         {/* Personal + plot */}
         <div className="space-y-6">
           <div className="card p-6">
+            {member.photoUrl && (
+              <div className="mb-4 flex justify-center">
+                <div className="h-24 w-24 overflow-hidden rounded-full border border-gray-200 bg-gray-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={`/api/members/${id}/photo`} alt={`${member.fullName} profile photo`} className="h-full w-full object-cover" />
+                </div>
+              </div>
+            )}
             <h2 className="font-bold text-gray-900 mb-4">Personal Information</h2>
             <dl className="space-y-2.5 text-sm">
               {[
@@ -395,7 +403,7 @@ export default function MemberDetailPage() {
             )}
           </div>
 
-          <MemberContracts memberId={member.id} memberName={member.fullName} canManage={canManageDocuments} />
+          <CertificateVault memberId={member.id} memberName={member.fullName} canManage={canManageDocuments} />
 
           {canCorrectPayments && (
             <div className="card overflow-hidden">

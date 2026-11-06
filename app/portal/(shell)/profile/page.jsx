@@ -6,6 +6,7 @@ import { dateFmt } from "@/lib/format";
 import PageHeading from "@/components/portal/PageHeading";
 import ProfileEditor from "@/components/portal/ProfileEditor";
 import IdentityChangeRequests from "@/components/portal/IdentityChangeRequests";
+import ProfilePhotoUpload from "@/components/portal/ProfilePhotoUpload";
 import ChangePortalPassword from "@/components/portal/ChangePortalPassword";
 
 export const dynamic = "force-dynamic";
@@ -50,6 +51,8 @@ export default async function PortalProfilePage() {
         </div>
 
         <div className="space-y-6">
+          <ProfilePhotoUpload memberId={member.id} hasPhoto={Boolean(member.photoUrl)} />
+
           <div className="card p-5">
             <h2 className="font-bold text-forest-900 mb-2">Date joined</h2>
             <p className="text-sm font-medium text-gray-900">{dateFmt(member.purchaseDate || member.createdAt)}</p>

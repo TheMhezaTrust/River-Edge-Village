@@ -4,14 +4,15 @@ import { getActivePortalSession, unauthorized, audit } from "@/lib/auth";
 import { ok, bad } from "@/lib/api";
 import { EMAIL_RE } from "@/lib/email";
 import { memberTotals } from "@/lib/member-totals";
-import { ensureMemberDocumentColumns } from "@/lib/provision";
+import { ensureMemberDocumentColumns, ensureMemberRecordColumns } from "@/lib/provision";
 import { safeDocument } from "@/lib/member-documents";
 
 export async function GET() {
   const session = await getActivePortalSession();
   if (!session) return unauthorized();
-  // Awaited because the include below selects the vault columns on MemberDocument.
-  await ensureMemberDocumentColumns();
+  // Awaited because the include below selects the vault columns on MemberDocument,
+  // and the member row now carries photoUrl (a Member-record column).
+  await Promise.all([ensureMemberDocumentColumns(), ensureMemberRecordColumns()]);
   const member = await prisma.member.findUnique({
     where: { id: session.id },
     include: {

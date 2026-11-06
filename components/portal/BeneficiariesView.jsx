@@ -1,11 +1,10 @@
 import { parseBeneficiaries } from "@/lib/portal-data";
 import { EmptyState } from "@/components/ui";
 import PageHeading from "@/components/portal/PageHeading";
-import { TRUST } from "@/lib/contact";
 
-// The member's nominated beneficiaries. No in-portal links, so it needs nothing
-// beyond the member record and renders identically for a member and for an admin
-// previewing it.
+// The member's nominated beneficiaries as the Trust currently holds them. Read-only
+// and shared with the admin "View as Member" preview, so it carries no interactive
+// form and no portal links — the update request form lives on the portal page itself.
 export default function BeneficiariesView({ member }) {
   const beneficiaries = parseBeneficiaries(member.beneficiaries);
 
@@ -46,23 +45,6 @@ export default function BeneficiariesView({ member }) {
             </table>
           </div>
         )}
-      </div>
-
-      <div className="card p-6">
-        <h2 className="text-lg font-bold text-forest-900">Changing your beneficiaries</h2>
-        <p className="mt-2 text-sm text-gray-600 leading-relaxed">
-          A beneficiary nomination has to be signed, so it cannot be edited on this portal. Complete a{" "}
-          <strong>Beneficiary Nomination Form</strong>, sign it, and hand it to the Trust office — the office
-          captures it and your nominations above are updated.
-        </p>
-        <p className="mt-3 text-sm text-gray-600">
-          To get a form, or if you are not sure your nominations are correct, call {TRUST.primaryPhone} or email{" "}
-          <a href={`mailto:${TRUST.email}`} className="font-semibold text-forest-700 hover:underline">{TRUST.email}</a>.
-        </p>
-        <p className="mt-4 rounded-lg bg-earth-50 p-3 text-xs text-gray-600">
-          Downloading the blank form here, and uploading a signed copy straight to the Trust, is being added to the
-          portal next. Until then the office issues and receives the paper form.
-        </p>
       </div>
     </div>
   );

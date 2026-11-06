@@ -9,20 +9,21 @@ import PasswordConfirmModal from "@/components/ws/PasswordConfirmModal";
 import { DOCUMENT_CATEGORIES, dateFmt, fileSizeLabel } from "@/lib/format";
 import { MAX_DOCUMENT_BYTES } from "@/lib/member-documents";
 
-const SUGGESTED_TITLE = "Acknowledgement of Payment and Plot Allocation";
+const SUGGESTED_TITLE = "Certificate of Land Use";
 const MAX_MB = Math.round(MAX_DOCUMENT_BYTES / (1024 * 1024));
 
-// The member's vault: signed and stamped paperwork the office issues to them. The
-// PDF is uploaded straight from the browser to Vercel Blob through a presigned,
-// put-scoped token, so large scans never pass through a serverless function; this
-// panel then saves the row that makes the file appear in the member's portal.
-export default function MemberContracts({ memberId, memberName, canManage }) {
+// The member's Certificate Vault: the Certificate of Land Use the Trust issues them,
+// plus any other signed paperwork filed on their record. The PDF is uploaded straight
+// from the browser to Vercel Blob through a presigned, put-scoped token, so large scans
+// never pass through a serverless function; this panel then saves the row that makes the
+// file appear in the member's portal under "My Certificate".
+export default function CertificateVault({ memberId, memberName, canManage }) {
   const { data: documents, loading, error, reload } = useFetch(`/api/members/${memberId}/documents`);
   const fileRef = useRef(null);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [file, setFile] = useState(null);
   const [title, setTitle] = useState(SUGGESTED_TITLE);
-  const [category, setCategory] = useState("ALLOCATION");
+  const [category, setCategory] = useState("CERTIFICATE");
   // A password re-confirmation waiting to run: { title, description, run(token) }.
   const [confirm, setConfirm] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -33,7 +34,7 @@ export default function MemberContracts({ memberId, memberName, canManage }) {
   function resetForm() {
     setFile(null);
     setTitle(SUGGESTED_TITLE);
-    setCategory("ALLOCATION");
+    setCategory("CERTIFICATE");
     setProgress(null);
     if (fileRef.current) fileRef.current.value = "";
   }
@@ -54,7 +55,7 @@ export default function MemberContracts({ memberId, memberName, canManage }) {
       return;
     }
     if (file.type !== "application/pdf" && !/\.pdf$/i.test(file.name)) {
-      setFormError("Only PDF files can be added to a member's documents.");
+      setFormError("Only PDF files can be added to a member's certificate vault.");
       return;
     }
     if (file.size > MAX_DOCUMENT_BYTES) {
@@ -62,7 +63,7 @@ export default function MemberContracts({ memberId, memberName, canManage }) {
       return;
     }
     if (!title.trim()) {
-      setFormError("Give the document a title the member will recognise.");
+      setFormError("Give the certificate a title the member will recognise.");
       return;
     }
     setConfirm({
@@ -96,7 +97,7 @@ export default function MemberContracts({ memberId, memberName, canManage }) {
       setConfirm(null);
       setUploadOpen(false);
       resetForm();
-      setNotice("Document filed. The member can open and download it in their portal now.");
+      setNotice("Certificate filed. The member can open and download it in their portal now.");
       reload();
     } catch (err) {
       setConfirm(null);
@@ -127,14 +128,14 @@ export default function MemberContracts({ memberId, memberName, canManage }) {
     <div className="card overflow-hidden">
       <div className="flex items-center justify-between gap-3 border-b border-gray-200 px-6 py-4">
         <div className="min-w-0">
-          <h2 className="font-bold text-gray-900">Member Contracts</h2>
+          <h2 className="font-bold text-gray-900">Certificate Vault</h2>
           <p className="mt-0.5 text-xs text-gray-500">
-            Signed and stamped paperwork issued to this member. They can open and download it in their portal.
+            The Certificate of Land Use issued to this member. They can view and download it in their portal under My Certificate.
           </p>
         </div>
         {canManage && (
           <button className="btn-primary btn-sm shrink-0" disabled={busy} onClick={openUpload}>
-            📄 Upload PDF
+            📜 Upload Certificate
           </button>
         )}
       </div>
@@ -147,14 +148,14 @@ export default function MemberContracts({ memberId, memberName, canManage }) {
       )}
 
       {loading && !documents ? (
-        <div className="p-6"><LoadingBlock label="Loading documents…" /></div>
+        <div className="p-6"><LoadingBlock label="Loading certificates…" /></div>
       ) : error ? (
         <div className="p-6"><ErrorBlock message={error} /></div>
       ) : list.length === 0 ? (
         <p className="p-6 text-sm text-gray-500">
-          Nothing issued yet.
+          No certificate issued yet.
           {canManage
-            ? " Upload the signed Acknowledgement of Payment and Plot Allocation so the member has their own copy in the portal."
+            ? " Upload the signed Certificate of Land Use so the member has their own copy in the portal."
             : ""}
         </p>
       ) : (
@@ -204,12 +205,12 @@ export default function MemberContracts({ memberId, memberName, canManage }) {
 
       {!canManage && list.length > 0 && (
         <p className="border-t border-gray-100 px-6 py-3 text-xs text-gray-500">
-          Read-only view — only staff with document-management rights can add to or remove from a member&apos;s vault.
+          Read-only view — only staff with document-management rights can add to or remove from a member&apos;s certificate vault.
         </p>
       )}
 
-      {/* Upload a signed PDF into this member's vault */}
-      <Modal open={uploadOpen} onClose={() => (busy ? () => {} : setUploadOpen(false))} title={`Upload a document — ${memberName}`}>
+      {/* Upload a signed certificate into this member's vault */}
+      <Modal open={uploadOpen} onClose={() => (busy ? () => {} : setUploadOpen(false))} title={`Upload a certificate — ${memberName}`}>
         {formError && <div className="mb-3"><Alert type="error">{formError}</Alert></div>}
         <form onSubmit={submitUpload} className="space-y-4">
           <Field label="PDF file" required>
@@ -222,8 +223,8 @@ export default function MemberContracts({ memberId, memberName, canManage }) {
               onChange={(e) => { setFile(e.target.files?.[0] || null); setFormError(null); }}
             />
             <p className="mt-1.5 text-xs text-gray-500">
-              Signed and stamped scans, up to {MAX_MB} MB. Uploaded straight from your browser to the Trust&apos;s
-              private storage — it is never placed in a public folder.
+              The signed Certificate of Land Use, up to {MAX_MB} MB. Uploaded straight from your browser to the
+              Trust&apos;s private storage — it is never placed in a public folder.
             </p>
           </Field>
 
@@ -261,7 +262,7 @@ export default function MemberContracts({ memberId, memberName, canManage }) {
           <div className="flex justify-end gap-2">
             <button type="button" className="btn-ghost" disabled={busy} onClick={() => setUploadOpen(false)}>Cancel</button>
             <button type="submit" className="btn-primary" disabled={busy || !file}>
-              {busy ? "Uploading…" : "Upload Document…"}
+              {busy ? "Uploading…" : "Upload Certificate…"}
             </button>
           </div>
           <p className="text-xs text-gray-500">

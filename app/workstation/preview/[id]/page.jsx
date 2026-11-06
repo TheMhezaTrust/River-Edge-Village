@@ -24,7 +24,12 @@ export default async function ViewAsMemberPage({ params }) {
 
   return (
     <PreviewShell member={member} active="dashboard">
-      <DashboardView member={member} announcements={announcements} linkBase={`/workstation/preview/${member.id}`} />
+      <DashboardView
+        member={member}
+        announcements={announcements}
+        linkBase={`/workstation/preview/${member.id}`}
+        photoSrc={member.photoUrl ? `/api/members/${member.id}/photo` : null}
+      />
     </PreviewShell>
   );
 }

@@ -3,7 +3,16 @@ import { guard, audit, verifyConfirmToken } from "@/lib/auth";
 import { ok, bad } from "@/lib/api";
 import { ensureMemberAccessTables, ensureMemberRecordColumns } from "@/lib/provision";
 
-const CHANGEABLE_FIELDS = ["fullName", "idNumber"];
+const CHANGEABLE_FIELDS = ["fullName", "idNumber", "beneficiaries"];
+
+// beneficiaries is stored as a JSON string on the member record, so approving one of
+// these writes the proposed string straight in. Re-parse it first: a malformed value
+// would corrupt the field the portal reads on every visit.
+function beneficiaryWriteValue(proposedValue) {
+  const parsed = JSON.parse(proposedValue);
+  if (!Array.isArray(parsed)) throw new Error("not an array");
+  return JSON.stringify(parsed);
+}
 
 // Approving writes straight onto the member record, so it is one of the sensitive
 // staff actions that needs the operator to re-enter their password.
@@ -33,9 +42,17 @@ export async function PUT(req, { params }) {
   }
 
   if (decision === "APPROVED") {
+    let writeValue = request.proposedValue;
+    if (request.field === "beneficiaries") {
+      try {
+        writeValue = beneficiaryWriteValue(request.proposedValue);
+      } catch {
+        return bad("This beneficiary change is malformed and cannot be applied. Reject it and ask the member to resubmit.");
+      }
+    }
     await prisma.member.update({
       where: { id: request.memberId },
-      data: { [request.field]: request.proposedValue },
+      data: { [request.field]: writeValue },
     });
   }
 

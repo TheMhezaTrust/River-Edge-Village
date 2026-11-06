@@ -12,6 +12,38 @@ const FIELDS = {
   idNumber: { label: "ID number", column: "idNumber", max: 30 },
 };
 
+// Beneficiaries are not a single column value but a list, so they are validated on
+// their own path below. A member may nominate up to this many.
+const MAX_BENEFICIARIES = 10;
+
+// Normalises the submitted beneficiary list into the same shape the Trust stores
+// ({ name, idNumber, relation, share }). Returns null when the list is not valid, so
+// the caller can reject the request rather than queue something the office cannot read.
+function normalizeBeneficiaries(input) {
+  let list = input;
+  if (typeof list === "string") {
+    try {
+      list = JSON.parse(list);
+    } catch {
+      return null;
+    }
+  }
+  if (!Array.isArray(list) || list.length === 0 || list.length > MAX_BENEFICIARIES) return null;
+  const out = [];
+  for (const raw of list) {
+    if (!raw || typeof raw !== "object") return null;
+    const name = String(raw.name ?? "").trim();
+    if (!name) return null;
+    out.push({
+      name: name.slice(0, 120),
+      idNumber: String(raw.idNumber ?? "").trim().slice(0, 30),
+      relation: String(raw.relation ?? "").trim().slice(0, 60),
+      share: String(raw.share ?? "").trim().slice(0, 20),
+    });
+  }
+  return out;
+}
+
 export async function GET() {
   const member = await getActivePortalMember();
   if (!member) return unauthorized();
@@ -33,6 +65,36 @@ export async function POST(req) {
   if (!limit.allowed) return bad(`Too many requests. Please try again in ${limit.retryAfterSeconds} seconds.`, 429);
 
   const b = await req.json();
+
+  // A beneficiary change is queued, never applied directly: the Trust decides who
+  // inherits a Right of Use, so the office approves it from the workstation.
+  if (b.field === "beneficiaries") {
+    const list = normalizeBeneficiaries(b.proposedValue);
+    if (!list) return bad("Enter at least one beneficiary with a name.");
+
+    await ensureMemberAccessTables();
+    const current = await prisma.member.findUnique({ where: { id: member.id }, select: { beneficiaries: true } });
+    const currentValue = current?.beneficiaries ?? "";
+    const proposedValue = JSON.stringify(list);
+
+    const pending = await prisma.memberChangeRequest.findFirst({
+      where: { memberId: member.id, field: "beneficiaries", status: "PENDING" },
+      select: { id: true },
+    });
+    if (pending) return bad("You already have a beneficiary change waiting for the Trust to review.");
+
+    const reason = String(b.reason ?? "").trim().slice(0, 500) || null;
+    const request = await prisma.memberChangeRequest.create({
+      data: { memberId: member.id, field: "beneficiaries", currentValue, proposedValue, reason },
+      select: { id: true, field: true, currentValue: true, proposedValue: true, reason: true, status: true, createdAt: true },
+    });
+    await prisma.notification.create({
+      data: { text: `${member.fullName} requested a beneficiary change in the member portal`, type: "MEMBER_CHANGE" },
+    });
+    await audit(null, "MEMBER_CHANGE_REQUESTED", "Member", member.id, { field: "beneficiaries" });
+    return created(request);
+  }
+
   const spec = FIELDS[b.field];
   if (!spec) return bad("Unknown field.");
 

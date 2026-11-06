@@ -8,7 +8,24 @@ import { Alert } from "@/components/ui";
 import PasswordConfirmModal from "@/components/ws/PasswordConfirmModal";
 import { dateTimeFmt } from "@/lib/format";
 
-const FIELD_LABELS = { fullName: "Full name", idNumber: "ID number" };
+const FIELD_LABELS = { fullName: "Full name", idNumber: "ID number", beneficiaries: "Beneficiaries" };
+
+// A beneficiary change stores its value as a JSON list, which is unreadable in an
+// alert, so summarise it into "Name (relation) — share" lines for the office.
+function beneficiaryLines(json) {
+  try {
+    const list = JSON.parse(json);
+    const arr = Array.isArray(list) ? list : list?.name ? [list] : [];
+    if (!arr.length) return ["(none)"];
+    return arr.map((b) => {
+      const rel = b.relation ? ` (${b.relation})` : "";
+      const share = b.share ? ` — ${b.share}` : "";
+      return `${b.name || "(unnamed)"}${rel}${share}`;
+    });
+  } catch {
+    return [json || "(blank)"];
+  }
+}
 
 // Portal members cannot edit their own name or ID number — those identify the plot
 // holder on the Trust's records — so the requests land here for the office to decide.
@@ -41,7 +58,7 @@ export default function MemberChangeRequests({ canManage }) {
         <h2 className="font-bold text-gray-900">
           Portal change requests <span className="text-amber-700">({requests.length})</span>
         </h2>
-        <span className="text-xs text-gray-500">Name and ID changes need your approval</span>
+        <span className="text-xs text-gray-500">Name, ID and beneficiary changes need your approval</span>
       </div>
 
       {error && <div className="mb-3"><Alert type="error">{error}</Alert></div>}
@@ -55,11 +72,28 @@ export default function MemberChangeRequests({ canManage }) {
                   <Link href={`/workstation/members/${r.memberId}`} className="text-forest-700 hover:underline">{r.member?.fullName || `Member #${r.memberId}`}</Link>
                   <span className="ml-2 font-normal text-gray-500">{FIELD_LABELS[r.field] || r.field}</span>
                 </p>
-                <p className="mt-1 text-sm text-gray-600">
-                  <span className="line-through text-gray-400">{r.currentValue || "(blank)"}</span>
-                  <span className="mx-2 text-gray-400">→</span>
-                  <span className="font-medium text-gray-900">{r.proposedValue}</span>
-                </p>
+                {r.field === "beneficiaries" ? (
+                  <div className="mt-1 grid gap-2 text-sm sm:grid-cols-2">
+                    <div>
+                      <p className="text-xs font-medium text-gray-400">Currently on record</p>
+                      <ul className="mt-0.5 list-disc pl-4 text-gray-500">
+                        {beneficiaryLines(r.currentValue).map((l, i) => <li key={i}>{l}</li>)}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-forest-700">Requested</p>
+                      <ul className="mt-0.5 list-disc pl-4 font-medium text-gray-900">
+                        {beneficiaryLines(r.proposedValue).map((l, i) => <li key={i}>{l}</li>)}
+                      </ul>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="mt-1 text-sm text-gray-600">
+                    <span className="line-through text-gray-400">{r.currentValue || "(blank)"}</span>
+                    <span className="mx-2 text-gray-400">→</span>
+                    <span className="font-medium text-gray-900">{r.proposedValue}</span>
+                  </p>
+                )}
                 {r.reason && <p className="mt-1 text-xs text-gray-500">Reason: {r.reason}</p>}
                 <p className="mt-1 text-xs text-gray-400">Requested {dateTimeFmt(r.createdAt)}</p>
               </div>

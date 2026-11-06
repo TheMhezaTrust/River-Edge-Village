@@ -8,17 +8,28 @@ import BankingDetails from "@/components/portal/BankingDetails";
 // The member's dashboard. `linkBase` is "/portal" for a signed-in member and
 // "/workstation/preview/<id>" when an administrator is previewing it through
 // "View as Member", so the in-page links resolve to the matching route in either
-// context instead of being dead. Public links (/terms) stay absolute.
-export default function DashboardView({ member, announcements = [], linkBase = "/portal" }) {
+// context instead of being dead. Public links (/terms) stay absolute. `photoSrc`
+// points at whichever authorized proxy can serve this member's photo in the current
+// context (the member's own portal session, or the staff session in a preview); it is
+// null when the member has no photo, and the raw Blob URL is never passed here.
+export default function DashboardView({ member, announcements = [], linkBase = "/portal", photoSrc = null }) {
   const { price, totalPaid, outstandingBalance } = memberTotals(member);
   const progress = price > 0 ? Math.min(100, Math.round((totalPaid / price) * 100)) : 0;
   const beneficiaries = parseBeneficiaries(member.beneficiaries);
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold text-forest-900">Welcome, {member.fullName.split(" ")[0]}</h1>
-        <p className="mt-1 text-sm text-gray-500">Member since {dateFmt(member.purchaseDate || member.createdAt)} · {member.email}</p>
+      <div className="flex items-center gap-4">
+        {photoSrc && (
+          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-gray-200 bg-gray-100">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={photoSrc} alt="" className="h-full w-full object-cover" />
+          </div>
+        )}
+        <div>
+          <h1 className="text-2xl font-extrabold text-forest-900">Welcome, {member.fullName.split(" ")[0]}</h1>
+          <p className="mt-1 text-sm text-gray-500">Member since {dateFmt(member.purchaseDate || member.createdAt)} · {member.email}</p>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">

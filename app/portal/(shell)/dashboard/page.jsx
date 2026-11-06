@@ -16,5 +16,11 @@ export default async function PortalDashboard() {
     take: 3,
   });
 
-  return <DashboardView member={member} announcements={announcements} />;
+  return (
+    <DashboardView
+      member={member}
+      announcements={announcements}
+      photoSrc={member.photoUrl ? "/api/portal/photo" : null}
+    />
+  );
 }
