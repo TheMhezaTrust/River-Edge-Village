@@ -5,16 +5,14 @@ import { zarFull, dateFmt } from "@/lib/format";
 import { StatusPill, StatCard } from "@/components/ui";
 import BankingDetails from "@/components/portal/BankingDetails";
 
-// The member's own dashboard. `preview` is set when an administrator is looking at
-// it through "View as Member": the numbers are identical, but the in-portal links
-// are rendered inert so a click cannot drop the admin into the live member session.
-export default function DashboardView({ member, announcements = [], preview = false }) {
+// The member's dashboard. `linkBase` is "/portal" for a signed-in member and
+// "/workstation/preview/<id>" when an administrator is previewing it through
+// "View as Member", so the in-page links resolve to the matching route in either
+// context instead of being dead. Public links (/terms) stay absolute.
+export default function DashboardView({ member, announcements = [], linkBase = "/portal" }) {
   const { price, totalPaid, outstandingBalance } = memberTotals(member);
   const progress = price > 0 ? Math.min(100, Math.round((totalPaid / price) * 100)) : 0;
   const beneficiaries = parseBeneficiaries(member.beneficiaries);
-
-  const MaybeLink = ({ href, className, children }) =>
-    preview ? <span className={className}>{children}</span> : <Link href={href} className={className}>{children}</Link>;
 
   return (
     <div className="space-y-6">
@@ -44,7 +42,7 @@ export default function DashboardView({ member, announcements = [], preview = fa
           <div className="card p-6">
             <div className="flex items-start justify-between gap-4">
               <h2 className="text-lg font-bold text-forest-900">Payment progress</h2>
-              <MaybeLink href="/portal/payments" className="text-sm font-semibold text-forest-700 hover:underline">Full history →</MaybeLink>
+              <Link href={`${linkBase}/payments`} className="text-sm font-semibold text-forest-700 hover:underline">Full history →</Link>
             </div>
             <div className="mt-4">
               <div className="mb-1 flex justify-between text-sm">
@@ -72,7 +70,7 @@ export default function DashboardView({ member, announcements = [], preview = fa
           <div className="card p-6">
             <div className="flex items-start justify-between gap-4">
               <h2 className="text-lg font-bold text-forest-900">{member.plots.length === 1 ? "My plot" : "My plots"}</h2>
-              <MaybeLink href="/portal/plot" className="text-sm font-semibold text-forest-700 hover:underline">Details →</MaybeLink>
+              <Link href={`${linkBase}/plot`} className="text-sm font-semibold text-forest-700 hover:underline">Details →</Link>
             </div>
             {member.plots.length > 0 ? (
               <div className="mt-4 space-y-3">
@@ -94,7 +92,7 @@ export default function DashboardView({ member, announcements = [], preview = fa
           <div className="card p-6">
             <div className="flex items-start justify-between gap-4">
               <h2 className="text-lg font-bold text-forest-900">Beneficiaries</h2>
-              <MaybeLink href="/portal/beneficiaries" className="text-sm font-semibold text-forest-700 hover:underline">View →</MaybeLink>
+              <Link href={`${linkBase}/beneficiaries`} className="text-sm font-semibold text-forest-700 hover:underline">View →</Link>
             </div>
             <p className="mt-3 text-sm text-gray-600">
               {beneficiaries.length > 0
@@ -135,7 +133,7 @@ export default function DashboardView({ member, announcements = [], preview = fa
               The rules that govern your Right of Use at River Edge Rural Village, including payment terms,
               building obligations and the Trust's undertakings.
             </p>
-            <MaybeLink href="/terms" className="btn-outline btn-sm mt-4 w-full justify-center">Read the full terms →</MaybeLink>
+            <Link href="/terms" className="btn-outline btn-sm mt-4 w-full justify-center">Read the full terms →</Link>
           </div>
         </div>
       </div>
