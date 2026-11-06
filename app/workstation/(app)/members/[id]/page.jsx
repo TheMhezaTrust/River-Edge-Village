@@ -9,6 +9,7 @@ import { usePermissions, ReadOnlyNote } from "@/components/ws/permissions";
 import { Modal, Field, StatusPill, Alert } from "@/components/ui";
 import PortalAccessPanel from "@/components/ws/PortalAccessPanel";
 import MemberContracts from "@/components/ws/MemberContracts";
+import PaymentAuditLog from "@/components/ws/PaymentAuditLog";
 import PasswordConfirmModal from "@/components/ws/PasswordConfirmModal";
 import { zarFull, dateFmt, METHOD_LABELS } from "@/lib/format";
 
@@ -224,6 +225,7 @@ export default function MemberDetailPage() {
         actions={
           <>
             <Link href="/workstation/members" className="btn-ghost btn-sm">← All members</Link>
+            <Link href={`/workstation/preview/${member.id}`} className="btn-outline btn-sm">👁 View as Member</Link>
             {canEditMember && <button className="btn-outline btn-sm" onClick={openEdit}>Edit</button>}
             {canRecordPayment && <button className="btn-primary btn-sm" onClick={() => setPayOpen(true)}>💵 Record Payment</button>}
           </>
@@ -393,6 +395,18 @@ export default function MemberDetailPage() {
           </div>
 
           <MemberContracts memberId={member.id} memberName={member.fullName} canManage={canManageDocuments} />
+
+          {canCorrectPayments && (
+            <div className="card overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h2 className="font-bold text-gray-900">Payment Edit Audit Log</h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Every correction and deletion of this member's recorded payments, with who made it and what changed.
+                </p>
+              </div>
+              <PaymentAuditLog memberId={member.id} plots={member.plots || []} />
+            </div>
+          )}
 
           <div className="card p-6">
             <h2 className="font-bold text-gray-900 mb-2">Notes</h2>
