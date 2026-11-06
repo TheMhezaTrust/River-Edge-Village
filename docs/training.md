@@ -7,7 +7,7 @@
 1. Sign in at `/login` (choose **Administrator / Staff**) or go directly to `/workstation` with your issued credentials. Change your password immediately (Settings → Profile).
 2. Tour the sidebar: every module is visible to every staff role.
 3. Understand the permission model:
-   - You can **view everything**; what you can **change** depends on your role — Administrator (everything, including staff accounts), Finance & Member Records (finances, payroll, members, inquiries, documents, communications) or Plot Administrator (plot records and layout). Read-only pages say so with an amber banner and show no edit buttons.
+   - You can **view everything**; what you can **change** depends on your role — Administrator (everything, including staff accounts), Finance Admin (the formal books: jars, expenses, period locking, adjustments, distributions, opening balances), Finance & Member Records (finances, payroll, members, inquiries, documents, communications) or Plot Administrator (plot records and layout). Read-only pages say so with an amber banner and show no edit buttons.
    - Every create/update/delete is written to the audit log, which every role can read at Settings → Audit.
 4. Dashboard walkthrough: stats, sales trend, quick actions, notifications bell, your tasks.
 
@@ -28,21 +28,25 @@
 
 **Exercise:** convert a seeded inquiry into a member and reserve their plot.
 
-## Session 3: Finance (45 min — Finance & Member Records, Administrator)
+## Session 3: Finance (45 min — Finance & Member Records, Finance Admin, Administrator)
 
-**Goal:** record money accurately and keep member balances correct.
+**Goal:** record money accurately, keep member balances correct, and keep the formal books SARS-ready.
 
 1. Recording a member payment (Members → member → Record Payment) automatically:
    - creates the Payment,
    - posts a matching Income entry,
+   - splits it across the active budget jars by their current percentages,
    - notifies the team.
    Never create a duplicate manual Income row for the same money.
 2. Reference format `Plot Number – Buyer Name` (Terms and Conditions of Sale clause 6.4) — reconcile weekly against the bank statement.
-3. Expenses: use the correct category (Salaries, Contractor, Supplies, Fees, Legal, Marketing).
-4. Cash Flow tab: review inflow/outflow and closing balance monthly; P&L summary feeds trustee reporting.
-5. Payroll: gross less PAYE/UIF/SDL = net; generate payslips before month-end.
+3. **Budget jars** (Finance → Budget, Finance Admin): each jar shows its %, allocated, spent and available. Percentages must total 100% and apply to *future* payments only. A jar with a balance cannot be deleted — move the money out with **Transfer** first. **Jars start at R0**: money is only allocated as payments come in, so fund them from the historical balance with a transfer before the first expense. The seeded percentages are placeholders (amber) until the Trust sets its real split.
+4. Expenses (Finance Admin): pick the correct category **and** the jar to charge. If the jar cannot cover it you get **"Insufficient funds in this category."** — transfer funds in or charge a different jar; never force it.
+5. **Period locking** (Finance → Periods & Audit, Finance Admin): **Close Period** permanently locks a month or year (password-confirmed). After that nobody — not even an Administrator — can edit or delete a transaction in it. The only fix is a balanced **Adjustment** posted into an open period. Close a month only once it is reconciled. **Verify chain** re-checks the hash-chained audit log for tampering.
+6. **Reports** (Finance → Reports): Trial Balance, General Ledger, Income Statement, Balance Sheet and Cash Flow, plus an Accountant Export (single journal-line CSV for Sage/Xero/QuickBooks). Each is CSV-downloadable and print-to-PDF. **Opening balances** are keyed here once, from the Trust's real books — the sheet must balance.
+7. **Distributions & IT3(t)** (Finance → Distributions, Finance Admin): record money paid *out* to a beneficiary (income distribution or capital return) with their ID number. The **IT3(t)** tab summarises a South African tax year (1 March – end February) per beneficiary for SARS — print or export it, and confirm figures with the accountant before submitting. The register is empty until a real payout exists, which is correct.
+8. Payroll: gross less PAYE/UIF/SDL = net; generate payslips before month-end.
 
-**Exercise:** record a R7,500 instalment, then find it in the cash-flow chart.
+**Exercise:** record a R7,500 instalment, watch it split across the jars on the Budget tab, then find it in the Trial Balance and the cash-flow chart.
 
 ## Session 4: Compliance & Departments (45 min — Administrator; others attend to understand the record)
 

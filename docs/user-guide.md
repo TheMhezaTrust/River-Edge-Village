@@ -61,12 +61,15 @@ The **Trust Info** page lists the Trust registration number (IT000099/2024(E)), 
 | Role | People | Can change |
 |---|---|---|
 | Administrator | Bongani Sifiniza | Everything, including staff accounts, settings and the audit log |
+| Finance Admin | *(designated by the Main Administrator — not yet assigned)* | Everything Finance & Member Records can, plus the formal books: budget jars and their percentages, expenses, closing accounting periods, posting adjustments, distributions, and opening balances |
 | Finance & Member Records | Thandile Sifiniza, Sisanda Toni, Nokuthula Gedle | Finances, payroll, member/customer records, inquiries, members' document vaults, member communications and announcements |
 | Plot Administrator | Sipho Jauka, Sydney Velapi, Lihle Jacob | Plot records: erf number, size, availability, price, block, date of purchase and layout position |
 
-All three roles can view every module (members, plots, finance, documents, departments, inquiries, tasks, communication, reports, settings) and can update their own tasks. Where you cannot edit, the page shows a **"Read-only view"** banner and the add/edit/delete buttons are not rendered.
+All roles can view every module (members, plots, finance, documents, departments, inquiries, tasks, communication, reports, settings) and can update their own tasks. Where you cannot edit, the page shows a **"Read-only view"** banner and the add/edit/delete buttons are not rendered.
 
-One action is narrower than the table suggests: **editing or deleting a payment that has already been recorded** is Administrator-only. Finance & Member Records can still capture new payments, but cannot rewrite or remove history, because that changes the Trust's recorded income.
+The formal financial books are narrower than the table suggests: **editing budget jars, expenses, accounting periods, adjustments, distributions and opening balances needs the Finance Admin right** (the Main Administrator has it automatically). Finance & Member Records can still capture income and member payments and can *view* every statement, but the fund-accounting and audit controls are reserved for Finance Admin, because they change the Trust's reported position.
+
+One action is narrower still: **editing or deleting a payment that has already been recorded** is Administrator-only. Finance & Member Records can still capture new payments, but cannot rewrite or remove history, because that changes the Trust's recorded income.
 
 A member's document vault follows the table exactly: every role can open and download a member's signed documents, while only Administrators and Finance & Member Records can upload or delete them — and both of those ask for your password first.
 
@@ -109,10 +112,18 @@ Shows quick stats (plots by status, members, outstanding balances, monthly reven
 - Only Administrator and Finance & Member Records can send. If an inquiry was logged by phone with no email address, the button tells you a reply cannot be sent — use the phone number instead.
 
 ### Finance
-- **Income / Expenses**: record and review all transactions with categories and totals. An income row that was generated from a member payment cannot be deleted here — correct or delete the payment on the member's page instead, so the member's statement and the books move together.
+Every money movement is posted into a formal double-entry ledger behind the scenes, so the statements under **Reports** and the audit trail reconcile to the rand. Each entry carries a unique Transaction ID (`INC-`, `EXP-`, `OPN-`, `ADJ-`, `DIS-`) that appears on every report and export.
+
+- **Income / Expenses**: record and review all transactions with categories and totals. An income row that was generated from a member payment cannot be deleted here — correct or delete the payment on the member's page instead, so the member's statement and the books move together. An expense must be charged to a budget jar (below) and is refused with **"Insufficient funds in this category."** if that jar cannot cover it. Recording into a closed period is blocked (see **Periods & Audit**).
+- **Budget** (Finance Admin): the fund-accounting "jars" — Salaries, Rezoning & Compliance, Eskom & Utilities, Security, Tools & Maintenance, Emergency Fund by default. Each card shows its percentage, allocated, spent and available with a progress bar. Every incoming payment is split across the active jars by their current percentages, which must always total 100% and apply to *future* payments only. You can add, rename or deactivate a jar (a jar with a balance cannot be deleted — move the money out first) and **Transfer** between jars. **New jars start at R0**: money is only allocated as payments are recorded, so fund them from the historical balance with a transfer before the first expense. The seeded percentages are placeholders, shown in amber, until the Trust sets its real split.
 - **Payments**: outstanding balances per member with full payment history.
 - **Cash Flow**: 12-month inflow/outflow chart, closing balances, and P&L summary.
 - **Payroll**: employees with PAYE/UIF/SDL deductions, net pay, and printable payslips.
+- **Distributions** (Finance Admin to add): money the Trust pays *out* to a beneficiary, as an income distribution or a capital return, optionally linked to a member and carrying the recipient's ID number. This register is what the annual **IT3(t)** is generated from — pick a South African tax year (1 March to end February) and it summarises per beneficiary, with **Print / Save PDF** and **Export CSV**. The register stays empty until a real payout is recorded, so an empty IT3(t) is the truthful answer. Confirm figures with the Trust's accountant before submitting to SARS.
+- **Reports**: the formal statements built purely from the ledger — **Trial Balance**, **General Ledger**, **Income Statement (P&L)**, **Balance Sheet** and **Cash Flow Statement** — plus an **Accountant Export** (one clean journal-line CSV shaped for Sage/Xero/QuickBooks). Each runs for a chosen period or as-at date and offers **Export CSV** and **Print / Save PDF**. The same screen holds **Opening balances** (Finance Admin): key the Trust's real account balances as at a date; the sheet must balance and posts as one OPENING entry the Balance Sheet is built from. Nothing is estimated — an empty book reports as empty.
+- **Periods & Audit** (Finance Admin): **Close Period** permanently locks a month or year — after that nobody, not even an Administrator, can edit or delete a transaction in it; corrections are made by posting a balanced **Adjustment** into an open period, which points back at the entry it fixes. Closing asks for your password. The audit log is **hash-chained** (each entry carries a hash linking it to the one before), and **Verify chain** re-computes it to confirm nothing has been altered or reordered.
+
+*VAT is deliberately not shown anywhere yet — the columns exist on the ledger but stay hidden until the Trust's VAT registration and vendor number are confirmed, so nothing implies VAT is being charged.*
 
 ### Documents
 The central Trust-level library (folders for Trust, Project, Legal, Financial, Member, Department and Minutes) is **switched off for now**, and its screen is not in the sidebar. A member's own signed paperwork is filed instead under **Member Contracts** on their record — see *Members* above — which is what the member sees in their portal under **My Documents**.
