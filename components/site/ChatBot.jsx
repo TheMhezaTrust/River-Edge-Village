@@ -17,7 +17,7 @@ const SUGGESTIONS = [
 ];
 
 const GREETING =
-  "Hi, I'm Mheza — The Mheza Trust assistant. Ask me about River Edge Rural Village: plots, pricing, banking, the Right of Use, or project status. I can only share public information.";
+  "Welcome! I am Mheza, your Mheza Trust AI Assistant. How can I help you today?";
 
 export default function ChatBot() {
   const pathname = usePathname();
