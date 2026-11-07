@@ -8,9 +8,11 @@ import Link from "next/link";
 // must never start.
 const SECTIONS = [
   { key: "dashboard", label: "Dashboard", path: "" },
+  { key: "profile", label: "My Profile", path: "/profile" },
   { key: "payments", label: "Payments & Statement", path: "/payments" },
   { key: "plot", label: "My Plot Details", path: "/plot" },
   { key: "beneficiaries", label: "My Beneficiaries", path: "/beneficiaries" },
+  { key: "documents", label: "My Certificate", path: "/documents" },
   { key: "statement", label: "Statement", path: "/statement" },
 ];
 
