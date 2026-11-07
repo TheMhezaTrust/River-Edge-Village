@@ -17,17 +17,21 @@ const QUICK_ACTIONS = [
 ];
 
 export default function WorkstationDashboard() {
-  const { can } = usePermissions();
+  const { can, user } = usePermissions();
   const { data, error, loading } = useFetch("/api/dashboard/stats");
 
   if (loading) return <LoadingBlock label="Loading dashboard…" />;
   if (error) return <ErrorBlock message={error} />;
 
   const { stats, trend, myTasks, recentActivity, notifications } = data;
+  const firstName = (user?.name || "").split(" ")[0];
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Dashboard" subtitle="Overview of plots, members, finances and activity across The Mheza Trust." />
+      <PageHeader
+        title={firstName ? `Welcome to the Workstation, ${firstName}` : "Welcome to the Workstation"}
+        subtitle="Overview of plots, members, finances and activity across The Mheza Trust."
+      />
 
       {/* Quick stats */}
       <div className="grid gap-4 grid-cols-2 md:grid-cols-4 xl:grid-cols-8">

@@ -16,6 +16,9 @@ export default function DashboardView({ member, announcements = [], linkBase = "
   const { price, totalPaid, outstandingBalance } = memberTotals(member);
   const progress = price > 0 ? Math.min(100, Math.round((totalPaid / price) * 100)) : 0;
   const beneficiaries = parseBeneficiaries(member.beneficiaries);
+  // A member's project comes from their plot(s); dedupe in case several plots sit in
+  // the same project, and skip plots that have no project linked yet.
+  const projectNames = [...new Set(member.plots.map((p) => p.project?.name).filter(Boolean))];
 
   return (
     <div className="space-y-6">
@@ -27,7 +30,7 @@ export default function DashboardView({ member, announcements = [], linkBase = "
           </div>
         )}
         <div>
-          <h1 className="text-2xl font-extrabold text-forest-900">Welcome, {member.fullName.split(" ")[0]}</h1>
+          <h1 className="text-2xl font-extrabold text-forest-900">Welcome back to River Edge, {member.fullName.split(" ")[0]}</h1>
           <p className="mt-1 text-sm text-gray-500">Member since {dateFmt(member.purchaseDate || member.createdAt)} · {member.email}</p>
         </div>
       </div>
@@ -97,6 +100,21 @@ export default function DashboardView({ member, announcements = [], linkBase = "
               </div>
             ) : (
               <p className="mt-3 text-sm text-gray-500">No plot assigned yet. Please contact the Trust office.</p>
+            )}
+          </div>
+
+          <div className="card p-6">
+            <h2 className="text-lg font-bold text-forest-900">{projectNames.length === 1 ? "My Project" : "My Projects"}</h2>
+            {projectNames.length > 0 ? (
+              <ul className="mt-3 space-y-1.5 text-sm">
+                {projectNames.map((name) => (
+                  <li key={name} className="flex items-center gap-2 rounded-lg bg-earth-50 px-3 py-2 text-gray-800">
+                    <span className="font-medium">Project:</span> {name}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-3 text-sm text-gray-500">No project assigned yet. Please contact the Trust office.</p>
             )}
           </div>
 
