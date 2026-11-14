@@ -11,6 +11,7 @@ import PortalAccessPanel from "@/components/ws/PortalAccessPanel";
 import CertificateVault from "@/components/ws/CertificateVault";
 import PaymentAuditLog from "@/components/ws/PaymentAuditLog";
 import PasswordConfirmModal from "@/components/ws/PasswordConfirmModal";
+import MemberBeneficiaries from "@/components/ws/MemberBeneficiaries";
 import { zarFull, dateFmt, METHOD_LABELS } from "@/lib/format";
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -49,12 +50,6 @@ export default function MemberDetailPage() {
   if (error) return <ErrorBlock message={error} />;
   if (!member) return null;
 
-  const beneficiaries = (() => {
-    try {
-      const p = JSON.parse(member.beneficiaries || "[]");
-      return Array.isArray(p) ? p : p?.name ? [p] : [];
-    } catch { return []; }
-  })();
   const price = member.price ?? 0;
   const progress = price > 0 ? Math.min(100, Math.round((member.totalPaid / price) * 100)) : 0;
   const plotsSum = (member.plots || []).reduce((s, p) => s + (p.price || 0), 0);
@@ -342,20 +337,13 @@ export default function MemberDetailPage() {
             </div>
           </div>
 
-          <div className="card p-6">
-            <h2 className="font-bold text-gray-900 mb-4">Beneficiaries</h2>
-            {beneficiaries.length === 0 ? (
-              <p className="text-sm text-gray-500">None nominated.</p>
-            ) : (
-              <ul className="space-y-2 text-sm">
-                {beneficiaries.map((b, i) => (
-                  <li key={i} className="flex justify-between rounded-lg bg-gray-50 px-3 py-2">
-                    <span className="font-medium">{b.name}</span><span className="text-gray-500">{b.relation}{b.share ? ` · ${b.share}` : ""}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          <MemberBeneficiaries
+            memberId={member.id}
+            memberName={member.fullName}
+            beneficiaries={member.beneficiaries}
+            canManage={canEditMember}
+            onSaved={reload}
+          />
 
           <PortalAccessPanel member={member} canManage={canEditMember} reload={reload} />
         </div>
@@ -472,23 +460,18 @@ export default function MemberDetailPage() {
             <Field label="Gender">
               <select className="input" value={editForm.gender} onChange={(e) => setEditForm((f) => ({ ...f, gender: e.target.value }))}>
                 <option value="">-</option>
-                {["Male", "Female", "Other"]
-                  .filter((o) => o !== editForm.gender)
-                  .map((o) => <option key={o} value={o}>{o}</option>)}
-                {editForm.gender && !["Male", "Female", "Other"].includes(editForm.gender) && (
-                  <option value={editForm.gender}>{editForm.gender}</option>
-                )}
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
               </select>
             </Field>
             <Field label="Marital Status">
               <select className="input" value={editForm.maritalStatus} onChange={(e) => setEditForm((f) => ({ ...f, maritalStatus: e.target.value }))}>
                 <option value="">-</option>
-                {["Single", "Married", "Widowed", "Divorced"]
-                  .filter((o) => o !== editForm.maritalStatus)
-                  .map((o) => <option key={o} value={o}>{o}</option>)}
-                {editForm.maritalStatus && !["Single", "Married", "Widowed", "Divorced"].includes(editForm.maritalStatus) && (
-                  <option value={editForm.maritalStatus}>{editForm.maritalStatus}</option>
-                )}
+                <option value="Single">Single</option>
+                <option value="Married">Married</option>
+                <option value="Widowed">Widowed</option>
+                <option value="Divorced">Divorced</option>
               </select>
             </Field>
             <Field label="Nationality">

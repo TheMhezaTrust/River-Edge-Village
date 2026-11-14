@@ -240,7 +240,7 @@ function MembersInner() {
           <Field label="Date of Birth"><input className="input" type="date" value={form.dateOfBirth} onChange={set("dateOfBirth")} /></Field>
           <Field label="Gender">
             <select className="input" value={form.gender} onChange={set("gender")}>
-              <option value="">-</option><option>Male</option><option>Female</option><option>Other</option>
+              <option value="">-</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option>
             </select>
           </Field>
           <Field label="Marital Status">

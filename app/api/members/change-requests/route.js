@@ -10,8 +10,12 @@ export async function GET(req) {
   if (error) return error;
   await ensureMemberAccessTables();
 
-  const status = new URL(req.url).searchParams.get("status") || "PENDING";
-  const where = status === "ALL" ? {} : { status };
+  const url = new URL(req.url);
+  const status = url.searchParams.get("status") || "PENDING";
+  const memberId = url.searchParams.get("memberId");
+  const where = {};
+  if (status !== "ALL") where.status = status;
+  if (memberId) where.memberId = Number(memberId);
 
   const requests = await prisma.memberChangeRequest.findMany({
     where,
