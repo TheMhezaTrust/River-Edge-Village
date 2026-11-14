@@ -11,7 +11,7 @@ import PasswordConfirmModal from "@/components/ws/PasswordConfirmModal";
 import MemberChangeRequests from "@/components/ws/MemberChangeRequests";
 import { zar, dateFmt } from "@/lib/format";
 
-const EMPTY = { fullName: "", idNumber: "", dateOfBirth: "", gender: "", maritalStatus: "", physicalAddress: "", postalAddress: "", phone: "", email: "", plotNumber: "", purchasePrice: "", paymentPlan: "", beneficiaries: "" };
+const EMPTY = { fullName: "", idNumber: "", dateOfBirth: "", gender: "", maritalStatus: "", nationality: "South African", physicalAddress: "", postalAddress: "", phone: "", email: "", plotNumber: "", purchasePrice: "", paymentPlan: "", beneficiaries: "" };
 
 export default function MembersPage() {
   return (
@@ -248,6 +248,7 @@ function MembersInner() {
               <option value="">-</option><option>Single</option><option>Married</option><option>Widowed</option><option>Divorced</option>
             </select>
           </Field>
+          <Field label="Nationality"><input className="input" value={form.nationality} onChange={set("nationality")} placeholder="South African" /></Field>
           <Field label="Physical Address"><input className="input" value={form.physicalAddress} onChange={set("physicalAddress")} /></Field>
           <Field label="Postal Address"><input className="input" value={form.postalAddress} onChange={set("postalAddress")} /></Field>
           <Field label="Contact Number" required><input className="input" required value={form.phone} onChange={set("phone")} /></Field>

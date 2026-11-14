@@ -83,7 +83,8 @@ export default function MemberDetailPage() {
     setEditForm({
       fullName: member.fullName || "", idNumber: member.idNumber || "", phone: member.phone || "",
       email: member.email || "", physicalAddress: member.physicalAddress || "", postalAddress: member.postalAddress || "",
-      dateOfBirth: member.dateOfBirth || "", maritalStatus: member.maritalStatus || "",
+      dateOfBirth: member.dateOfBirth || "", gender: member.gender || "", maritalStatus: member.maritalStatus || "",
+      nationality: member.nationality || "South African",
       purchasePrice: member.purchasePrice ?? "", purchaseDate: dateInput(member.purchaseDate),
       paymentPlan: member.paymentPlan || "", notes: member.notes || "",
     });
@@ -258,6 +259,7 @@ export default function MemberDetailPage() {
                 ["Date of Birth", member.dateOfBirth],
                 ["Gender", member.gender],
                 ["Marital Status", member.maritalStatus],
+                ["Nationality", member.nationality],
                 ["Date Joined", member.purchaseDate ? dateFmt(member.purchaseDate) : null],
                 ["Physical Address", member.physicalAddress],
                 ["Postal Address", member.postalAddress],
@@ -467,6 +469,17 @@ export default function MemberDetailPage() {
             <Field label="Date of Birth">
               <input className="input" type="date" value={editForm.dateOfBirth} onChange={(e) => setEditForm((f) => ({ ...f, dateOfBirth: e.target.value }))} />
             </Field>
+            <Field label="Gender">
+              <select className="input" value={editForm.gender} onChange={(e) => setEditForm((f) => ({ ...f, gender: e.target.value }))}>
+                <option value="">-</option>
+                {["Male", "Female", "Other"]
+                  .filter((o) => o !== editForm.gender)
+                  .map((o) => <option key={o} value={o}>{o}</option>)}
+                {editForm.gender && !["Male", "Female", "Other"].includes(editForm.gender) && (
+                  <option value={editForm.gender}>{editForm.gender}</option>
+                )}
+              </select>
+            </Field>
             <Field label="Marital Status">
               <select className="input" value={editForm.maritalStatus} onChange={(e) => setEditForm((f) => ({ ...f, maritalStatus: e.target.value }))}>
                 <option value="">-</option>
@@ -477,6 +490,9 @@ export default function MemberDetailPage() {
                   <option value={editForm.maritalStatus}>{editForm.maritalStatus}</option>
                 )}
               </select>
+            </Field>
+            <Field label="Nationality">
+              <input className="input" type="text" value={editForm.nationality} placeholder="South African" onChange={(e) => setEditForm((f) => ({ ...f, nationality: e.target.value }))} />
             </Field>
             <Field label="Date Joined / Date of Purchase">
               <input className="input" type="date" value={editForm.purchaseDate} onChange={(e) => setEditForm((f) => ({ ...f, purchaseDate: e.target.value }))} />

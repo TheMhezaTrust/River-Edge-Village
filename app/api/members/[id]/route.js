@@ -28,7 +28,7 @@ export async function PUT(req, { params }) {
   if (error) return error;
   const { id } = await params;
   const b = await req.json();
-  const allowed = ["fullName", "idNumber", "dateOfBirth", "gender", "maritalStatus", "physicalAddress", "postalAddress", "phone", "email", "purchasePrice", "paymentPlan", "notes", "isActive", "isArchived"];
+  const allowed = ["fullName", "idNumber", "dateOfBirth", "gender", "maritalStatus", "nationality", "physicalAddress", "postalAddress", "phone", "email", "purchasePrice", "paymentPlan", "notes", "isActive", "isArchived"];
   const data = {};
   for (const k of allowed) if (k in b) data[k] = b[k];
   if ("isArchived" in b) data.isArchived = Boolean(b.isArchived);

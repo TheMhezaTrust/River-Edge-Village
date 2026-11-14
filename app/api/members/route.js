@@ -65,6 +65,7 @@ export async function POST(req) {
         dateOfBirth: b.dateOfBirth || null,
         gender: b.gender || null,
         maritalStatus: b.maritalStatus || null,
+        nationality: b.nationality || null,
         physicalAddress: b.physicalAddress || null,
         postalAddress: b.postalAddress || null,
         phone: b.phone,

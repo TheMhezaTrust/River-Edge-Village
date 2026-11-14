@@ -47,6 +47,7 @@ model Member {
   dateOfBirth        String?
   gender             String?
   maritalStatus      String?
+  nationality        String?
   physicalAddress    String?
   postalAddress      String?
   phone              String
