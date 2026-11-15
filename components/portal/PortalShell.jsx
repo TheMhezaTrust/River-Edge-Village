@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { api } from "@/lib/api-client";
+import BrandFooter from "@/components/BrandFooter";
 import {
   HomeIcon,
   UserIcon,
@@ -125,7 +126,7 @@ export default function PortalShell({ member, children }) {
         </div>
       )}
 
-      <div className="lg:pl-64 print:pl-0">
+      <div className="flex min-h-screen flex-col lg:pl-64 print:pl-0">
         <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-gray-200 bg-white px-4 lg:px-6 print:hidden">
           <button className="lg:hidden p-2 rounded-md hover:bg-gray-100 cursor-pointer" onClick={() => setSidebarOpen(true)} aria-label="Open navigation menu">
             <MenuIcon width={22} height={22} />
@@ -145,7 +146,8 @@ export default function PortalShell({ member, children }) {
           </button>
         </header>
 
-        <main className="p-4 lg:p-6 print:p-0">{children}</main>
+        <main className="flex-1 p-4 lg:p-6 print:p-0">{children}</main>
+        <BrandFooter />
       </div>
 
       {secondsLeft !== null && (

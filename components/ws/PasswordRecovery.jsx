@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api-client";
 import { Alert, Field } from "@/components/ui";
+import BrandFooter from "@/components/BrandFooter";
 
 const TITLES = {
   email: "Reset Your Password",
@@ -90,7 +91,7 @@ export default function PasswordRecovery() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-forest-900 p-4">
+    <div className="relative flex min-h-screen items-center justify-center bg-forest-900 p-4 pb-16">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2.5">
@@ -171,6 +172,7 @@ export default function PasswordRecovery() {
           Staff accounts without recovery questions must ask the administrator for a password reset.
         </p>
       </div>
+      <BrandFooter className="absolute inset-x-0 bottom-0" />
     </div>
   );
 }

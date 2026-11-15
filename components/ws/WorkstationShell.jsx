@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { api } from "@/lib/api-client";
+import BrandFooter from "@/components/BrandFooter";
 import { can, ROLES, SUPER_ADMIN } from "@/lib/roles";
 import { PermissionsProvider } from "@/components/ws/permissions";
 import { dateTimeFmt } from "@/lib/format";
@@ -121,7 +122,7 @@ export default function WorkstationShell({ user, children }) {
         </div>
       )}
 
-      <div className="lg:pl-64">
+      <div className="flex min-h-screen flex-col lg:pl-64">
         {/* Topbar */}
         <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-gray-200 bg-white px-4 lg:px-6">
           <button className="lg:hidden p-2 rounded-md hover:bg-gray-100 cursor-pointer" onClick={() => setSidebarOpen(true)} aria-label="Open navigation menu">
@@ -192,7 +193,8 @@ export default function WorkstationShell({ user, children }) {
           </div>
         </header>
 
-        <main className="p-4 lg:p-6">{children}</main>
+        <main className="flex-1 p-4 lg:p-6">{children}</main>
+        <BrandFooter />
       </div>
     </div>
     </PermissionsProvider>

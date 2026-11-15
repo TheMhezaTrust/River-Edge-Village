@@ -1,4 +1,5 @@
 import Link from "next/link";
+import BrandFooter from "@/components/BrandFooter";
 
 // The chrome around every "View as Member" preview screen. It replaces the member's own
 // PortalShell: an amber banner makes it unmistakable that a staff user is looking at a
@@ -20,7 +21,7 @@ export default function PreviewShell({ member, active, children }) {
   const base = `/workstation/preview/${member.id}`;
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="flex min-h-screen flex-col bg-gray-100">
       <div className="sticky top-0 z-40 border-b border-amber-300 bg-amber-50 print:hidden">
         <div className="mx-auto max-w-6xl px-4 py-2.5">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -52,7 +53,8 @@ export default function PreviewShell({ member, active, children }) {
           </div>
         </nav>
       </div>
-      <main className="mx-auto max-w-6xl p-4 lg:p-6 print:p-0">{children}</main>
+      <main className="mx-auto w-full max-w-6xl flex-1 p-4 lg:p-6 print:p-0">{children}</main>
+      <BrandFooter />
     </div>
   );
 }

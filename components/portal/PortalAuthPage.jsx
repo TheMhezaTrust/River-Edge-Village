@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { TRUST } from "@/lib/contact";
+import BrandFooter from "@/components/BrandFooter";
 
 // Chrome for the signed-out portal screens (sign in, set password, forced change).
 // The portal has no public Navbar or footer, so these pages carry the minimum:
@@ -24,6 +25,7 @@ export default function PortalAuthPage({ children }) {
         {TRUST.legalName} · Reg {TRUST.registrationNumber} · {TRUST.primaryPhone} ·{" "}
         <a href={`mailto:${TRUST.email}`} className="text-forest-700 hover:underline">{TRUST.email}</a>
       </footer>
+      <BrandFooter className="-mt-3 bg-white/70 pb-3" />
     </div>
   );
 }
