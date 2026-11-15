@@ -4,9 +4,12 @@ import { useMemo, useState } from "react";
 import { api } from "@/lib/api-client";
 import { useFetch, PageHeader, LoadingBlock, ErrorBlock } from "@/components/ws/common";
 import { Field, Alert } from "@/components/ui";
+import { usePermissions } from "@/components/ws/permissions";
 import PasswordConfirmModal from "@/components/ws/PasswordConfirmModal";
 
 export default function ContentPage() {
+  const { can } = usePermissions();
+  const manage = can("settings:manage");
   const { data, loading, error, reload } = useFetch("/api/content");
   const [values, setValues] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -35,6 +38,7 @@ export default function ContentPage() {
   const setKey = (key) => (e) => setValues((v) => ({ ...(v || {}), [key]: e.target.value }));
 
   function openSave() {
+    if (!manage) return;
     setMsg(null);
     setSaveError(null);
     setConfirmOpen(true);
@@ -67,15 +71,21 @@ export default function ContentPage() {
         title="Website Content"
         subtitle="Edit the wording on the public Homepage, About Us and Projects pages — no code changes needed."
         actions={
-          <button className="btn-primary btn-sm" onClick={openSave} disabled={!dirty || saving}>
-            {saving ? "Saving…" : "Save Changes"}
-          </button>
+          manage && (
+            <button className="btn-primary btn-sm" onClick={openSave} disabled={!dirty || saving}>
+              {saving ? "Saving…" : "Save Changes"}
+            </button>
+          )
         }
       />
 
       {msg && <div className="mb-4"><Alert type="success">{msg}</Alert></div>}
       {saveError && <div className="mb-4"><Alert type="error">{saveError}</Alert></div>}
-      {!dirty && <p className="text-xs text-gray-500 mb-4">Changes are saved only when you press Save Changes and confirm your password.</p>}
+      {manage ? (
+        !dirty && <p className="text-xs text-gray-500 mb-4">Changes are saved only when you press Save Changes and confirm your password.</p>
+      ) : (
+        <p className="text-xs text-gray-500 mb-4">Read-only view — this wording is published to the public site by an Administrator.</p>
+      )}
 
       <div className="space-y-8">
         {groups.map(([group, fields]) => (
@@ -86,9 +96,9 @@ export default function ContentPage() {
                 <div key={f.key} className="card p-4">
                   <Field label={f.label}>
                     {f.multiline ? (
-                      <textarea className="input min-h-[80px]" rows={3} value={valueOf(f)} onChange={setKey(f.key)} />
+                      <textarea className="input min-h-[80px]" rows={3} value={valueOf(f)} onChange={setKey(f.key)} readOnly={!manage} />
                     ) : (
-                      <input className="input" value={valueOf(f)} onChange={setKey(f.key)} />
+                      <input className="input" value={valueOf(f)} onChange={setKey(f.key)} readOnly={!manage} />
                     )}
                   </Field>
                   {f.help && <p className="mt-1.5 text-xs text-gray-500">{f.help}</p>}
@@ -100,11 +110,13 @@ export default function ContentPage() {
         ))}
       </div>
 
-      <div className="mt-8 flex justify-end">
-        <button className="btn-primary" onClick={openSave} disabled={!dirty || saving}>
-          {saving ? "Saving…" : "Save Changes"}
-        </button>
-      </div>
+      {manage && (
+        <div className="mt-8 flex justify-end">
+          <button className="btn-primary" onClick={openSave} disabled={!dirty || saving}>
+            {saving ? "Saving…" : "Save Changes"}
+          </button>
+        </div>
+      )}
 
       <PasswordConfirmModal
         open={confirmOpen}

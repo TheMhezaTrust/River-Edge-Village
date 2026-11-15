@@ -546,6 +546,55 @@ model GalleryImage {
   createdAt   DateTime @default(now())
 }
 
+// ---------- Advertising ----------
+
+// Advertisements sold by the Trust and managed from the Ad Manager, a module only
+// the software owner (VIEW963_OWNER) can see. The image file itself lives in
+// Vercel Blob and imageUrl holds that public URL; this row stores the advertiser's
+// details and how long the creative is shown for in a rotation. Auto-provisioned
+// at runtime (lib/provision.js) so no manual migration is needed.
+model Advertisement {
+  id                Int      @id @default(autoincrement())
+  companyName       String
+  contactName       String?
+  contactPhone      String?
+  contactEmail      String?
+  imageUrl          String?
+  destinationUrl    String?
+  // How long this creative stays on screen before the rotation moves to the next
+  // one, in milliseconds. 3000 (3 seconds) unless the advertiser bought longer.
+  displayDurationMs Int      @default(3000)
+  isActive          Boolean  @default(true)
+  sortOrder         Int      @default(0)
+  notes             String?
+  createdById       Int?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @default(now()) @updatedAt
+  payments          AdPayment[]
+
+  @@index([isActive])
+}
+
+// What an advertiser has paid. Kept deliberately separate from the Trust's own
+// Income and ledger tables: this is the Ad Manager's revenue tracker, not part of
+// the books the Trust reports to SARS from.
+model AdPayment {
+  id              Int      @id @default(autoincrement())
+  advertisementId Int
+  advertisement   Advertisement @relation(fields: [advertisementId], references: [id], onDelete: Cascade)
+  amount          Float
+  date            DateTime @default(now())
+  method          String   @default("EFT") // EFT | CASH | CARD | OTHER
+  status          String   @default("RECEIVED") // RECEIVED | INVOICED
+  reference       String?
+  note            String?
+  createdById     Int?
+  createdAt       DateTime @default(now())
+
+  @@index([advertisementId])
+  @@index([date])
+}
+
 // Two-step password recovery for the Main Administrator (SUPER_ADMIN). Answers
 // are stored as bcrypt hashes, never in plain text, and are only ever read back
 // inside the recovery flow. failedAttempts/lockedUntil drive the brute-force

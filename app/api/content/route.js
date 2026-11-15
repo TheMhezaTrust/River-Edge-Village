@@ -15,7 +15,9 @@ const ENSURE_TABLE = `CREATE TABLE IF NOT EXISTS "SiteContent" (
 )`;
 
 export async function GET() {
-  const { error } = await guard("settings:manage");
+  // Reading the CMS is open to the auditing role; publishing a change below stays
+  // behind settings:manage.
+  const { error } = await guard("content:view");
   if (error) return error;
   const values = await getSiteContent();
   return ok({

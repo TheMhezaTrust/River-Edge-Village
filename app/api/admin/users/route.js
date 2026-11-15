@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { guard, audit, ROLES, SUPER_ADMIN } from "@/lib/auth";
+import { guard, audit, ROLES, SUPER_ADMIN, VIEW963_OWNER } from "@/lib/auth";
 import { ASSIGNABLE_ROLES } from "@/lib/roles";
 import { ok, bad, created } from "@/lib/api";
 
@@ -11,11 +11,12 @@ export async function GET() {
     select: { id: true, name: true, email: true, role: true, title: true, phone: true, isActive: true, lastLoginAt: true, createdAt: true },
     orderBy: { name: "asc" },
   });
-  // The Main Administrator designation is backend-only, so it is reported to the
-  // staff directory as a plain administrator role (label and raw value alike).
+  // The Main Administrator and software owner designations are backend-only, so
+  // both are reported to the staff directory as a plain administrator role (label
+  // and raw value alike).
   return ok(
     users.map((u) => {
-      const role = u.role === SUPER_ADMIN ? "ADMIN" : u.role;
+      const role = u.role === SUPER_ADMIN || u.role === VIEW963_OWNER ? "ADMIN" : u.role;
       return { ...u, role, roleLabel: ROLES[role] };
     })
   );

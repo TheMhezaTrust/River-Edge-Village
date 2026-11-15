@@ -7,7 +7,7 @@ import { useFetch, PageHeader, LoadingBlock, ErrorBlock, ConfirmButton } from "@
 import { ReadOnlyNote } from "@/components/ws/permissions";
 import { Modal, Field, StatusPill, Alert } from "@/components/ui";
 import { dateTimeFmt } from "@/lib/format";
-import { ROLES, ROLE_PERMISSIONS, ASSIGNABLE_ROLES, SUPER_ADMIN, can } from "@/lib/roles";
+import { ROLES, ROLE_PERMISSIONS, ASSIGNABLE_ROLES, SUPER_ADMIN, VIEW963_OWNER, can } from "@/lib/roles";
 import SecurityQuestionsForm from "@/components/ws/SecurityQuestionsForm";
 
 const TABS = ["users", "roles", "profile", "audit"];
@@ -216,6 +216,10 @@ function UsersTab({ canManage }) {
 }
 
 function RolesTab() {
+  // The two designated roles are left out: neither is assignable from the
+  // workstation, so listing them would disclose an internal structure that no
+  // administrator here can act on.
+  const hidden = [SUPER_ADMIN, VIEW963_OWNER];
   return (
     <div className="card overflow-x-auto">
       <table className="table-base">
@@ -223,7 +227,7 @@ function RolesTab() {
           <tr><th>Role</th><th>Permissions</th></tr>
         </thead>
         <tbody>
-          {Object.entries(ROLE_PERMISSIONS).filter(([role]) => role !== SUPER_ADMIN).map(([role, perms]) => (
+          {Object.entries(ROLE_PERMISSIONS).filter(([role]) => !hidden.includes(role)).map(([role, perms]) => (
             <tr key={role}>
               <td className="font-semibold text-forest-700 whitespace-nowrap align-top">{ROLES[role] || role}</td>
               <td>

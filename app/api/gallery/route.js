@@ -18,7 +18,9 @@ const ENSURE_TABLE = `CREATE TABLE IF NOT EXISTS "GalleryImage" (
 // Admin-only list of gallery images. The public /gallery page queries Prisma
 // directly in its server component; this endpoint backs the workstation UI.
 export async function GET() {
-  const { error } = await guard("settings:manage");
+  // Reading the gallery is open to the auditing role; adding or removing an image
+  // below stays behind settings:manage.
+  const { error } = await guard("gallery:view");
   if (error) return error;
   try {
     const images = await prisma.galleryImage.findMany({ orderBy: { createdAt: "desc" } });

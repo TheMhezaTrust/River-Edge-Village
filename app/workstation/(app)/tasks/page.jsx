@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api-client";
 import { useFetch, PageHeader, LoadingBlock, ErrorBlock, ConfirmButton } from "@/components/ws/common";
 import { Modal, Field, StatusPill, Alert } from "@/components/ui";
+import { usePermissions } from "@/components/ws/permissions";
 import { dateFmt } from "@/lib/format";
 
 const STATUSES = ["TODO", "IN_PROGRESS", "COMPLETED"];
@@ -12,6 +13,8 @@ const EMPTY = { title: "", description: "", assignedTo: "", dueDate: "", priorit
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
 export default function TasksPage() {
+  const { can } = usePermissions();
+  const manage = can("tasks:manage");
   const { data: tasks, loading, error, reload } = useFetch("/api/tasks");
   const [users, setUsers] = useState(null);
   const [view, setView] = useState("list"); // list | kanban | calendar
@@ -49,12 +52,14 @@ export default function TasksPage() {
   function refresh() { reload(); if (myOnly) reloadMy(); }
 
   function openAdd() {
+    if (!manage) return;
     setForm({ ...EMPTY, dueDate: "" });
     setFormError(null);
     setTaskModal({ mode: "add" });
   }
 
   function openEdit(t) {
+    if (!manage) return;
     setForm({
       title: t.title || "",
       description: t.description || "",
@@ -129,7 +134,7 @@ export default function TasksPage() {
                 </button>
               ))}
             </div>
-            <button className="btn-primary btn-sm" onClick={openAdd}>+ Add Task</button>
+            {manage && <button className="btn-primary btn-sm" onClick={openAdd}>+ Add Task</button>}
           </>
         }
       />
@@ -157,13 +162,17 @@ export default function TasksPage() {
         <div className="card overflow-x-auto">
           <table className="table-base">
             <thead>
-              <tr><th>Title</th><th>Status</th><th>Priority</th><th>Due</th><th>Assignee</th><th></th></tr>
+              <tr><th>Title</th><th>Status</th><th>Priority</th><th>Due</th><th>Assignee</th>{manage && <th></th>}</tr>
             </thead>
             <tbody>
               {filtered.map((t) => (
                 <tr key={t.id} className={isOverdue(t) ? "bg-red-50" : undefined}>
                   <td>
-                    <button className="font-semibold text-forest-700 hover:underline text-left" onClick={() => openEdit(t)}>{t.title}</button>
+                    {manage ? (
+                      <button className="font-semibold text-forest-700 hover:underline text-left" onClick={() => openEdit(t)}>{t.title}</button>
+                    ) : (
+                      <span className="font-semibold text-gray-800">{t.title}</span>
+                    )}
                     {t.description && <p className="text-xs text-gray-500 line-clamp-1">{t.description}</p>}
                   </td>
                   <td><StatusPill status={t.status} /></td>
@@ -172,18 +181,20 @@ export default function TasksPage() {
                     {t.dueDate ? dateFmt(t.dueDate) : "-"}{isOverdue(t) ? " (overdue)" : ""}
                   </td>
                   <td className="text-xs">{t.assignee?.name || "Unassigned"}</td>
-                  <td className="whitespace-nowrap">
-                    <button className="btn-ghost btn-sm" onClick={() => openEdit(t)}>Edit</button>
-                    <ConfirmButton
-                      label="Delete"
-                      className="btn-ghost btn-sm text-red-600"
-                      confirmText={`Delete task "${t.title}"?`}
-                      onConfirm={async () => { await api.del(`/api/tasks/${t.id}`); refresh(); }}
-                    />
-                  </td>
+                  {manage && (
+                    <td className="whitespace-nowrap">
+                      <button className="btn-ghost btn-sm" onClick={() => openEdit(t)}>Edit</button>
+                      <ConfirmButton
+                        label="Delete"
+                        className="btn-ghost btn-sm text-red-600"
+                        confirmText={`Delete task "${t.title}"?`}
+                        onConfirm={async () => { await api.del(`/api/tasks/${t.id}`); refresh(); }}
+                      />
+                    </td>
+                  )}
                 </tr>
               ))}
-              {filtered.length === 0 && <tr><td colSpan={6} className="text-center text-gray-500 py-10">No tasks match your filters.</td></tr>}
+              {filtered.length === 0 && <tr><td colSpan={manage ? 6 : 5} className="text-center text-gray-500 py-10">No tasks match your filters.</td></tr>}
             </tbody>
           </table>
         </div>
@@ -198,6 +209,7 @@ export default function TasksPage() {
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => {
                 e.preventDefault();
+                if (!manage) return;
                 const id = Number(e.dataTransfer.getData("text/plain") || dragId);
                 setDragId(null);
                 if (id) moveTask(id, s);
@@ -211,13 +223,17 @@ export default function TasksPage() {
                 {filtered.filter((t) => t.status === s).map((t) => (
                   <div
                     key={t.id}
-                    draggable
-                    onDragStart={(e) => { e.dataTransfer.setData("text/plain", String(t.id)); setDragId(t.id); }}
+                    draggable={manage}
+                    onDragStart={manage ? (e) => { e.dataTransfer.setData("text/plain", String(t.id)); setDragId(t.id); } : undefined}
                     onDragEnd={() => setDragId(null)}
-                    className={`card p-3 cursor-grab active:cursor-grabbing ${isOverdue(t) ? "border-red-300 bg-red-50" : ""} ${dragId === t.id ? "opacity-50" : ""}`}
+                    className={`card p-3 ${manage ? "cursor-grab active:cursor-grabbing" : ""} ${isOverdue(t) ? "border-red-300 bg-red-50" : ""} ${dragId === t.id ? "opacity-50" : ""}`}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <button className="text-sm font-semibold text-gray-800 text-left hover:underline" onClick={() => openEdit(t)}>{t.title}</button>
+                      {manage ? (
+                        <button className="text-sm font-semibold text-gray-800 text-left hover:underline" onClick={() => openEdit(t)}>{t.title}</button>
+                      ) : (
+                        <span className="text-sm font-semibold text-gray-800 text-left">{t.title}</span>
+                      )}
                       <StatusPill status={t.priority} />
                     </div>
                     <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
@@ -253,14 +269,17 @@ export default function TasksPage() {
                     <p className={`font-semibold mb-1 ${cell.key === todayStr() ? "text-forest-700" : "text-gray-500"}`}>{cell.day}</p>
                     <div className="space-y-1">
                       {cell.tasks.map((t) => (
-                        <button
+                        <span
                           key={t.id}
-                          onClick={() => openEdit(t)}
-                          className={`block w-full text-left rounded px-1 py-0.5 truncate ${isOverdue(t) ? "bg-red-100 text-red-700" : t.status === "COMPLETED" ? "bg-forest-100 text-forest-800" : "bg-amber-100 text-amber-800"}`}
+                          role={manage ? "button" : undefined}
+                          tabIndex={manage ? 0 : undefined}
+                          onClick={manage ? () => openEdit(t) : undefined}
+                          onKeyDown={manage ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openEdit(t); } } : undefined}
+                          className={`block w-full text-left rounded px-1 py-0.5 truncate ${isOverdue(t) ? "bg-red-100 text-red-700" : t.status === "COMPLETED" ? "bg-forest-100 text-forest-800" : "bg-amber-100 text-amber-800"} ${manage ? "cursor-pointer" : ""}`}
                           title={`${t.title} (${t.priority})`}
                         >
                           {t.title}
-                        </button>
+                        </span>
                       ))}
                     </div>
                   </>

@@ -12,7 +12,7 @@ const QUICK_ACTIONS = [
   ["/workstation/finance?tab=payments", "💵", "Record Payment", "finance:manage"],
   ["/workstation/inquiries?new=1", "📝", "Add Inquiry", "inquiries:manage"],
   ["/workstation/plots", "🗺️", "Update Plots", "plots:manage"],
-  ["/workstation/communication", "✉️", "Send Message", null],
+  ["/workstation/communication", "✉️", "Send Message", "communication:manage"],
   ["/workstation/reports", "📈", "Generate Report", null],
 ];
 

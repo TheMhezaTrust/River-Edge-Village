@@ -5,9 +5,12 @@ import { uploadPresigned } from "@vercel/blob/client";
 import { api } from "@/lib/api-client";
 import { useFetch, PageHeader, LoadingBlock, ErrorBlock } from "@/components/ws/common";
 import { Field, Alert } from "@/components/ui";
+import { usePermissions } from "@/components/ws/permissions";
 import PasswordConfirmModal from "@/components/ws/PasswordConfirmModal";
 
 export default function GalleryAdminPage() {
+  const { can } = usePermissions();
+  const manage = can("settings:manage");
   const { data: images, loading, error, reload } = useFetch("/api/gallery");
   const fileRef = useRef(null);
   const [file, setFile] = useState(null);
@@ -115,6 +118,7 @@ export default function GalleryAdminPage() {
       {msg && <div className="mb-4"><Alert type="success">{msg}</Alert></div>}
       {formError && <div className="mb-4"><Alert type="error">{formError}</Alert></div>}
 
+      {manage && (
       <div className="card p-5 mb-8">
         <h2 className="text-lg font-bold text-forest-900 mb-4">Upload an image</h2>
         <form onSubmit={submit} className="grid gap-4">
@@ -170,6 +174,7 @@ export default function GalleryAdminPage() {
           </p>
         </form>
       </div>
+      )}
 
       <h2 className="text-lg font-bold text-forest-900 mb-3">
         Uploaded images <span className="text-sm font-normal text-gray-500">({list.length})</span>
@@ -177,7 +182,7 @@ export default function GalleryAdminPage() {
 
       {list.length === 0 ? (
         <div className="card p-8 text-center text-sm text-gray-500">
-          No images yet. Upload your first photo above.
+          {manage ? "No images yet. Upload your first photo above." : "No images yet."}
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -189,7 +194,7 @@ export default function GalleryAdminPage() {
                 {img.title && <p className="font-semibold text-sm text-gray-900">{img.title}</p>}
                 {img.description && <p className="mt-0.5 text-xs text-gray-600">{img.description}</p>}
                 <div className="mt-auto pt-3 flex justify-end">
-                  <button className="btn-danger btn-sm" onClick={() => remove(img)}>Remove</button>
+                  {manage && <button className="btn-danger btn-sm" onClick={() => remove(img)}>Remove</button>}
                 </div>
               </div>
             </div>

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
-import { getStaffSession, SUPER_ADMIN } from "@/lib/auth";
+import { getStaffSession, SUPER_ADMIN, VIEW963_OWNER } from "@/lib/auth";
 import { ensureSuperAdmin } from "@/lib/super-admin";
+import { ensureView963Owner } from "@/lib/owner-account";
 import { prisma } from "@/lib/prisma";
 import { getAnalytics } from "@/lib/analytics";
 import AnalyticsDashboard from "@/components/ws/AnalyticsDashboard";
@@ -8,17 +9,19 @@ import AnalyticsDashboard from "@/components/ws/AnalyticsDashboard";
 export const metadata = { title: "Traffic Analytics", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
-// Main Administrator only. Everyone else — including other administrators —
-// gets a 404, matching how the administrator-only /plots routes behave.
+// Main Administrator and software owner only. Everyone else — including other
+// administrators — gets a 404, matching how the administrator-only /plots routes behave.
 export default async function AnalyticsPage() {
   const session = await getStaffSession();
   if (!session) notFound();
   const user = await prisma.user.findUnique({
     where: { id: session.id },
-    select: { id: true, name: true, isActive: true, role: true },
+    select: { id: true, name: true, email: true, isActive: true, role: true },
   });
-  const role = user?.isActive ? await ensureSuperAdmin(user) : null;
-  if (role !== SUPER_ADMIN) notFound();
+  if (!user?.isActive) notFound();
+  let role = await ensureView963Owner(user);
+  if (role !== VIEW963_OWNER) role = await ensureSuperAdmin(user);
+  if (role !== SUPER_ADMIN && role !== VIEW963_OWNER) notFound();
 
   // This page is Main-Administrator-only and noindexed, so a database problem is
   // reported here rather than crashing the route.

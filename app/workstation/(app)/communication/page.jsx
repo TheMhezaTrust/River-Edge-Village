@@ -62,13 +62,16 @@ function CommunicationInner() {
   const setMsg = (k) => (e) => setMsgForm((f) => ({ ...f, [k]: e.target.value }));
   const setAnn = (k) => (e) => setAnnForm((f) => ({ ...f, [k]: e.target.value }));
   const canAnnounce = can(me, "announcements:manage");
+  const canWrite = can(me, "communication:manage");
 
   const unreadCount = useMemo(() => (box === "inbox" ? (messages || []).filter((m) => !m.isRead).length : 0), [messages, box]);
 
   async function openMessage(m) {
     setSelected(m);
     setFormError(null);
-    if (box === "inbox" && !m.isRead) {
+    // Marking a message read is a write, so an auditing role opens messages
+    // without flipping the flag (the API would reject it).
+    if (box === "inbox" && !m.isRead && canWrite) {
       try {
         await api.put("/api/communication/messages", { id: m.id, isRead: true });
         setSelected({ ...m, isRead: true });
@@ -128,7 +131,7 @@ function CommunicationInner() {
         subtitle="Internal messages, announcements and templates"
         actions={
           <>
-            {tab === "messages" && <button className="btn-primary btn-sm" onClick={() => { setMsgForm(EMPTY_MSG); setFormError(null); setComposeOpen(true); }}>+ Compose</button>}
+            {tab === "messages" && canWrite && <button className="btn-primary btn-sm" onClick={() => { setMsgForm(EMPTY_MSG); setFormError(null); setComposeOpen(true); }}>+ Compose</button>}
             {tab === "announcements" && canAnnounce && <button className="btn-primary btn-sm" onClick={() => { setAnnForm(EMPTY_ANN); setFormError(null); setAnnOpen(true); }}>+ Post Announcement</button>}
           </>
         }

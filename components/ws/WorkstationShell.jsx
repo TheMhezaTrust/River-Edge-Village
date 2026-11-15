@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { api } from "@/lib/api-client";
 import BrandFooter from "@/components/BrandFooter";
-import { can, ROLES, SUPER_ADMIN } from "@/lib/roles";
+import { can, ROLES, SUPER_ADMIN, isOwnerRole } from "@/lib/roles";
 import { PermissionsProvider } from "@/components/ws/permissions";
 import { dateTimeFmt } from "@/lib/format";
 
@@ -20,9 +20,10 @@ const NAV = [
   { href: "/workstation/tasks", label: "Tasks", icon: "✅", perm: "tasks:view" },
   { href: "/workstation/communication", label: "Communication", icon: "✉️", perm: "communication:view" },
   { href: "/workstation/reports", label: "Reports", icon: "📈", perm: "reports:view" },
-  { href: "/workstation/analytics", label: "Traffic Analytics", icon: "🌐", perm: null, superAdminOnly: true },
-  { href: "/workstation/content", label: "Website Content", icon: "📝", perm: "settings:manage" },
-  { href: "/workstation/gallery", label: "Photo Gallery", icon: "🖼️", perm: "settings:manage" },
+  { href: "/workstation/ads", label: "Ad Manager", icon: "📣", perm: "ads:view" },
+  { href: "/workstation/analytics", label: "Traffic Analytics", icon: "🌐", perm: null, restricted: true },
+  { href: "/workstation/content", label: "Website Content", icon: "📝", perm: "content:view" },
+  { href: "/workstation/gallery", label: "Photo Gallery", icon: "🖼️", perm: "gallery:view" },
   { href: "/workstation/settings", label: "Settings", icon: "⚙️", perm: null },
 ];
 
@@ -59,10 +60,12 @@ export default function WorkstationShell({ user, children }) {
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  // Traffic Analytics is visible to the Main Administrator only; other
-  // administrators do not see the link (and get a 404 on the route itself).
+  // Traffic Analytics is visible to the Main Administrator and the software
+  // owner only; other administrators do not see the link (and get a 404 on the
+  // route itself). Ad Manager is owner-only through the ads:view permission.
+  const owner = isOwnerRole(user.role);
   const visibleNav = NAV.filter(
-    (item) => (!item.superAdminOnly || user.role === SUPER_ADMIN) && (!item.perm || can(user, item.perm))
+    (item) => (!item.restricted || user.role === SUPER_ADMIN || owner) && (!item.perm || can(user, item.perm))
   );
   const unread = notifications.filter((n) => !n.isRead).length;
   const isActive = (href) => (href === "/workstation" ? pathname === "/workstation" : pathname.startsWith(href));
@@ -154,7 +157,7 @@ export default function WorkstationShell({ user, children }) {
                 <div className="absolute right-0 mt-2 w-80 rounded-xl border border-gray-200 bg-white shadow-xl overflow-hidden">
                   <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
                     <p className="font-semibold text-sm text-gray-900">Notifications</p>
-                    {unread > 0 && <button onClick={markAllRead} className="text-xs text-forest-700 hover:underline cursor-pointer">Mark all read</button>}
+                    {unread > 0 && !owner && <button onClick={markAllRead} className="text-xs text-forest-700 hover:underline cursor-pointer">Mark all read</button>}
                   </div>
                   <div className="max-h-80 overflow-y-auto">
                     {notifications.length === 0 && <p className="p-4 text-sm text-gray-500">No notifications.</p>}

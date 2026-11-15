@@ -137,6 +137,23 @@ It is deliberately invisible — the role label is **"Administrator"**, identica
 - **Traffic Analytics** (`/workstation/analytics`) — public-website traffic: unique visitors and page views for today / this week / this month / this year, a 30-day trend chart and a most-visited-pages breakdown (recharts). The sidebar link renders only for this account; everyone else, including other administrators, gets a 404 on the route.
 - **Security-question password recovery** — below.
 
+### Software Owner (View963 Tech) — backend-only, read-only
+
+One account is designated the **Software Owner** (`VIEW963_OWNER_EMAIL` / `VIEW963_OWNER_PASSWORD` in Vercel — see `lib/owner-account.js`). It outranks the Main Administrator in seniority and is created automatically the first time that email address signs in; it is never listed in Settings → Users (it is masked as "Administrator" in the staff directory) and no administrator can edit it, reset its password or delete it.
+
+The role is an **auditing** role. It carries every `:view` permission and no write permission at all, so each module opens — Members, Finance, Plots, Projects, Inquiries, Departments, Tasks, Communication, Reports, Website Content, Photo Gallery, Traffic Analytics, Settings — with every Save / Edit / Delete / Approve control hidden. Two layers enforce it:
+
+- **RBAC** — `guard("resource:manage")` rejects every write, and the UI hides controls the role cannot use. A handful of controls were never permission-gated (composing an internal message, marking notifications read, the Website Content and Photo Gallery save/upload buttons), so those are hidden explicitly on the role.
+- **`middleware.js`** — an Edge catch-all on `/api/*` that returns `403` for any non-`GET` request from this role outside `/api/ads` and `/api/auth`. It covers routes that were only ever guarded by a `:view` permission, so adding one later cannot quietly open a write path.
+
+Its one writable module is the **Ad Manager** (`/workstation/ads`, sidebar tab visible to this role alone — everyone else gets a 404):
+
+- Advertisements: company name, contact person / phone / email, destination URL, an image uploaded straight to Vercel Blob (`/api/ads/upload`, presigned, 20 MB, `image/*`), display order, live/paused, notes, and a **display duration** in milliseconds (default `3000`).
+- Ad revenue: payments recorded per advertiser as *Received* or *Invoiced*, with a cash-flow dashboard (received, outstanding, this month vs last, booked all-time). This is a separate tracker — ad money is deliberately **not** posted to the Trust's `Income` / ledger tables.
+- Nothing is rendered on the public site yet; the module manages and measures only.
+
+Both tables (`Advertisement`, `AdPayment`) are auto-provisioned on first use, like the other additive tables.
+
 ### Password recovery (two security questions)
 
 **Forgot password?** on `/workstation/login` leads to `/workstation/recover`: work email → security question 1 → security question 2 → new password. Each correct answer exchanges a short-lived (10 minute) signed stage token for the next step, so no step can be skipped, and the questions are revealed only inside that flow.
@@ -304,6 +321,9 @@ Verify counts on Neon (`member` 146, `plot` 224, etc.) before deploying. Keep `d
    | `LLM_BASE_URL` | `https://api.deepseek.com/v1` | optional (default) |
    | `LLM_MODEL` | `deepseek-chat` | optional (default) |
    | `SUPER_ADMIN_EMAIL` | `bongani.sifiniza@themhezatrust.local` | optional — staff account holding the backend-only Main Administrator role (Traffic Analytics + security-question recovery) |
+   | `VIEW963_OWNER_EMAIL` | the software owner's work email | optional — designates the read-only Software Owner role and the exclusive Ad Manager. The account is created on the first sign-in with this address; never commit the value |
+   | `VIEW963_OWNER_PASSWORD` | a strong password (min 8 chars) | initial password for that account, used once at creation — change it after the first sign-in. Never commit the value |
+   | `VIEW963_OWNER_NAME` | `View963 Tech` | optional — display name on the account |
    | `ANALYTICS_SALT` | any long random string | optional — salt for the hashed visitor IP; falls back to `JWT_SECRET` |
    | `RESEND_API_KEY` | `re_…` from resend.com | enables outbound email (inquiry replies). Without it the Reply to Customer button reports that email is not configured |
    | `EMAIL_FROM` | `The Mheza Trust <inquiries@mail.themhezatrust.co.za>` | must be an address on the domain verified in Resend — see "Verifying the sending domain (SPF/DKIM)". The fallback baked into `lib/email.js` is still the root domain, so this variable has to be set |
