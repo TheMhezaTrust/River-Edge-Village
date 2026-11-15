@@ -100,20 +100,15 @@ export default function LoginChooser({ initialTab = "member" }) {
 
       {isStaff ? (
         <div className="mt-6 rounded-lg bg-earth-50 border border-earth-200 p-3 text-xs text-gray-600">
-          <strong>Staff accounts</strong> are issued by the administrator. Every account can view all modules; changes are limited to your role —
-          <span className="font-medium"> Administrator</span> (full access),
-          <span className="font-medium"> Finance &amp; Member Records</span> (finances and customer information) or
-          <span className="font-medium"> Plot Administrator</span> (erf sizes, availability and layout). All activity is logged.
-          Contact the administrator if you need access or a password reset.
+          Staff accounts are issued by the administrator. Contact the administrator if you need access or a password reset.
         </div>
       ) : (
         <div className="mt-6 space-y-3">
           <p className="text-center text-sm text-gray-600">
-            Member accounts are created by the Trust office. Call {TRUST.primaryPhone} or email{" "}
+            Member accounts are created by the Trust office. Email{" "}
             <a href={`mailto:${TRUST.email}`} className="text-forest-700 font-semibold hover:underline">{TRUST.email}</a> to be set up.
           </p>
           <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-xs text-blue-800">
-            Your payment details, balance and documents are only visible after you sign in — never to the public and never to another member.
             Forgot your password? Use “Forgot password?” on the{" "}
             <Link href="/portal" className="underline font-semibold">Member Login</Link> page to get a reset link by email.
           </div>

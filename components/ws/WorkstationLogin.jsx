@@ -62,11 +62,7 @@ export default function WorkstationLogin() {
           </form>
 
           <div className="mt-6 rounded-lg bg-earth-50 border border-earth-200 p-3 text-xs text-gray-600">
-            <strong>Staff accounts</strong> are issued by the administrator. Every account can view all modules; changes are limited to your role —
-            <span className="font-medium"> Administrator</span> (full access),
-            <span className="font-medium"> Finance &amp; Member Records</span> (finances and customer information) or
-            <span className="font-medium"> Plot Administrator</span> (erf sizes, availability and layout).
-            Contact the administrator if you need access or a password reset.
+            Staff accounts are issued by the administrator. Contact the administrator if you need access or a password reset.
           </div>
         </div>
 

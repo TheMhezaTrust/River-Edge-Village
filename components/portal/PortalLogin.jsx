@@ -62,12 +62,12 @@ export default function PortalLogin() {
       </p>
 
       <p className="mt-4 text-center text-sm text-gray-600">
-        First time here? The Trust office sets up member accounts — call {TRUST.primaryPhone} or email{" "}
-        <a href={`mailto:${TRUST.email}`} className="text-forest-700 font-semibold hover:underline">{TRUST.email}</a>.
+        Member accounts are created by the Trust office. Email{" "}
+        <a href={`mailto:${TRUST.email}`} className="text-forest-700 font-semibold hover:underline">{TRUST.email}</a> to be set up.
       </p>
 
       <div className="mt-4 rounded-lg bg-earth-50 border border-earth-200 p-3 text-xs text-gray-600">
-        Your payment details, balance and documents are only visible after you sign in. Read the{" "}
+        Read the{" "}
         <Link href="/terms" className="text-forest-700 font-semibold hover:underline">Terms and Conditions of Sale</Link>.
       </div>
     </div>
