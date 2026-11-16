@@ -150,7 +150,8 @@ Its one writable module is the **Ad Manager** (`/workstation/ads`, sidebar tab v
 
 - Advertisements: company name, contact person / phone / email, destination URL, an image uploaded straight to Vercel Blob (`/api/ads/upload`, presigned, 20 MB, `image/*`), display order, live/paused, notes, and a **display duration** in milliseconds (default `3000`).
 - Ad revenue: payments recorded per advertiser as *Received* or *Invoiced*, with a cash-flow dashboard (received, outstanding, this month vs last, booked all-time). This is a separate tracker — ad money is deliberately **not** posted to the Trust's `Income` / ledger tables.
-- Nothing is rendered on the public site yet; the module manages and measures only.
+
+Live advertisements are shown on the public website by `components/site/AdBillboard.jsx`, a slim banner mounted in `app/(site)/layout.jsx` between the page content and the footer — so it appears on every public page and never in the member portal or the workstation. It reads through `lib/public-ads.js`, which selects only the four public fields (company name, image, destination URL, duration) and never throws, so a missing table or a database blip cannot take a public page down. `components/site/AdRotator.jsx` rotates when more than one advertisement is live, holding each one for its own display duration (3000 ms by default), stays static when there is only one, and renders nothing at all when none is live. The click opens the destination in a new tab with `rel="noopener noreferrer sponsored"`.
 
 Both tables (`Advertisement`, `AdPayment`) are auto-provisioned on first use, like the other additive tables.
 
