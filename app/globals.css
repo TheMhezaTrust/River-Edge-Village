@@ -191,3 +191,5 @@ body {
 .pill-sent { background: #d8f3dc; color: #1b4332; }
 .pill-confirmed { background: #d8f3dc; color: #1b4332; }
 .pill-failed { background: #fee2e2; color: #b91c1c; }
+.pill-open { background: #fef3c7; color: #92400e; }
+.pill-answered { background: #d8f3dc; color: #1b4332; }

@@ -19,6 +19,7 @@ const NAV = [
   { href: "/workstation/departments", label: "Departments", icon: "🏛️", perm: "departments:view" },
   { href: "/workstation/tasks", label: "Tasks", icon: "✅", perm: "tasks:view" },
   { href: "/workstation/communication", label: "Communication", icon: "✉️", perm: "communication:view" },
+  { href: "/workstation/support", label: "Support Inbox", icon: "🎧", perm: "support:view" },
   { href: "/workstation/reports", label: "Reports", icon: "📈", perm: "reports:view" },
   { href: "/workstation/ads", label: "Ad Manager", icon: "📣", perm: "ads:view" },
   { href: "/workstation/analytics", label: "Traffic Analytics", icon: "🌐", perm: null, restricted: true },

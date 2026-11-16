@@ -115,6 +115,26 @@ Every member has a vault holding the paperwork the Trust issued them — the sig
 
 Uploads and deletions are audited as `MEMBER_DOCUMENT_UPLOADED` / `MEMBER_DOCUMENT_DELETED`. The vault is separate from the Trust-level document library, which is still disabled — see *Re-enabling documents later*.
 
+### Member support desk (Contact the Trust ↔ Support Inbox)
+
+A member writes to the office from **Contact the Trust** (`/portal/support`) and reads the answer in the same thread; staff answer from **Support Inbox** (`/workstation/support`). Three tables, all auto-provisioned on first use: `SupportTicket`, `SupportMessage` and `SupportTicketAssignee` (assignment is its own table because a ticket is routed to two or three people at once, not one).
+
+The member picks one of three reasons, and that choice alone decides where the ticket goes (`lib/support.js`):
+
+| Reason for Contact | Routed to | Member sees |
+| --- | --- | --- |
+| Plot Sales & Viewing | Lihle Jacob, Sydney Velapi | Plot Sales Office |
+| Finance & Payments | Sisanda Toni, Thandile Sifiniza, Nokuthula Gedle | Finance Office |
+| Trust & Rezoning Info | Sipho Jauka, Bongani Sifiniza | Trust Administration |
+
+- **Routing** is matched on each person's sign-in email address, the one staff field the Trust controls and cannot duplicate. An account that has been renamed or deactivated drops out of the assignment rather than sending the ticket to the wrong person; if nobody resolves at all, the ticket is still created with its department and a single unowned notification reaches every member of staff, so a message is never left where no one sees it. Each assigned person also gets their own bell notification.
+- **Names are never shown to a member.** `MEMBER_TICKET_SELECT` is the whole member-facing contract: it selects the department and the message bodies but no `senderId`, no sender relation and no assignees, so a reply arrives as "The Mheza Trust" and there is no field an accidental `include` could leak a person through. The reason list is passed to the portal component as a prop rather than imported, because the routing map it comes from carries those staff addresses; the workstation imports `REASON_LABELS`, the same map with the routing stripped out.
+- **Who reads what** — one rule, written once as `ticketAccessWhere(role, userId)` and used by the list, the detail and the reply routes so they cannot drift apart. An administrator (and the Software Owner, whose role is to audit everything) reads every ticket; every other role reads only the tickets routed to them, which keeps one member's question about their payments away from staff who have no part in it. The inbox offers an *Assigned to me* filter on top of that.
+- **Answering** needs `support:manage` — held by the two administrator roles, Finance Admin, Finance & Member Records and Plot Administrators, i.e. exactly the seven people the routing names. The Software Owner holds `support:view` only, so the inbox opens read-only and `middleware.js` refuses any write from it.
+- **Status** is `OPEN` (waiting on staff) or `ANSWERED`. A staff reply sets `ANSWERED`; a member writing again in the thread sets it back to `OPEN`, because a follow-up means the Trust owes another answer. Members may follow up — the thread is a conversation, not one message per ticket.
+
+Member messages are rate-limited (10 new tickets and 20 follow-ups per hour per member). Opening a ticket is audited as `SUPPORT_TICKET_OPENED` and each staff reply as `SUPPORT_REPLY_SENT`. No email is sent: the Resend sending domain is not DNS-verified yet, so the thread is in-app only until it is.
+
 ## Roles & permissions
 
 Defined in `lib/roles.js`. Every staff role can **view every module**; only writes are restricted. Each API route handler calls `guard("resource:action")` before touching data, and the workstation UI hides controls the current role cannot use.
@@ -141,7 +161,7 @@ It is deliberately invisible — the role label is **"Administrator"**, identica
 
 One account is designated the **Software Owner** (`VIEW963_OWNER_EMAIL` / `VIEW963_OWNER_PASSWORD` in Vercel — see `lib/owner-account.js`). It outranks the Main Administrator in seniority and is created automatically the first time that email address signs in; it is never listed in Settings → Users (it is masked as "Administrator" in the staff directory) and no administrator can edit it, reset its password or delete it.
 
-The role is an **auditing** role. It carries every `:view` permission and no write permission at all, so each module opens — Members, Finance, Plots, Projects, Inquiries, Departments, Tasks, Communication, Reports, Website Content, Photo Gallery, Traffic Analytics, Settings — with every Save / Edit / Delete / Approve control hidden. Two layers enforce it:
+The role is an **auditing** role. It carries every `:view` permission and no write permission at all, so each module opens — Members, Finance, Plots, Projects, Inquiries, Departments, Tasks, Communication, Support Inbox, Reports, Website Content, Photo Gallery, Traffic Analytics, Settings — with every Save / Edit / Delete / Approve control hidden. Two layers enforce it:
 
 - **RBAC** — `guard("resource:manage")` rejects every write, and the UI hides controls the role cannot use. A handful of controls were never permission-gated (composing an internal message, marking notifications read, the Website Content and Photo Gallery save/upload buttons), so those are hidden explicitly on the role.
 - **`middleware.js`** — an Edge catch-all on `/api/*` that returns `403` for any non-`GET` request from this role outside `/api/ads` and `/api/auth`. It covers routes that were only ever guarded by a `:view` permission, so adding one later cannot quietly open a write path.
@@ -239,6 +259,8 @@ app/
     password/        # forced change of an office-issued temporary password
     (shell)/         # authenticated sidebar shell
       dashboard/ profile/ beneficiaries/ plot/ payments/ statement/
+      documents/     # My Certificate (issued paperwork)
+      support/       # Contact the Trust (thread with the office)
   workstation/
     login/           # staff sign-in
     recover/         # security-question password recovery (Main Administrator)
@@ -246,10 +268,11 @@ app/
       page.jsx       # dashboard (stats, charts, quick actions)
       analytics/     # public-website traffic (Main Administrator only)
       members/ plots/ finance/ documents/ departments/
-      inquiries/ tasks/ communication/ reports/ settings/
+      inquiries/ tasks/ communication/ support/ reports/ settings/
+      ads/           # Ad Manager (Software Owner only)
   api/               # route handlers (auth, portal, public, members, plots,
                      # finance, documents, departments, inquiries, tasks,
-                     # communication, admin, dashboard, reports, track)
+                     # communication, support, admin, dashboard, reports, track)
 components/          # shared UI: ui.jsx, PlotMap.jsx, InterestForm.jsx, site/, ws/,
                      # portal/ (shell, icons, profile + statement widgets)
 lib/                 # prisma.js, provision.js (runtime CREATE TABLE), auth.js

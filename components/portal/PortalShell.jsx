@@ -12,6 +12,7 @@ import {
   MapPinIcon,
   ReceiptIcon,
   DocumentIcon,
+  ChatIcon,
   LogOutIcon,
   MenuIcon,
 } from "./Icons";
@@ -23,6 +24,7 @@ const NAV = [
   { href: "/portal/plot", label: "My Plot Details", Icon: MapPinIcon },
   { href: "/portal/payments", label: "Payments & Statement", Icon: ReceiptIcon },
   { href: "/portal/documents", label: "My Certificate", Icon: DocumentIcon },
+  { href: "/portal/support", label: "Contact the Trust", Icon: ChatIcon },
 ];
 
 const IDLE_LIMIT_MS = 15 * 60_000;

@@ -38,6 +38,8 @@ model User {
   tasks                Task[]
   memberTokens         MemberToken[]
   memberChangeRequests MemberChangeRequest[]
+  supportMessages      SupportMessage[]
+  supportAssignments   SupportTicketAssignee[]
 }
 
 model Member {
@@ -73,6 +75,7 @@ model Member {
   documents          MemberDocument[]
   tokens             MemberToken[]
   changeRequests     MemberChangeRequest[]
+  supportTickets     SupportTicket[]
 }
 
 // Single-use links that let a member set their own portal password. Only the
@@ -645,4 +648,60 @@ model AuditLog {
   entryHash String?
   prevHash  String?
   createdAt DateTime @default(now())
+}
+
+// ---------- Member support ----------
+
+// A member's message to the Trust from the portal's "Contact the Trust" tab, and
+// the thread of replies that follows it. The reason the member picks decides which
+// department the ticket is routed to and which staff are assigned (lib/support.js).
+//
+// `department` is stored rather than derived so the label a member was shown stays
+// the label on the ticket even if the routing map is later rewritten. The names of
+// the assigned staff live in SupportTicketAssignee and are never returned to the
+// member — the portal API selects the department only. Auto-provisioned at runtime
+// (lib/provision.js) so no manual migration is needed.
+model SupportTicket {
+  id         Int                     @id @default(autoincrement())
+  memberId   Int
+  member     Member                  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  reason     String // PLOT_SALES | FINANCE | TRUST_INFO
+  department String
+  status     String                  @default("OPEN") // OPEN (waiting on staff) | ANSWERED
+  createdAt  DateTime                @default(now())
+  updatedAt  DateTime                @default(now()) @updatedAt
+  messages   SupportMessage[]
+  assignees  SupportTicketAssignee[]
+
+  @@index([memberId])
+  @@index([status])
+}
+
+model SupportMessage {
+  id         Int           @id @default(autoincrement())
+  ticketId   Int
+  ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  body       String
+  senderType String        @default("MEMBER") // MEMBER | STAFF
+  // Which member of staff wrote it. The member-facing API never selects the sender
+  // relation, so a reply reaches the portal as "The Trust" and not as a named person.
+  senderId   Int?
+  sender     User?         @relation(fields: [senderId], references: [id])
+  createdAt  DateTime      @default(now())
+
+  @@index([ticketId])
+}
+
+// A ticket is routed to more than one person — a pair for plot sales, three for
+// finance — so assignment is its own table rather than a single assignedTo column.
+model SupportTicketAssignee {
+  id        Int           @id @default(autoincrement())
+  ticketId  Int
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  userId    Int
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+
+  @@unique([ticketId, userId])
+  @@index([userId])
 }

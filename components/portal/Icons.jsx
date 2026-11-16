@@ -37,6 +37,10 @@ export const DocumentIcon = (p) => (
   <svg {...base} {...p}><path d="M6.5 3.5h7l4 4v13h-11Z" /><path d="M13.5 3.5v4h4" /><path d="M9.5 12.5h5M9.5 16h5" /></svg>
 );
 
+export const ChatIcon = (p) => (
+  <svg {...base} {...p}><path d="M20.5 12c0 4.1-3.8 7.4-8.5 7.4-1 0-2-.15-2.9-.42L4 20.5l1.6-3.6C4.2 15.6 3.5 13.9 3.5 12c0-4.1 3.8-7.4 8.5-7.4s8.5 3.3 8.5 7.4Z" /><path d="M8.8 11.8h6.4M8.8 14.6h4" /></svg>
+);
+
 export const PrinterIcon = (p) => (
   <svg {...base} {...p}><path d="M7 9V3.5h10V9" /><rect x="3.5" y="9" width="17" height="7" rx="1.5" /><path d="M7 14h10v6.5H7Z" /></svg>
 );
