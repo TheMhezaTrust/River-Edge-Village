@@ -56,6 +56,9 @@ export default function MemberDetailPage() {
   // A member-level price override masks the sum of the plot prices everywhere the
   // balance is shown, so the admin has to be told it is in force before editing plots.
   const priceOverridden = member.purchasePrice != null;
+  // Which plots the payments cover, worked out server-side by the same function the
+  // member's own portal uses, so the two screens cannot disagree.
+  const entitlement = member.entitlement;
 
   async function recordPayment(e) {
     e.preventDefault();
@@ -335,6 +338,71 @@ export default function MemberDetailPage() {
                 <span>Balance: <strong className={member.outstandingBalance > 0 ? "text-red-600" : ""}>{zarFull(member.outstandingBalance)}</strong></span>
               </div>
             </div>
+
+            {entitlement && entitlement.plotCount > 0 && (
+              <div className="mt-5 border-t border-gray-100 pt-4">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-sm font-bold text-gray-900">Plot usage entitlement</h3>
+                  <span className="text-sm font-bold text-forest-700">
+                    {entitlement.unlockedCount} of {entitlement.plotCount} plots
+                  </span>
+                </div>
+                <p className="mt-1 text-xs leading-relaxed text-gray-500">
+                  What this member may build on or use, worked out from the {zarFull(entitlement.totalPaid)} they have
+                  paid. Plots are costed{" "}
+                  {entitlement.usesOverride
+                    ? `at ${zarFull(entitlement.effectivePerPlot)} each — the ${zarFull(member.purchasePrice)} override divided across their ${entitlement.plotCount} plots —`
+                    : "at their own prices"}{" "}
+                  and taken oldest purchase first; the first plot the payments do not cover is locked, and so is every
+                  plot after it.
+                </p>
+                <table className="mt-3 w-full text-xs">
+                  <thead>
+                    <tr className="text-left text-gray-500">
+                      <th className="py-1.5 font-medium">#</th>
+                      <th className="py-1.5 font-medium">Plot</th>
+                      <th className="py-1.5 font-medium">Purchased</th>
+                      <th className="py-1.5 text-right font-medium">Costed at</th>
+                      <th className="py-1.5 text-right font-medium">Balance after</th>
+                      <th className="py-1.5 text-right font-medium">Entitlement</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {entitlement.plots.map((p) => (
+                      <tr key={p.id}>
+                        <td className="py-2 text-gray-400">{p.order}</td>
+                        <td className="py-2 font-medium text-gray-900">
+                          {p.number}
+                          {p.block ? ` · ${p.block}` : ""}
+                        </td>
+                        <td className="py-2 text-gray-500">
+                          {p.purchasedAt
+                            ? dateFmt(p.purchasedAt)
+                            : member.purchaseDate
+                              ? `${dateFmt(member.purchaseDate)} (member)`
+                              : "Not recorded"}
+                        </td>
+                        <td className="py-2 text-right text-gray-700">{zarFull(p.effectivePrice)}</td>
+                        <td className={`py-2 text-right font-medium ${p.balanceAfter < 0 ? "text-red-600" : "text-gray-900"}`}>
+                          {zarFull(p.balanceAfter)}
+                        </td>
+                        <td className="py-2 text-right">
+                          <StatusPill status={p.unlocked ? "UNLOCKED" : "LOCKED"} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {entitlement.undatedCount > 0 && (
+                  <p className="mt-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800">
+                    {entitlement.undatedCount} of these plots has no purchase date of its own, so the order above falls
+                    back to{member.purchaseDate ? " the member's recorded purchase date and then" : ""} plot number —
+                    and the order is what decides which plots are locked. Set the date under Edit plot to make it
+                    certain.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           <MemberBeneficiaries

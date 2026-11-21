@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { memberTotals } from "@/lib/member-totals";
+import { memberTotals, plotEntitlement } from "@/lib/member-totals";
 import { zarFull, dateFmt, rightOfUseLabel } from "@/lib/format";
 import { StatusPill, EmptyState } from "@/components/ui";
 import PageHeading from "@/components/portal/PageHeading";
@@ -11,6 +11,10 @@ export default function PlotView({ member, linkBase = "/portal" }) {
   const { price, totalPaid, outstandingBalance } = memberTotals(member);
   const plots = member.plots;
   const issuedPlots = plots.filter((p) => p.certificateIssuedAt);
+  // Which plots the payments so far cover, oldest purchase first. Keyed by plot id
+  // because the cards below stay in plot-number order.
+  const entitlement = plotEntitlement(member);
+  const entitled = new Map(entitlement.plots.map((p) => [p.id, p]));
 
   return (
     <div className="space-y-6">
@@ -18,6 +22,21 @@ export default function PlotView({ member, linkBase = "/portal" }) {
         title="My Plot Details"
         subtitle="The plot or plots registered to you at River Edge Rural Village."
       />
+
+      {plots.length > 0 && (
+        <div className="card p-5">
+          <p className="text-sm font-bold text-forest-900">
+            You have access to {entitlement.unlockedCount} of {entitlement.plotCount} plots based on your payments.
+          </p>
+          <p className="mt-1.5 text-xs leading-relaxed text-gray-600">
+            You can only build on or use plots that are fully paid for.
+          </p>
+          <p className="mt-1.5 text-xs leading-relaxed text-gray-500">
+            These badges follow your payments. Your <strong>Right of Use Status</strong> on each plot is a separate
+            record — it shows whether the Trust has issued the Certificate of Land Use for that erf.
+          </p>
+        </div>
+      )}
 
       {plots.length === 0 ? (
         <div className="card">
@@ -31,6 +50,7 @@ export default function PlotView({ member, linkBase = "/portal" }) {
           {plots.map((plot) => {
             const plotPaid = plot.payments.reduce((sum, p) => sum + (p.amount || 0), 0);
             const plotBalance = Math.max(0, (plot.price || 0) - plotPaid);
+            const access = entitled.get(plot.id);
             return (
               <div key={plot.id} className="card p-6">
                 <div className="flex items-start justify-between gap-4">
@@ -42,7 +62,10 @@ export default function PlotView({ member, linkBase = "/portal" }) {
                     </h2>
                     <p className="mt-0.5 text-sm text-gray-500">{plot.project?.name || "River Edge Rural Village"}</p>
                   </div>
-                  <StatusPill status={plot.status} />
+                  <div className="flex shrink-0 flex-col items-end gap-1.5">
+                    <StatusPill status={plot.status} />
+                    <StatusPill status={access?.unlocked ? "UNLOCKED" : "LOCKED"} />
+                  </div>
                 </div>
 
                 <dl className="mt-5 divide-y divide-gray-100 text-sm">

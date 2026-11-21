@@ -94,6 +94,23 @@ Portal tables (`MemberToken`, `MemberChangeRequest`) and the two new `Member` co
 
 The status turns on certificate issuance, **not** on whether the plot is paid off; the payment position is shown separately as "Paid on this plot" and "Balance on this plot". Staff set it from `/workstation/plots` → click a plot → **Mark certificate issued** (or **Undo certificate issued**), which `PUT`s `{certificateIssued: true|false}` to `/api/plots/[id]` and stores the current timestamp or null. Marking it issued does not by itself put a file in the member's hands — upload the scanned certificate to that member's vault (below) with the category **Certificate of Land Use** and it appears in their portal immediately.
 
+### Plot usage entitlement (how many plots the payments cover)
+
+A separate question from the Right of Use Status: **how many of the plots a member holds have they actually paid for.** Computed once by `plotEntitlement(member)` in `lib/member-totals.js` — pure, no Prisma — and shown to the member on `/portal/plot` and to staff on `/workstation/members/[id]` (returned from `GET /api/members/[id]` as `entitlement`, so both screens read the same walk of the same numbers). The member sees *"You have access to X of Y plots based on your payments"*, a green **Unlocked** or grey **Locked (Pending Payment)** badge on each plot card, and the rule *"You can only build on or use plots that are fully paid for."* Staff see the whole ordered walk: each plot's position, the date the order used, what it was costed at, the running balance after it, and its badge.
+
+The math, in order:
+
+1. **Effective price per plot** — when the member record carries a `purchasePrice` override (a negotiated bulk figure), that override **divided by the number of plots they hold** is what each plot costs; the individual `Plot.price` values are ignored for this calculation. With no override, each plot's own `price` stands.
+2. **Order** — oldest purchase first, on `Plot.purchasedAt`.
+3. **Walk** — subtract each plot's effective price from the total the member has paid (every `Payment` row; there is no draft/failed state). While the running balance is ≥ 0 the plot is **Unlocked**. The first plot that drives it negative is **Locked**, *and so is every plot after it* — a cheap later plot does not get to jump the queue.
+
+Two details that are easy to get wrong and are handled deliberately:
+
+- **The comparison is rounded to whole cents.** An override divided across three plots is `33333.333…`, so a member who paid exactly the override would otherwise be left with a residue of `-0.00000001` and lose their last plot to floating point.
+- **`purchasedAt` is nullable**, and the order decides *which* plots fall on the locked side, so a plot with no date of its own falls back to the member's recorded `purchaseDate`, and one with neither sorts last — it cannot be shown to be the oldest purchase. Ties break on plot number (numeric-aware, so `12` precedes `102`) rather than on the order rows happened to come back in. The staff panel shows which date each row used and warns when any plot is undated, because that is a record staff can fix under **Edit plot**.
+
+This is a reading of the payments, not a legal status, so it never overwrites the Right of Use Status: a plot can legitimately show **Active (Certificate Issued)** and **Locked (Pending Payment)** at the same time, and the portal says so explicitly rather than leaving the member to reconcile two badges.
+
 ### Correcting a member's record against the signed contract
 
 Purchase prices, plot sizes and payment histories are **not** uniform: members bought at different times, at different prices, and some hold more than one erf. Everything the import auto-filled can therefore be overridden from `/workstation/members/[id]`, and each change is reflected in the member's portal immediately.

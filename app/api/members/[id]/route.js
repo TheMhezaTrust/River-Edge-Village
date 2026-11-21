@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { guard, audit } from "@/lib/auth";
 import { ok, bad } from "@/lib/api";
-import { memberTotals } from "@/lib/member-totals";
+import { memberTotals, plotEntitlement } from "@/lib/member-totals";
 import { ensureMemberRecordColumns } from "@/lib/provision";
 
 export async function GET(req, { params }) {
@@ -18,9 +18,12 @@ export async function GET(req, { params }) {
   if (!member) return bad("Member not found", 404);
   const { password, ...safe } = member;
   const { price, totalPaid, outstandingBalance } = memberTotals(member);
+  // Computed here rather than in the browser so the member profile and the member's
+  // own portal are working from the same walk of the same numbers.
+  const entitlement = plotEntitlement(member);
   // Staff need to know whether a member can sign in yet, but the hash itself never
   // leaves the server.
-  return ok({ ...safe, price, totalPaid, outstandingBalance, hasPortalPassword: Boolean(password) });
+  return ok({ ...safe, price, totalPaid, outstandingBalance, entitlement, hasPortalPassword: Boolean(password) });
 }
 
 export async function PUT(req, { params }) {
