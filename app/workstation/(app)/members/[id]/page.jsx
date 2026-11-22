@@ -340,14 +340,14 @@ export default function MemberDetailPage() {
             </div>
 
             {entitlement && entitlement.plotCount > 0 && (
-              <div className="mt-5 border-t border-gray-100 pt-4">
+              <div className="mt-5 rounded-lg border border-gray-200 bg-gray-50 p-4 shadow-sm sm:p-6">
                 <div className="flex items-center justify-between gap-3">
                   <h3 className="text-sm font-bold text-gray-900">Plot usage entitlement</h3>
-                  <span className="text-sm font-bold text-forest-700">
+                  <span className="shrink-0 text-sm font-bold text-forest-700">
                     {entitlement.unlockedCount} of {entitlement.plotCount} plots
                   </span>
                 </div>
-                <p className="mt-1 text-xs leading-relaxed text-gray-500">
+                <p className="mt-1.5 text-xs leading-relaxed text-gray-500">
                   What this member may build on or use, worked out from the {zarFull(entitlement.totalPaid)} they have
                   paid. Plots are costed{" "}
                   {entitlement.usesOverride
@@ -356,45 +356,61 @@ export default function MemberDetailPage() {
                   and taken oldest purchase first; the first plot the payments do not cover is locked, and so is every
                   plot after it.
                 </p>
-                <table className="mt-3 w-full text-xs">
-                  <thead>
-                    <tr className="text-left text-gray-500">
-                      <th className="py-1.5 font-medium">#</th>
-                      <th className="py-1.5 font-medium">Plot</th>
-                      <th className="py-1.5 font-medium">Purchased</th>
-                      <th className="py-1.5 text-right font-medium">Costed at</th>
-                      <th className="py-1.5 text-right font-medium">Balance after</th>
-                      <th className="py-1.5 text-right font-medium">Entitlement</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {entitlement.plots.map((p) => (
-                      <tr key={p.id}>
-                        <td className="py-2 text-gray-400">{p.order}</td>
-                        <td className="py-2 font-medium text-gray-900">
-                          {p.number}
-                          {p.block ? ` · ${p.block}` : ""}
-                        </td>
-                        <td className="py-2 text-gray-500">
-                          {p.purchasedAt
-                            ? dateFmt(p.purchasedAt)
-                            : member.purchaseDate
-                              ? `${dateFmt(member.purchaseDate)} (member)`
-                              : "Not recorded"}
-                        </td>
-                        <td className="py-2 text-right text-gray-700">{zarFull(p.effectivePrice)}</td>
-                        <td className={`py-2 text-right font-medium ${p.balanceAfter < 0 ? "text-red-600" : "text-gray-900"}`}>
-                          {zarFull(p.balanceAfter)}
-                        </td>
-                        <td className="py-2 text-right">
+
+                {/* This card sits in a one-third-width column, so a six-column table cannot
+                    fit it without overlapping. Each plot is a ledger row instead: the badge
+                    on the right, then label/value lines that can only ever wrap between
+                    rows, never into each other. */}
+                <ul className="mt-4 space-y-2">
+                  {entitlement.plots.map((p) => (
+                    <li key={p.id} className="rounded-md border border-gray-200 bg-white p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="min-w-0 text-sm font-semibold text-gray-900">
+                          <span className="mr-1.5 text-xs font-normal text-gray-400">{p.order}.</span>
+                          Plot {p.number}
+                          {p.block && <span className="font-normal text-gray-500"> · Block {p.block}</span>}
+                        </p>
+                        <span className="shrink-0">
                           <StatusPill status={p.unlocked ? "UNLOCKED" : "LOCKED"} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </span>
+                      </div>
+                      <div className="mt-2 space-y-1 border-t border-gray-100 pt-2 text-xs">
+                        <div className="flex justify-between gap-3">
+                          <span className="shrink-0 text-gray-500">Purchased</span>
+                          <span className="text-right font-medium text-gray-900">
+                            <span className="block whitespace-nowrap">
+                              {p.purchasedAt
+                                ? dateFmt(p.purchasedAt)
+                                : member.purchaseDate
+                                  ? dateFmt(member.purchaseDate)
+                                  : "Not recorded"}
+                            </span>
+                            {!p.dated && member.purchaseDate && (
+                              <span className="block text-[10px] font-normal text-gray-400">from member record</span>
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex justify-between gap-3">
+                          <span className="shrink-0 text-gray-500">Costed at</span>
+                          <span className="text-right font-medium tabular-nums whitespace-nowrap text-gray-900">
+                            {zarFull(p.effectivePrice)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between gap-3">
+                          <span className="shrink-0 text-gray-500">Balance after</span>
+                          <span
+                            className={`text-right font-medium tabular-nums whitespace-nowrap ${p.balanceAfter < 0 ? "text-red-600" : "text-gray-900"}`}
+                          >
+                            {zarFull(p.balanceAfter)}
+                          </span>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+
                 {entitlement.undatedCount > 0 && (
-                  <p className="mt-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800">
+                  <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800">
                     {entitlement.undatedCount} of these plots has no purchase date of its own, so the order above falls
                     back to{member.purchaseDate ? " the member's recorded purchase date and then" : ""} plot number —
                     and the order is what decides which plots are locked. Set the date under Edit plot to make it
