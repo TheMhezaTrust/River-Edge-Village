@@ -356,6 +356,11 @@ export default function MemberDetailPage() {
                   and taken oldest purchase first; the first plot the payments do not cover is locked, and so is every
                   plot after it.
                 </p>
+                <p className="mt-1.5 text-xs leading-relaxed text-gray-500">
+                  Each plot then shows one positive figure: in green, the funds left over once that plot is paid for; in
+                  orange, what is still needed before it unlocks — which also clears every locked plot above it. No
+                  negative balances are shown.
+                </p>
 
                 {/* This card sits in a one-third-width column, so a six-column table cannot
                     fit it without overlapping. Each plot is a ledger row instead: the badge
@@ -397,11 +402,11 @@ export default function MemberDetailPage() {
                           </span>
                         </div>
                         <div className="flex justify-between gap-3">
-                          <span className="shrink-0 text-gray-500">Balance after</span>
+                          <span className="shrink-0 text-gray-500">Status / Remaining Funds</span>
                           <span
-                            className={`text-right font-medium tabular-nums whitespace-nowrap ${p.balanceAfter < 0 ? "text-red-600" : "text-gray-900"}`}
+                            className={`min-w-0 text-right font-semibold tabular-nums ${p.unlocked ? "text-forest-700" : "text-sunset-600"}`}
                           >
-                            {zarFull(p.balanceAfter)}
+                            {p.unlocked ? `${zarFull(p.remaining)} remaining` : `Needs ${zarFull(p.shortfall)} more`}
                           </span>
                         </div>
                       </div>
