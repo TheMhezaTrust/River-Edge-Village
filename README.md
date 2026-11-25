@@ -160,12 +160,12 @@ Defined in `lib/roles.js`. Every staff role can **view every module**; only writ
 
 - **Administrator** (Bongani Sifiniza) — everything, including user management, settings and the audit log
 - **Finance Admin** *(designated by the Main Administrator — not yet assigned to a person)* — everything Finance & Member Records can, plus the formal books (`finance:admin`): budget jars and their percentages, expenses, closing accounting periods, posting adjustments, distributions and opening balances
-- **Finance & Member Records** (Thandile Sifiniza, Sisanda Toni, Nokuthula Gedle) — changes to finances, payroll, member/customer records, inquiries, the document library and member communications; everything else read-only
-- **Plot Administrator** (Sipho Jauka, Sydney Velapi, Lihle Jacob) — changes to plot records: erf number, size, availability, price, block, purchase date and layout position; everything else read-only
+- **Finance & Member Records** (Thandile Sifiniza, Sisanda Toni, Nokuthula Gedle) — changes to finances, payroll, member/customer records, inquiries, **plot records** (erf number, size, availability, price, block, purchase date and layout position), the document library and member communications; everything else read-only
+- **Plot Administrator** (Sipho Jauka, Sydney Velapi, Lihle Jacob) — **read-only across the entire workstation**, including plots, members and finances. The single exception is the Support Inbox: this role can reply to the member tickets routed to it (`support:manage`), and cannot create, edit or delete anything else
 
 Editing or deleting a payment that has already been captured (`payments:correct`) is deliberately **not** part of `finance:manage`, so it does not reach Finance & Member Records through any role list — only the two administrator roles hold it. The fund-accounting and audit controls are gated by a separate `finance:admin` permission that is **not** in the ordinary administrator's `ALL_PERMS` list — it is held only by `SUPER_ADMIN` and the `Finance Admin` role, so the formal books stay narrower than general finance access.
 
-All three roles can also manage their own tasks and view the staff directory (Settings → Users) and the audit log. Pages a role cannot edit show a "Read-only view" banner and hide every add/edit/delete control.
+Every role can read the task list, the staff directory (Settings → Users) and the audit log, but adding or changing a task is held by Administrator and Finance & Member Records only. Pages a role cannot edit show a "Read-only view" banner and hide every add/edit/delete control.
 
 ### Main Administrator (backend-only)
 

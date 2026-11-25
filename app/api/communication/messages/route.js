@@ -15,8 +15,13 @@ export async function GET(req) {
   return ok(messages);
 }
 
+// Composing a message writes a record another member of staff will read, so it
+// needs the write permission the Compose button is already gated on in the UI.
+// Guarding it on communication:view let a read-only role post one by calling the
+// endpoint directly. Marking a message read below stays on :view — that is the
+// reader's own inbox state, not a Trust record.
 export async function POST(req) {
-  const { user, error } = await guard("communication:view");
+  const { user, error } = await guard("communication:manage");
   if (error) return error;
   const b = await req.json();
   if (!b.toId || !b.subject) return bad("Recipient and subject are required");

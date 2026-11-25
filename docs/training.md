@@ -7,7 +7,7 @@
 1. Sign in at `/login` (choose **Administrator / Staff**) or go directly to `/workstation` with your issued credentials. Change your password immediately (Settings → Profile).
 2. Tour the sidebar: every module is visible to every staff role.
 3. Understand the permission model:
-   - You can **view everything**; what you can **change** depends on your role — Administrator (everything, including staff accounts), Finance Admin (the formal books: jars, expenses, period locking, adjustments, distributions, opening balances), Finance & Member Records (finances, payroll, members, inquiries, documents, communications) or Plot Administrator (plot records and layout). Read-only pages say so with an amber banner and show no edit buttons.
+   - You can **view everything**; what you can **change** depends on your role — Administrator (everything, including staff accounts), Finance Admin (the formal books: jars, expenses, period locking, adjustments, distributions, opening balances), Finance & Member Records (finances, payroll, members, inquiries, plot records and layout, documents, communications) or Plot Administrator (**read-only everywhere** — the one thing they can write is a reply to a support ticket routed to them). Read-only pages say so with an amber banner and show no edit buttons.
    - Every create/update/delete is written to the audit log, which every role can read at Settings → Audit.
 4. Dashboard walkthrough: stats, sales trend, quick actions, notifications bell, your tasks.
 
@@ -22,7 +22,7 @@
 3. **Convert to Member** pre-fills the member record; the interested plot moves to Reserved (or Sold when payment clears).
 4. Plot status discipline — the map is the single source of truth:
    - Green Available · Yellow Reserved (deposit received) · Red Sold (paid in full or on an approved plan).
-   - Only **Plot Administrators** (Sipho, Sydney, Lihle) can change plot size, availability or layout position; everyone else can read it. Ask them before promising a status change.
+   - Only **Finance & Member Records** (Thandile, Sisanda, Nokuthula) and the **Administrator** can change plot size, availability or layout position; Plot Administrators and everyone else can read it. Ask Finance & Member Records before promising a status change.
    - Erf numbers follow the official survey layout plan, including subdivided erven (1A, 145A/145B, 165A, 186A, 203A). Always quote the erf number, not a row/column.
 5. Promotional rules: R75,000 requires **full payment** before 30 Nov 2026; after that R90,000 with 6/12/24-month plans.
 
@@ -88,9 +88,10 @@ Only the Administrator can change department records and follow-up dates; Financ
 |---|---|
 | See today's new inquiries | Dashboard → Notifications, or Inquiries (status NEW) |
 | Record a payment | Members → member → Record Payment |
-| Reserve a plot | Plots → click plot → Mark Reserved |
+| Reserve a plot | Plots → click plot → Mark Reserved *(Administrator, Finance & Member Records)* |
 | Check BCMM status | Departments → BCMM card |
 | Post team news | Communication → Announcements |
-| Assign work | Tasks → Add Task |
+| Assign work | Tasks → Add Task *(Administrator, Finance & Member Records)* |
+| Answer a member's ticket | Support Inbox → open the ticket → Reply *(your own routed tickets)* |
 | Find a document | Documents → folder/tag search |
 | Add a staff user | Settings → Users (Admin only) |

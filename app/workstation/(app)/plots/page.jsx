@@ -178,7 +178,10 @@ export default function PlotsPage() {
 
       <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
         <strong>Verify against the surveyor&apos;s schedule:</strong> {UNCERTAIN.length} erf numbers were read from the handwritten layout plan and may be misread —{" "}
-        <span className="font-mono">{UNCERTAIN.join(", ")}</span>. Correct any of them with Edit; the map position is independent of the number.
+        <span className="font-mono">{UNCERTAIN.join(", ")}</span>.{" "}
+        {canManage
+          ? "Correct any of them with Edit; the map position is independent of the number."
+          : "Report any of them to an Administrator; the map position is independent of the number."}
       </div>
 
       <div className="card p-4 mb-4 flex flex-wrap gap-3 items-center">
