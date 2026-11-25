@@ -38,15 +38,11 @@ export default async function PortalDocumentsPage() {
             message="Once the Trust office issues your Certificate of Land Use it will appear here. If it has already been issued and you cannot see it, please contact the office."
           />
           <p className="mt-4 text-center text-sm text-gray-600">
-            Call{" "}
-            <a href={TRUST.primaryPhoneHref} className="font-semibold text-forest-700 hover:underline">
-              {TRUST.primaryPhone}
-            </a>{" "}
-            or email{" "}
+            Email{" "}
             <a href={`mailto:${TRUST.email}`} className="font-semibold text-forest-700 hover:underline">
               {TRUST.email}
-            </a>
-            .
+            </a>{" "}
+            or use <span className="font-semibold text-forest-700">Contact the Trust</span> in this portal.
           </p>
         </div>
       ) : (

@@ -4,7 +4,7 @@ import BrandFooter from "@/components/BrandFooter";
 
 // Chrome for the signed-out portal screens (sign in, set password, forced change).
 // The portal has no public Navbar or footer, so these pages carry the minimum:
-// the Trust's identity, a way back to the website, and the office's contact number.
+// the Trust's identity, a way back to the website, and the office email address.
 export default function PortalAuthPage({ children }) {
   return (
     <div className="flex min-h-screen flex-col">
@@ -22,7 +22,7 @@ export default function PortalAuthPage({ children }) {
       <main className="flex flex-1 items-start justify-center px-4 pb-16 pt-2">{children}</main>
 
       <footer className="border-t border-earth-200 bg-white/70 px-4 py-4 text-center text-xs text-gray-500">
-        {TRUST.legalName} · Reg {TRUST.registrationNumber} · {TRUST.primaryPhone} ·{" "}
+        {TRUST.legalName} · Reg {TRUST.registrationNumber} ·{" "}
         <a href={`mailto:${TRUST.email}`} className="text-forest-700 hover:underline">{TRUST.email}</a>
       </footer>
       <BrandFooter className="-mt-3 bg-white/70 pb-3" />

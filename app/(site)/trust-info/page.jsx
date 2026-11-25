@@ -127,16 +127,14 @@ export default async function TrustInfoPage() {
                 <p className="mt-2 text-xs text-gray-500">Use the format set out in clause 6.4 of the Terms and Conditions of Sale (e.g. <span className="font-mono">12 – Your Full Name</span>). Payments without the correct reference cannot be allocated and will delay your receipt.</p>
               </div>
               <p className="mt-4 text-xs text-gray-500">
-                Never deposit cash. The Trust will never ask for payment to a personal account. Verify details by phone before paying.
+                Never deposit cash. The Trust will never ask for payment to a personal account. If anything differs from
+                the details above, email themhezatrust@gmail.com before paying.
               </p>
             </div>
 
             <div className="card p-6">
-              <h3 className="font-bold text-forest-900 text-lg mb-4">📞 Contact</h3>
+              <h3 className="font-bold text-forest-900 text-lg mb-4">✉️ Contact</h3>
               <ul className="space-y-3 text-sm text-gray-700">
-                <li><span className="block text-gray-500 text-xs font-semibold uppercase">Phone</span>{TRUST.phones.map((p) => (
-                  <a key={p} href={`tel:+27${p.slice(1).replace(/\s/g, "")}`} className="block text-forest-700 hover:underline font-medium">{p}</a>
-                ))}</li>
                 <li><span className="block text-gray-500 text-xs font-semibold uppercase">Email</span><a href="mailto:themhezatrust@gmail.com" className="text-forest-700 hover:underline font-medium">themhezatrust@gmail.com</a></li>
                 <li><span className="block text-gray-500 text-xs font-semibold uppercase">Website</span><a href={TRUST.siteUrl} className="text-forest-700 hover:underline font-medium">{TRUST.website}</a></li>
                 <li><span className="block text-gray-500 text-xs font-semibold uppercase">Physical address</span>Cove Ridge East, Buffalo City, Eastern Cape</li>

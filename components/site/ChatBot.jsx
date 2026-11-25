@@ -198,8 +198,9 @@ export default function ChatBot() {
               </button>
             </div>
             <p className="mt-2 text-center text-[11px] leading-snug text-gray-400">
-              Mheza is an AI assistant and shares public information only. Verify important details by phone on{" "}
-              <a href="/contact" className="underline hover:text-forest-700">Contact</a>.
+              Mheza is an AI assistant and shares public information only. Verify important details on the{" "}
+              <a href="/contact" className="underline hover:text-forest-700">Contact</a>{" "}
+              page.
             </p>
           </div>
         </div>

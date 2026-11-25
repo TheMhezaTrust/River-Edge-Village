@@ -219,7 +219,7 @@ export default async function ProjectPage({ params }) {
             <InterestForm kind="INTEREST" />
           </div>
           <p className="mt-6 text-center text-sm text-forest-200">
-            Prefer to talk? Call us or <Link href="/contact" className="underline font-semibold text-white">visit the contact page</Link> to schedule a site viewing.
+            Prefer to talk? <Link href="/contact" className="underline font-semibold text-white">Visit the contact page</Link> to send us a message or book a site viewing.
           </p>
         </div>
       </section>

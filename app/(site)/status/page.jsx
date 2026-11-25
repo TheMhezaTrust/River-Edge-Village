@@ -2,7 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { SectionHeading, StatusPill } from "@/components/ui";
 import AnnouncementsFeed from "@/components/site/AnnouncementsFeed";
-import { TRUST, sellerName } from "@/lib/contact";
+import { sellerName } from "@/lib/contact";
 import { getPortalSession } from "@/lib/auth";
 
 export const metadata = {
@@ -238,11 +238,8 @@ export default async function StatusPage() {
               <Link href="/portal" className="btn-primary btn-sm mt-4">Member Login</Link>
             </div>
             <div className="card p-6">
-              <h3 className="font-bold text-forest-900 mb-3">📞 Contact Us</h3>
+              <h3 className="font-bold text-forest-900 mb-3">✉️ Contact Us</h3>
               <ul className="space-y-2 text-sm text-gray-600">
-                <li><strong>Phone:</strong> {TRUST.phones.map((p, i) => (
-                  <span key={p}>{i > 0 && " / "}<a href={`tel:+27${p.slice(1).replace(/\s/g, "")}`} className="text-forest-700 hover:underline">{p}</a></span>
-                ))}</li>
                 <li><strong>Email:</strong> <a href="mailto:themhezatrust@gmail.com" className="text-forest-700 hover:underline">themhezatrust@gmail.com</a></li>
                 <li><strong>Office:</strong> Cove Ridge East, Buffalo City, Eastern Cape</li>
                 <li><strong>Hours:</strong> Mon–Fri 08:00–17:00 · Sat, Sun & public holidays: closed</li>

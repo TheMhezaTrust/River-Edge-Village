@@ -45,7 +45,7 @@ export default function StatementView({ member, linkBase = "/portal" }) {
             <div>
               <p className="text-lg font-bold text-forest-900">{TRUST.legalName}</p>
               <p className="text-xs text-gray-500">Registration {TRUST.registrationNumber}</p>
-              <p className="text-xs text-gray-500">{TRUST.email} · {TRUST.primaryPhone}</p>
+              <p className="text-xs text-gray-500">{TRUST.email}</p>
             </div>
           </div>
           <div className="text-right text-xs text-gray-600">
@@ -150,8 +150,7 @@ export default function StatementView({ member, linkBase = "/portal" }) {
             Conditions of Sale.
           </p>
           <p className="mt-2">
-            Query this statement with the Trust office on {TRUST.primaryPhone} or {TRUST.email}, quoting statement
-            no. {statementNo}.
+            Query this statement with the Trust office at {TRUST.email}, quoting statement no. {statementNo}.
           </p>
         </div>
       </div>

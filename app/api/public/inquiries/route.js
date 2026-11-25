@@ -57,7 +57,6 @@ export async function POST(req) {
     }
 
     const messageParts = [];
-    if (b.subject) messageParts.push(`Subject: ${b.subject}`);
     if (b.message) messageParts.push(b.message);
     if (b.idNumber) messageParts.push(`ID/Passport: ${b.idNumber}`);
     if (kind === "VIEWING") messageParts.push(`Site viewing requested for ${b.date || "a date to be arranged"} with ${b.attendees || 1} attendee(s).`);

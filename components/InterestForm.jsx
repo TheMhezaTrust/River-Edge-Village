@@ -13,7 +13,6 @@ export default function InterestForm({ plot, kind = "INTEREST", compact = false 
     message: "",
     ...(kind === "VIEWING" ? { date: "", attendees: "2" } : {}),
     ...(kind === "REGISTER" ? { plotPreference: "" } : {}),
-    ...(kind === "CONTACT" ? { subject: "" } : {}),
   });
   const [status, setStatus] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -27,7 +26,7 @@ export default function InterestForm({ plot, kind = "INTEREST", compact = false 
     try {
       const res = await api.post("/api/public/inquiries", { ...form, kind, plotId: plot?.id ?? null });
       setStatus({ type: "success", message: res.message });
-      setForm((f) => ({ ...f, name: "", email: "", phone: "", idNumber: "", message: "", subject: "" }));
+      setForm((f) => ({ ...f, name: "", email: "", phone: "", idNumber: "", message: "" }));
     } catch (err) {
       setStatus({ type: "error", message: err.message });
     } finally {
@@ -66,11 +65,6 @@ export default function InterestForm({ plot, kind = "INTEREST", compact = false 
         <Field label="Phone Number" required>
           <input className="input" type="tel" required value={form.phone} onChange={set("phone")} autoComplete="tel" />
         </Field>
-        {kind === "CONTACT" && (
-          <Field label="Subject" required className="sm:col-span-2">
-            <input className="input" required value={form.subject} onChange={set("subject")} />
-          </Field>
-        )}
         {kind === "VIEWING" && (
           <>
             <Field label="Preferred Date">

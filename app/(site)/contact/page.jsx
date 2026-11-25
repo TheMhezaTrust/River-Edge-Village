@@ -6,7 +6,7 @@ import { googleMapEmbedSrc } from "@/lib/map-embed";
 
 export const metadata = {
   title: "Contact Us",
-  description: "Contact The Mheza Trust — phone, email, office details, contact form, interest registration and site viewing bookings.",
+  description: "Contact The Mheza Trust — email, office details, contact form, interest registration and site viewing bookings.",
 };
 
 export const dynamic = "force-dynamic";
@@ -38,7 +38,6 @@ export default async function ContactPage() {
             <div className="grid sm:grid-cols-2 gap-4">
               {[
                 ["📍", "Physical Address", ["Cove Ridge East", "Buffalo City Metropolitan Municipality", "Eastern Cape, South Africa"]],
-                ["📞", "Phone Numbers", TRUST.phones],
                 ["✉️", "Email", ["themhezatrust@gmail.com"]],
                 ["🌐", "Website", [TRUST.website]],
                 ["🕗", "Office Hours", ["Mon–Fri: 08:00–17:00", "Sat, Sun & public holidays: closed"]],
