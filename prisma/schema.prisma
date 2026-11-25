@@ -21,7 +21,7 @@ model User {
   name                 String
   email                String                @unique
   password             String
-  role                 String // SUPER_ADMIN (backend-only, displays as Administrator) | ADMIN | FINANCE | PLOTS
+  role                 String // SUPER_ADMIN (backend-only, displays as Administrator) | ADMIN | FINANCE | PLOTS (displays as Operations / Site Manager)
   phone                String?
   title                String?
   isActive             Boolean               @default(true)
@@ -40,6 +40,7 @@ model User {
   memberChangeRequests MemberChangeRequest[]
   supportMessages      SupportMessage[]
   supportAssignments   SupportTicketAssignee[]
+  siteReports          SiteReport[]
 }
 
 model Member {
@@ -704,4 +705,26 @@ model SupportTicketAssignee {
 
   @@unique([ticketId, userId])
   @@index([userId])
+}
+
+// Work done on the ground, logged by the Operations / Site Manager and read by the
+// Main Administrator. Append-only by design — there is no update or delete path
+// anywhere, so a report stays exactly as the person who did the work wrote it. A site
+// manager reads back only their own reports and an administrator reads all of them;
+// that rule lives in lib/site-reports.js and every route builds its query through it.
+// The photo is optional and lives in Vercel Blob. Auto-provisioned at runtime
+// (lib/provision.js) so no manual migration is needed.
+model SiteReport {
+  id          Int      @id @default(autoincrement())
+  workDate    DateTime // the day the work was done, which is not necessarily the day it was logged
+  title       String
+  notes       String?
+  photoUrl    String?
+  photoName   String?
+  createdById Int?
+  createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+
+  @@index([createdById])
+  @@index([workDate])
 }

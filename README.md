@@ -54,9 +54,9 @@ The public site has a single sign-in entry point at **`http://localhost:3000/log
 | thandile.sifiniza@themhezatrust.local | Thandile Sifiniza | Finance & Member Records |
 | sisanda.toni@themhezatrust.local | Sisanda Toni | Finance & Member Records |
 | nokuthula.gedle@themhezatrust.local | Nokuthula Gedle | Finance & Member Records |
-| sipho.jauka@themhezatrust.local | Sipho Jauka | Plot Administrator |
-| sydney.velapi@themhezatrust.local | Sydney Velapi | Plot Administrator |
-| lihle.jacob@themhezatrust.local | Lihle Jacob | Plot Administrator |
+| sipho.jauka@themhezatrust.local | Sipho Jauka | Operations / Site Manager |
+| sydney.velapi@themhezatrust.local | Sydney Velapi | Operations / Site Manager |
+| lihle.jacob@themhezatrust.local | Lihle Jacob | Operations / Site Manager |
 
 **Member portal** — `http://localhost:3000/portal`
 
@@ -130,7 +130,7 @@ Every member has a vault holding the paperwork the Trust issued them — the sig
 - **Upload** — PDF only, up to 25 MB, sent from the browser straight into Vercel Blob by the presigned flow (`uploadPresigned` → `POST /api/member-documents/upload` → `issueSignedToken`), so a large scan never passes through a serverless function. The signed token is `put`-scoped to one exact pathname under `member-documents/<memberId>/`, is issued only to a session holding `documents:manage` **with a fresh password confirmation**, and enforces the content type and size limit server-side as well as in the browser. The row that makes the file appear in the vault is written by `POST /api/members/[id]/documents`.
 - **Download** — always through a proxy (`GET /api/member-documents/[id]/file` for staff, `GET /api/portal/documents/[id]/file` for the member), which streams the object back rather than redirecting to it. **The Blob URL is never sent to a browser**: it is a permanent public link and these are signed legal documents carrying ID numbers, so `safeDocument()` strips `filePath` from every JSON response, and `isBlobUrl()` (`lib/member-documents.js`) stops a stored path from pointing the proxy anywhere else. File names are sanitised before they go into `Content-Disposition`. The member route takes its id from the verified session and puts it *in the lookup*, so somebody else's document is a 404 rather than a 403 — it does not exist as far as that route is concerned.
 - **Delete** — `DELETE /api/members/[id]/documents/[docId]`, scoped by member id *and* document id, behind `documents:manage` plus a password confirmation; the Blob object is removed best-effort afterwards, since the member's access ends the moment the row goes.
-- **Who** — `documents:manage` is held by Administrators *and* by Finance & Member Records, who capture the payments these acknowledgements confirm. `documents:view` is every role, so a Plot Administrator can read a member's contracts but cannot add to or remove from the vault.
+- **Who** — `documents:manage` is held by Administrators *and* by Finance & Member Records, who capture the payments these acknowledgements confirm. `documents:view` is every role, so an Operations / Site Manager can read a member's contracts but cannot add to or remove from the vault.
 
 Uploads and deletions are audited as `MEMBER_DOCUMENT_UPLOADED` / `MEMBER_DOCUMENT_DELETED`. The vault is separate from the Trust-level document library, which is still disabled — see *Re-enabling documents later*.
 
@@ -142,26 +142,46 @@ The member picks one of three reasons, and that choice alone decides where the t
 
 | Reason for Contact | Routed to | Member sees |
 | --- | --- | --- |
-| Plot Sales & Viewing | Lihle Jacob, Sydney Velapi | Plot Sales Office |
+| Plot Sales & Viewing | Lihle Jacob, Sydney Velapi, Sipho Jauka | Plot Sales Office |
 | Finance & Payments | Sisanda Toni, Thandile Sifiniza, Nokuthula Gedle | Finance Office |
-| Trust & Rezoning Info | Sipho Jauka, Bongani Sifiniza | Trust Administration |
+| Trust & Rezoning Info | Bongani Sifiniza | Trust Administration |
+
+The three Operations / Site Manager accounts are named under **Plot Sales & Viewing only**. They work on the ground and meet prospective buyers on site, so that is theirs to answer; finance and rezoning questions go to the office, which matches their workstation access being read-only for both.
 
 - **Routing** is matched on each person's sign-in email address, the one staff field the Trust controls and cannot duplicate. An account that has been renamed or deactivated drops out of the assignment rather than sending the ticket to the wrong person; if nobody resolves at all, the ticket is still created with its department and a single unowned notification reaches every member of staff, so a message is never left where no one sees it. Each assigned person also gets their own bell notification.
 - **Names are never shown to a member.** `MEMBER_TICKET_SELECT` is the whole member-facing contract: it selects the department and the message bodies but no `senderId`, no sender relation and no assignees, so a reply arrives as "The Mheza Trust" and there is no field an accidental `include` could leak a person through. The reason list is passed to the portal component as a prop rather than imported, because the routing map it comes from carries those staff addresses; the workstation imports `REASON_LABELS`, the same map with the routing stripped out.
 - **Who reads what** — one rule, written once as `ticketAccessWhere(role, userId)` and used by the list, the detail and the reply routes so they cannot drift apart. An administrator (and the Software Owner, whose role is to audit everything) reads every ticket; every other role reads only the tickets routed to them, which keeps one member's question about their payments away from staff who have no part in it. The inbox offers an *Assigned to me* filter on top of that.
-- **Answering** needs `support:manage` — held by the two administrator roles, Finance Admin, Finance & Member Records and Plot Administrators, i.e. exactly the seven people the routing names. The Software Owner holds `support:view` only, so the inbox opens read-only and `middleware.js` refuses any write from it.
+- **Answering** needs `support:manage` — held by the two administrator roles, Finance Admin, Finance & Member Records and Operations / Site Managers, i.e. exactly the seven people the routing names. The Software Owner holds `support:view` only, so the inbox opens read-only and `middleware.js` refuses any write from it.
 - **Status** is `OPEN` (waiting on staff) or `ANSWERED`. A staff reply sets `ANSWERED`; a member writing again in the thread sets it back to `OPEN`, because a follow-up means the Trust owes another answer. Members may follow up — the thread is a conversation, not one message per ticket.
 
 Member messages are rate-limited (10 new tickets and 20 follow-ups per hour per member). Opening a ticket is audited as `SUPPORT_TICKET_OPENED` and each staff reply as `SUPPORT_REPLY_SENT`. No email is sent: the Resend sending domain is not DNS-verified yet, so the thread is in-app only until it is.
+
+### Site Reports (ground-work log)
+
+`/workstation/site-reports` — the Operations / Site Manager writes down what was done on the ground (clearing, fencing, grading, repairs) and the Main Administrator reads it. The sidebar tab renders on `sitereports:view`, which is held by the two administrator roles, the Software Owner and Operations / Site Managers only — Finance and Finance Admin do not see it, because they have no part in site work.
+
+A report carries the **date the work was done** (not the date it was logged), a **summary**, optional **notes** and an optional **photo**. The photo uploads straight from the browser to Vercel Blob through the same presigned flow as the gallery and the Ad Manager (`POST /api/site-reports/upload`, `sitereports:manage`, 20 MB, `image/*`), so a picture taken on a phone never passes through the serverless function; the report row is then written by `POST /api/site-reports`.
+
+- **Append-only, for every role.** There is no `PUT` and no `DELETE` route in the module and the table has no `updatedAt` column, so an Administrator cannot rewrite a report either. A report records work that already happened; if something needs correcting, the site manager logs a follow-up.
+- **Who reads what** — one rule, written once as `reportAccessWhere(role, userId)` in `lib/site-reports.js` and used by every query in the module so the list and any future single-report read cannot drift apart. An administrator and the Software Owner read every report; a site manager reads only the reports they wrote.
+- **Authorship survives the author.** `createdById` is `ON DELETE SET NULL`, not `CASCADE`, so deactivating or removing a staff account does not remove the record of what was done on the site — that belongs to the Trust, not to the employee.
+- Logging a report is audited as `SITE_REPORT_LOGGED`.
+- Unlike member documents, which stream through an access-controlled proxy so a Blob URL never reaches a browser, site photos are stored with **public read access**. That is a deliberate trade: they are pictures of ground work with no member or financial detail in them, and the address is only ever handed to signed-in staff.
+
+The `SiteReport` table is auto-provisioned on first use by `ensureSiteReportTable()` in `lib/provision.js`, like the other additive tables.
 
 ## Roles & permissions
 
 Defined in `lib/roles.js`. Every staff role can **view every module**; only writes are restricted. Each API route handler calls `guard("resource:action")` before touching data, and the workstation UI hides controls the current role cannot use.
 
-- **Administrator** (Bongani Sifiniza) — everything, including user management, settings and the audit log
+- **Administrator** (Bongani Sifiniza) — everything, including user management, settings, the audit log and the Site Reports feed
 - **Finance Admin** *(designated by the Main Administrator — not yet assigned to a person)* — everything Finance & Member Records can, plus the formal books (`finance:admin`): budget jars and their percentages, expenses, closing accounting periods, posting adjustments, distributions and opening balances
-- **Finance & Member Records** (Thandile Sifiniza, Sisanda Toni, Nokuthula Gedle) — changes to finances, payroll, member/customer records, inquiries, **plot records** (erf number, size, availability, price, block, purchase date and layout position), the document library and member communications; everything else read-only
-- **Plot Administrator** (Sipho Jauka, Sydney Velapi, Lihle Jacob) — **read-only across the entire workstation**, including plots, members and finances. The single exception is the Support Inbox: this role can reply to the member tickets routed to it (`support:manage`), and cannot create, edit or delete anything else
+- **Finance & Member Records** (Thandile Sifiniza, Sisanda Toni, Nokuthula Gedle) — changes to finances, payroll, member/customer records, inquiries, **plot records** (erf number, size, availability, price, block and date of purchase), the document library and member communications; everything else read-only. The plot **map position is not editable by anybody** — see below
+- **Operations / Site Manager** (Sipho Jauka, Sydney Velapi, Lihle Jacob) — **read-only across the entire workstation**, including plots, members, finances and the plot layout. Exactly two exceptions: this role logs ground work into **Site Reports** (`sitereports:view` + `sitereports:manage`, scoped to its own reports) and replies to the **Plot Sales & Viewing** tickets routed to it (`support:manage`). It cannot create, edit or delete anything else
+
+The role key in the database and in `lib/roles.js` is still `PLOTS`; only the label changed. Live staff rows store the key, so renaming it would have needed a data migration for no gain.
+
+**Plot map positions are not editable at all.** Every plot's `x`/`y` is digitised from the official survey layout plan (`lib/plan-layout.js`) and written once, when the plot is created. `PUT /api/plots/[id]` accepts only `number`, `sizeSqm`, `price`, `status`, `description`, `block`, `certificateIssued`, `purchasedAt` and `memberId` — there is no coordinate in the allowlist, no layout editor and no drag-to-move on the map, which is pan and zoom only. That is deliberate: the positions transcribe a legal survey document, so a staff-facing editor would let the system's map drift from the surveyed plan. Changing one is a code change to `lib/plan-layout.js`, reviewed against the plan.
 
 Editing or deleting a payment that has already been captured (`payments:correct`) is deliberately **not** part of `finance:manage`, so it does not reach Finance & Member Records through any role list — only the two administrator roles hold it. The fund-accounting and audit controls are gated by a separate `finance:admin` permission that is **not** in the ordinary administrator's `ALL_PERMS` list — it is held only by `SUPER_ADMIN` and the `Finance Admin` role, so the formal books stay narrower than general finance access.
 
@@ -180,7 +200,7 @@ It is deliberately invisible — the role label is **"Administrator"**, identica
 
 One account is designated the **Software Owner** (`VIEW963_OWNER_EMAIL` / `VIEW963_OWNER_PASSWORD` in Vercel — see `lib/owner-account.js`). It outranks the Main Administrator in seniority and is created automatically the first time that email address signs in; it is never listed in Settings → Users (it is masked as "Administrator" in the staff directory) and no administrator can edit it, reset its password or delete it.
 
-The role is an **auditing** role. It carries every `:view` permission and no write permission at all, so each module opens — Members, Finance, Plots, Projects, Inquiries, Departments, Tasks, Communication, Support Inbox, Reports, Website Content, Photo Gallery, Traffic Analytics, Settings — with every Save / Edit / Delete / Approve control hidden. Two layers enforce it:
+The role is an **auditing** role. It carries every `:view` permission and no write permission at all, so each module opens — Members, Finance, Plots, Projects, Site Reports, Inquiries, Departments, Tasks, Communication, Support Inbox, Reports, Website Content, Photo Gallery, Traffic Analytics, Settings — with every Save / Edit / Delete / Approve control hidden. Two layers enforce it:
 
 - **RBAC** — `guard("resource:manage")` rejects every write, and the UI hides controls the role cannot use. A handful of controls were never permission-gated (composing an internal message, marking notifications read, the Website Content and Photo Gallery save/upload buttons), so those are hidden explicitly on the role.
 - **`middleware.js`** — an Edge catch-all on `/api/*` that returns `403` for any non-`GET` request from this role outside `/api/ads` and `/api/auth`. It covers routes that were only ever guarded by a `:view` permission, so adding one later cannot quietly open a write path.

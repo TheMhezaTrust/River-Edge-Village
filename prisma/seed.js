@@ -42,6 +42,7 @@ async function main() {
 
   // clean (FK-safe order)
   await prisma.auditLog.deleteMany();
+  await prisma.siteReport.deleteMany();
   await prisma.notification.deleteMany();
   await prisma.announcement.deleteMany();
   await prisma.message.deleteMany();
@@ -73,15 +74,19 @@ async function main() {
 
   // ---------- Staff users ----------
   // Everyone can view every module; write access is limited by role (see lib/roles.js).
+  // The PLOTS key is the Operations / Site Manager role: read-only across the
+  // workstation, writing only Site Reports and support-ticket replies. The `title`
+  // below is the free-text line the topbar shows under the person's name, so it
+  // describes their actual duties rather than repeating the role label.
   const staffPassword = await bcrypt.hash("Mheza@2026", 10);
   const staffDefs = [
     { handle: "bongani", name: "Bongani Sifiniza", email: "bongani.sifiniza@themhezatrust.local", role: "SUPER_ADMIN", title: "Full access - all modules" },
     { handle: "thandile", name: "Thandile Sifiniza", email: "thandile.sifiniza@themhezatrust.local", role: "FINANCE", title: "Finances & customer records" },
     { handle: "sisanda", name: "Sisanda Toni", email: "sisanda.toni@themhezatrust.local", role: "FINANCE", title: "Finances & customer records" },
     { handle: "nokuthula", name: "Nokuthula Gedle", email: "nokuthula.gedle@themhezatrust.local", role: "FINANCE", title: "Finances & customer records" },
-    { handle: "sipho", name: "Sipho Jauka", email: "sipho.jauka@themhezatrust.local", role: "PLOTS", title: "Plot records & layout" },
-    { handle: "sydney", name: "Sydney Velapi", email: "sydney.velapi@themhezatrust.local", role: "PLOTS", title: "Plot records & layout" },
-    { handle: "lihle", name: "Lihle Jacob", email: "lihle.jacob@themhezatrust.local", role: "PLOTS", title: "Plot records & layout" },
+    { handle: "sipho", name: "Sipho Jauka", email: "sipho.jauka@themhezatrust.local", role: "PLOTS", title: "Site operations & ground work" },
+    { handle: "sydney", name: "Sydney Velapi", email: "sydney.velapi@themhezatrust.local", role: "PLOTS", title: "Site operations & ground work" },
+    { handle: "lihle", name: "Lihle Jacob", email: "lihle.jacob@themhezatrust.local", role: "PLOTS", title: "Site operations & ground work" },
   ];
   const users = {};
   for (const { handle, ...def } of staffDefs) {
@@ -249,9 +254,9 @@ async function main() {
     ["Thandile Sifiniza", "Finance & Member Records", 16500, 920, 165, 165],
     ["Sisanda Toni", "Finance & Member Records", 15000, 780, 150, 150],
     ["Nokuthula Gedle", "Finance & Member Records", 14500, 720, 145, 145],
-    ["Sipho Jauka", "Plot Administrator", 13500, 560, 135, 135],
-    ["Sydney Velapi", "Plot Administrator", 13000, 520, 130, 130],
-    ["Lihle Jacob", "Plot Administrator", 12500, 470, 125, 125],
+    ["Sipho Jauka", "Operations / Site Manager", 13500, 560, 135, 135],
+    ["Sydney Velapi", "Operations / Site Manager", 13000, 520, 130, 130],
+    ["Lihle Jacob", "Operations / Site Manager", 12500, 470, 125, 125],
   ];
   for (const [name, jobTitle, salary, paye, uif, sdl] of payrollDefs) {
     await prisma.employee.create({ data: { name, jobTitle, salary, paye, uif, sdl, startDate: "2024-02-01" } });

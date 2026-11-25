@@ -14,6 +14,7 @@ const NAV = [
   { href: "/workstation/members", label: "Members", icon: "👥", perm: "members:view" },
   { href: "/workstation/plots", label: "Plots", icon: "🗺️", perm: "plots:view" },
   { href: "/workstation/projects", label: "Projects", icon: "🏘️", perm: "projects:view" },
+  { href: "/workstation/site-reports", label: "Site Reports", icon: "🏗️", perm: "sitereports:view" },
   { href: "/workstation/inquiries", label: "Inquiries", icon: "💬", perm: "inquiries:view" },
   { href: "/workstation/finance", label: "Finance", icon: "💰", perm: "finance:view" },
   { href: "/workstation/departments", label: "Departments", icon: "🏛️", perm: "departments:view" },

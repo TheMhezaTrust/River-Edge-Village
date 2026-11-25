@@ -5,9 +5,9 @@
 **Goal:** every staff member can sign in, understand their role's scope, and navigate the workstation.
 
 1. Sign in at `/login` (choose **Administrator / Staff**) or go directly to `/workstation` with your issued credentials. Change your password immediately (Settings → Profile).
-2. Tour the sidebar: every module is visible to every staff role.
+2. Tour the sidebar. Most modules are visible to every staff role; three are not — **Traffic Analytics** and the **Ad Manager** (Main Administrator / Software Owner) and **Site Reports** (Administrators and Operations / Site Managers).
 3. Understand the permission model:
-   - You can **view everything**; what you can **change** depends on your role — Administrator (everything, including staff accounts), Finance Admin (the formal books: jars, expenses, period locking, adjustments, distributions, opening balances), Finance & Member Records (finances, payroll, members, inquiries, plot records and layout, documents, communications) or Plot Administrator (**read-only everywhere** — the one thing they can write is a reply to a support ticket routed to them). Read-only pages say so with an amber banner and show no edit buttons.
+   - You can **view almost everything**; what you can **change** depends on your role — Administrator (everything, including staff accounts), Finance Admin (the formal books: jars, expenses, period locking, adjustments, distributions, opening balances), Finance & Member Records (finances, payroll, members, inquiries, plot records, documents, communications) or Operations / Site Manager (**read-only everywhere** — the two things they can write are a Site Report and a reply to a *Plot Sales & Viewing* support ticket routed to them). Read-only pages say so with an amber banner and show no edit buttons.
    - Every create/update/delete is written to the audit log, which every role can read at Settings → Audit.
 4. Dashboard walkthrough: stats, sales trend, quick actions, notifications bell, your tasks.
 
@@ -22,7 +22,8 @@
 3. **Convert to Member** pre-fills the member record; the interested plot moves to Reserved (or Sold when payment clears).
 4. Plot status discipline — the map is the single source of truth:
    - Green Available · Yellow Reserved (deposit received) · Red Sold (paid in full or on an approved plan).
-   - Only **Finance & Member Records** (Thandile, Sisanda, Nokuthula) and the **Administrator** can change plot size, availability or layout position; Plot Administrators and everyone else can read it. Ask Finance & Member Records before promising a status change.
+   - Only **Finance & Member Records** (Thandile, Sisanda, Nokuthula) and the **Administrator** can change plot size, price or availability; Operations / Site Managers and everyone else can read it. Ask Finance & Member Records before promising a status change.
+   - **Nobody can move a plot on the map.** The positions are transcribed from the official survey layout plan and are not an editable field anywhere in the workstation. If a plot is in the wrong place, report it to the Administrator, who will have it corrected against the plan — do not promise a buyer a different position.
    - Erf numbers follow the official survey layout plan, including subdivided erven (1A, 145A/145B, 165A, 186A, 203A). Always quote the erf number, not a row/column.
 5. Promotional rules: R75,000 requires **full payment** before 30 Nov 2026; after that R90,000 with 6/12/24-month plans.
 
@@ -50,7 +51,7 @@
 
 ## Session 4: Compliance & Departments (45 min — Administrator; others attend to understand the record)
 
-Only the Administrator can change department records and follow-up dates; Finance & Member Records and Plot Administrators can read them and should report any interaction to the Administrator the same day.
+Only the Administrator can change department records and follow-up dates; Finance & Member Records and Operations / Site Managers can read them and should report any interaction to the Administrator the same day.
 
 **Goal:** keep the approvals record complete and current.
 
@@ -82,6 +83,19 @@ Only the Administrator can change department records and follow-up dates; Financ
 - Backups: database file + `storage/uploads` directory are backed up per the deployment schedule.
 - Member personal and financial data is never exposed on the public website: the public plot pages carry erf number, size, price and availability only.
 
+## Session 7: Site Reports (15 min — Operations / Site Managers, Administrator)
+
+**Goal:** keep a permanent written record of the work done on the ground.
+
+1. **Site Reports** is in the sidebar for Operations / Site Managers and Administrators only. The finance roles do not see it — site work is not their module.
+2. Log each piece of work as you finish it: the **date the work was done** (you may write up a week's work on a Friday, so this is not necessarily today), a short **summary** the Administrator can read at a glance (*"Cleared trees on Road A"*, *"Fixed boundary fence"*), **notes** for the detail (what, where on the site, who did it, what is still outstanding), and a **photo** if you have one.
+3. The photo is optional and uploads from your phone straight into the Trust's storage — there is a progress bar, and a report is still worth logging with no picture attached.
+4. **You see only your own reports. The Administrator sees everyone's.**
+5. **A report cannot be edited or deleted — by anybody, including the Administrator.** It is the Trust's record of work that already happened, so if you make a mistake, log a follow-up report that corrects it. Write the summary as though it will be read in two years by someone who was not there.
+6. Site Reports is not a request channel. If you need a decision, a purchase or a plot status changed, that goes to the Administrator directly — logging a report does not notify anyone.
+
+**Exercise:** log one real piece of work from this week, with a photo, then find it in the feed and confirm you cannot edit it.
+
 ## Quick-reference card
 
 | I want to… | Go to |
@@ -93,5 +107,7 @@ Only the Administrator can change department records and follow-up dates; Financ
 | Post team news | Communication → Announcements |
 | Assign work | Tasks → Add Task *(Administrator, Finance & Member Records)* |
 | Answer a member's ticket | Support Inbox → open the ticket → Reply *(your own routed tickets)* |
+| Log work done on the site | Site Reports → Log work done *(Operations / Site Manager)* |
+| Read the site work log | Site Reports *(Administrator — everyone's reports)* |
 | Find a document | Documents → folder/tag search |
 | Add a staff user | Settings → Users (Admin only) |
