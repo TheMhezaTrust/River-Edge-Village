@@ -54,12 +54,6 @@ export default function Footer() {
             <h3 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Contact</h3>
             <ul className="space-y-3 text-sm text-forest-200">
               <li>
-                <span className="block text-white font-medium">Phone</span>
-                {TRUST.phones.map((p) => (
-                  <a key={p} href={`tel:+27${p.slice(1).replace(/\s/g, "")}`} className="block hover:text-white">{p}</a>
-                ))}
-              </li>
-              <li>
                 <span className="block text-white font-medium">Email</span>
                 <a href="mailto:themhezatrust@gmail.com" className="hover:text-white">themhezatrust@gmail.com</a>
               </li>

@@ -297,8 +297,7 @@ export default async function HomePage() {
             subtitle="Whether you want to learn more about a project, book a site viewing, or verify our details, a person from the Trust will help you."
           />
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link href="/contact" className="btn-primary px-7 py-3.5">Contact The Trust</Link>
-            <a href={TRUST.primaryPhoneHref} className="btn-outline px-7 py-3.5">Call {TRUST.primaryPhone}</a>
+            <Link href="/contact#contact-form" className="btn-primary px-7 py-3.5">Contact The Trust</Link>
           </div>
           <p className="mt-6 text-sm text-gray-600">
             Already a member or staff? <Link href="/login" className="underline font-semibold text-forest-700">Log in here</Link>.
