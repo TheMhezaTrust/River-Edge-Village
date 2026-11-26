@@ -5,6 +5,7 @@ import { zar, dateFmt } from "@/lib/format";
 import { SectionHeading, StatusPill } from "@/components/ui";
 import InterestForm from "@/components/InterestForm";
 import { getSiteContent } from "@/lib/site-content";
+import { FARM } from "@/lib/contact";
 
 export const dynamic = "force-dynamic";
 
@@ -74,7 +75,21 @@ export default async function ProjectPage({ params }) {
           ) : (
             <h1 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight">{project.name}</h1>
           )}
-          <p className="mt-3 text-lg text-forest-100 max-w-3xl">{project.address}</p>
+          {/* The directions pin is River Edge's surveyed position (lib/contact.js).
+              A future project on different land must not inherit it. */}
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 max-w-3xl">
+            <p className="text-lg text-forest-100">{project.address}</p>
+            {project.slug === "river-edge" && (
+              <a
+                href={FARM.directionsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-white btn-sm inline-flex items-center gap-2"
+              >
+                <span aria-hidden>🧭</span> Get Directions
+              </a>
+            )}
+          </div>
           <dl className="mt-8 grid grid-cols-2 md:grid-cols-5 gap-4 max-w-4xl">
             {[
               ["Farm size", `${project.farmSizeHa} ha`],

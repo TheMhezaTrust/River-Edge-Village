@@ -1,6 +1,6 @@
 import InterestForm from "@/components/InterestForm";
 import { SectionHeading } from "@/components/ui";
-import { TRUST } from "@/lib/contact";
+import { TRUST, FARM } from "@/lib/contact";
 import { getSiteContent } from "@/lib/site-content";
 import { googleMapEmbedSrc } from "@/lib/map-embed";
 
@@ -37,7 +37,7 @@ export default async function ContactPage() {
           <div className="space-y-6">
             <div className="grid sm:grid-cols-2 gap-4">
               {[
-                ["📍", "Physical Address", ["Cove Ridge East", "Buffalo City Metropolitan Municipality", "Eastern Cape, South Africa"]],
+                ["📍", "Physical Address", [FARM.address]],
                 ["✉️", "Email", ["themhezatrust@gmail.com"]],
                 ["🌐", "Website", [TRUST.website]],
                 ["🕗", "Office Hours", ["Mon–Fri: 08:00–17:00", "Sat, Sun & public holidays: closed"]],
@@ -64,6 +64,16 @@ export default async function ContactPage() {
                 {mapCaption && (
                   <div className="p-3 text-xs text-gray-500 text-center">{mapCaption}</div>
                 )}
+                <div className="px-5 pb-5">
+                  <a
+                    href={FARM.directionsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-outline btn-sm inline-flex w-full items-center justify-center gap-2"
+                  >
+                    <span aria-hidden>🧭</span> Get Directions
+                  </a>
+                </div>
               </div>
             )}
           </div>

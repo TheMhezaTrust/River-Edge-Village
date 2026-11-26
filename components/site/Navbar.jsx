@@ -18,6 +18,23 @@ const LINKS = [
 const ABOUT_SUB = [["/about/how-projects-work", "How Our Projects Work"]];
 const ABOUT_CHILDREN = [["/about", "About Us Overview"], ...ABOUT_SUB];
 
+// The staff entrance is deliberately unlabelled: a small logo mark that blends
+// into the bar instead of a "Staff Login" button. Only aria-label announces it,
+// per the security-through-obscurity requirement — no title tooltip, no text.
+function StaffLoginLink({ className, onClick }) {
+  return (
+    <Link
+      href="/login?to=staff"
+      aria-label="Staff Login"
+      className={className}
+      onClick={onClick}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/images/trust-logo.jpg" alt="" aria-hidden className="h-9 w-9 rounded-md object-cover ring-1 ring-gray-200" width={36} height={36} />
+    </Link>
+  );
+}
+
 export default function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -84,7 +101,7 @@ export default function Navbar() {
           </nav>
 
           <div className="hidden lg:flex items-center gap-2">
-            <Link href="/login?to=staff" className="btn-ghost btn-sm">Staff Login</Link>
+            <StaffLoginLink className="flex items-center rounded-md p-0.5 transition-opacity hover:opacity-70" />
             <Link href="/portal" className="btn-primary btn-sm">Member Login</Link>
           </div>
 
@@ -132,7 +149,7 @@ export default function Navbar() {
           ))}
           <div className="pt-2 flex flex-col gap-2 border-t border-gray-100 mt-2">
             <Link href="/portal" onClick={() => setOpen(false)} className="btn-primary btn-sm">Member Login</Link>
-            <Link href="/login?to=staff" onClick={() => setOpen(false)} className="btn-outline btn-sm">Staff Login</Link>
+            <StaffLoginLink className="self-start rounded-md p-0.5 transition-opacity hover:opacity-70" onClick={() => setOpen(false)} />
           </div>
         </nav>
       )}
